@@ -1,0 +1,44 @@
+services:
+  # 1. IL DATABASE
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3306:3306" # Esposto per poterlo controllare con un tool grafico se vuoi
+    volumes:
+      - mysql_data:/var/lib/mysql # Per non perdere i dati se spegni docker
+
+  # 2. IL BACKEND (RAILS)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    command: /bin/sh -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0'"
+    volumes:
+      - ./backend:/rails # Sincronizza la tua cartella locale col container (Hot reload!)
+      - /rails/vendor/bundle # Evita di reinstallare le gemme ogni volta
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PASSWORD: password
+
+  # 3. IL FRONTEND (ANGULAR)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile # O Dockerfile.dev se l'hai chiamato così
+    volumes:
+      - ./frontend:/app # Sincronizza le modifiche in tempo reale
+      - /app/node_modules # Evita che il node_modules locale sovrascriva quello del container
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
