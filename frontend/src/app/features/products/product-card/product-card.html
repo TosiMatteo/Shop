@@ -1,0 +1,15 @@
+<mat-card appearance="outlined">
+  <mat-card-content>
+    @if (product.thumbnail) {
+      <img mat-card-image [src]="product.thumbnail" alt="product.title" />
+    }
+    <div class="title">{{product.title}}</div>
+    <span>{{product.price|currency:'EUR'}}</span>
+  </mat-card-content>
+  <mat-card-actions align="end">
+    <button mat-flat-button color="primary" aria-label="Aggiungi al carrello" (click)="add.emit(product)">
+      <mat-icon aria-hidden="true">add_shopping_cart</mat-icon>
+      Aggiungi
+    </button>
+  </mat-card-actions>
+</mat-card>

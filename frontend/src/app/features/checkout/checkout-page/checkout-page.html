@@ -1,0 +1,62 @@
+{{ form.value | json}}
+<form class="checkout-form" [formGroup]="form" (submit)="onSubmit()">
+
+  <div class="error-summary" role="status" aria-live="polite">
+    <p>Il form contiene errori. Controlla i campi evidenziati prima di procedere</p>
+  </div>
+
+    <div formGroupName="customer">
+      <h2>Dati cliente</h2>
+      <mat-form-field appearance="outline">
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="firstName"/>
+
+        @if(hasError('customer.firstname', 'required')){
+          <mat-error> il nome è obbligatorio</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Cognome</mat-label>
+        <input matInput formControlName="lastName"/>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email"/>
+        @if (hasError('customer.email', 'required')){
+          <mat-error>L'email è obbligatoria.</mat-error>
+        }
+        @if (hasError('customer.email', 'email')){
+          <mat-error>Inserisci un indirizzo email valido.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div formGroupName="address">
+      <h2>Indirizzo</h2>
+      <mat-form-field appearance="outline">
+        <mat-label>Via</mat-label>
+        <input matInput formControlName="street"/>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>CAP</mat-label>
+        <input matInput formControlName="zip"/>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Città</mat-label>
+        <input matInput formControlName="city"/>
+      </mat-form-field>
+    </div>
+
+    <mat-select formControlName="shippingMethod" placeholder="Metodo di spedizione">
+      <mat-option value="standard">Spedizione standard (3-5 giorni)</mat-option>
+      <mat-option value="express">Spedizione express (1-2 giorni)</mat-option>
+    </mat-select>
+
+    <mat-checkbox formControlName="privacy">Accetto termini e privacy</mat-checkbox>
+
+    <button mat-raised-button color="primary" type="submit">Conferma ordine</button>
+</form>

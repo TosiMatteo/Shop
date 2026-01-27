@@ -1,0 +1,39 @@
+.container {
+  display: flex;
+  align-items: center;
+  flex-flow: row wrap;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+.filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+// .grid {
+//     display: flex;
+//     gap: 1rem;
+//     flex-flow: row wrap;
+//     justify-content: center;
+//     flex-grow: 1;
+// }
+
+// .empty {
+//     margin-top: 1rem;
+//     color: #6b7280;
+//     text-align: center;
+// }
+
+app-product-card {
+  width: 100%;
+  margin-top: 2em;
+}

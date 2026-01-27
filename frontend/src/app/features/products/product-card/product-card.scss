@@ -1,0 +1,6 @@
+mat-card { display: flex; flex-direction: column; height: 100%; }
+mat-card-content { flex-grow: 1; display: flex; flex-flow: row wrap; gap: .5rem; }
+mat-card-actions { padding: 1rem; }
+mat-card-actions button { gap: .5rem; }
+.title { font-weight: bold; font-size: 1.2rem; flex-grow: 1; padding-left: 133px;}
+img { max-height: 150px; object-fit: contain; margin-bottom: 1rem; }
