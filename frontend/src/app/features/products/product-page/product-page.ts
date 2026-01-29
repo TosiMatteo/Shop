@@ -6,7 +6,7 @@ import {MatFormField} from '@angular/material/form-field';
 import {MatLabel} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
 import {AsyncPipe} from '@angular/common';
-import {BehaviorSubject, combineLatest, debounce, debounceTime, distinctUntilChanged, map, startWith} from 'rxjs';
+import {BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, map, startWith} from 'rxjs';
 import {Product} from '../../../core/models/product';
 import {MatOption} from '@angular/material/core';
 import {MatSelect} from '@angular/material/select';
@@ -16,8 +16,8 @@ type Sort = 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc';
 const cmp = (s:Sort)=>(a:Product,b:Product)=>
   s==='priceAsc'? a.price-b.price :
     s==='priceDesc'? b.price-a.price :
-      s==='dateAsc'? a.createdAt.localeCompare(b.createdAt) :
-        b.createdAt.localeCompare(a.createdAt);
+      s==='dateAsc'? a.created_at.localeCompare(b.created_at) :
+        b.created_at.localeCompare(a.created_at);
 
 
 @Component({
@@ -45,7 +45,7 @@ export class ProductPage {
   private filters$ = new BehaviorSubject({
     title:'',
     sort:'dateDesc' as Sort,
-    priceFilter:{min:0,max:100}
+    priceFilter:{min:0,max:Number.POSITIVE_INFINITY}
   });
 
 
@@ -58,14 +58,15 @@ export class ProductPage {
     this.products$,
     this.filters$,
     this.title$
-  ]).pipe(map(([products, filters, title]) => products.filter(products =>{
-  const matchesTitle =
-    !title ||
-    products.title.toLowerCase().includes(filters.title.toLowerCase());
-  const matchesPrice = products.price >= filters.priceFilter.min && products.price <= filters.priceFilter.max;
-  return matchesTitle && matchesPrice;})
-    .toSorted(cmp(filters.sort))
-  ));
+  ]).pipe(map(([products, filters, title]) => products.filter(products => {
+    const matchesTitle =
+      !title ||
+      products.title.toLowerCase().includes(title.toLowerCase());
+    const matchesPrice =
+      products.price >= filters.priceFilter.min &&
+      products.price <= filters.priceFilter.max;
+    return matchesTitle && matchesPrice;
+  }).toSorted(cmp(filters.sort))));
 
   page$ = new BehaviorSubject(1);
   pageSize = 6;
@@ -97,19 +98,31 @@ export class ProductPage {
   }
 
   protected updatePriceMin(value:any) {
+    const min = this.parsePrice(value, 0);
     this.filters$.next(
       {...this.filters$.value,
-      priceFilter:{min:value,max:this.filters$.value.priceFilter.max}
+      priceFilter:{min:min,max:this.filters$.value.priceFilter.max}
       }
     )
   }
 
   protected updatePriceMax(value:any) {
+    const max = this.parsePrice(value, Number.POSITIVE_INFINITY);
     this.filters$.next(
       {...this.filters$.value,
-      priceFilter:{min:this.filters$.value.priceFilter.min,max:value}
+      priceFilter:{min:this.filters$.value.priceFilter.min,max:max}
       }
     )
   }
 
+  private parsePrice(value:any, fallback:number) {
+    if (value === '' || value === null || value === undefined) {
+      return fallback;
+    }
+    if (typeof value === 'string' && value.trim() === '') {
+      return fallback;
+    }
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
 }

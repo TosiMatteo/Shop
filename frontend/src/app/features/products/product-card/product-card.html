@@ -1,7 +1,12 @@
 <mat-card appearance="outlined">
   <mat-card-content>
-    @if (product.thumbnail) {
-      <img mat-card-image [src]="product.thumbnail" alt="product.title" />
+    @if (product.thumbnail_url) {
+      <img class="product-image" mat-card-image
+        [ngSrc]="product.thumbnail_url"
+        [alt]="product.title"
+        [width]="150"
+        [height]="150"
+      />
     }
     <div class="title">{{product.title}}</div>
     <span>{{product.price|currency:'EUR'}}</span>

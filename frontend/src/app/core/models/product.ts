@@ -3,9 +3,9 @@ export interface Product {
   title: string;
   description: string;
   price: number;
-  originalPrice: number;
+  original_price: number;
   sale: boolean;
-  thumbnail?: string;
+  thumbnail_url?: string;
   tags?: string[];
-  createdAt: string;
+  created_at: string;
 }

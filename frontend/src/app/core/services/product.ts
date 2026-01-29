@@ -7,11 +7,11 @@ import {HttpClient} from '@angular/common/http';
   providedIn: 'root',
 })
 export class ProductApi {
-  private readonly url = 'http://localhost:3000/api';
+  private readonly url = 'http://localhost:3000/products';
 
   constructor(private readonly  http: HttpClient) {}
 
   list(): Observable<Product[]>{
-    return this.http.get<Product[]>(`${this.url}/products`);
+    return this.http.get<Product[]>(`${this.url}`);
   }
 }
