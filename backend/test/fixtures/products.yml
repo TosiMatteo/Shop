@@ -6,7 +6,8 @@ one:
   price: 9.99
   original_price: 9.99
   sale: false
-  tags: 
+  tags:
+    - Informatica
 
 two:
   title: MyString
@@ -14,4 +15,5 @@ two:
   price: 9.99
   original_price: 9.99
   sale: false
-  tags: 
+  tags:
+    - tazze

@@ -5,14 +5,19 @@ class ProductsController < ApplicationController
   def index
     @products = Product.all
 
+    if params[:tag].present?
+      @products = @products.joins(:tags).where("tags.name = ?", params[:tag])
+    end
+
     render json: @products.map { |product|
-      product.as_json.merge({ thumbnail_url: url_for(product.thumbnail) })
+      thumbnail_url = product.thumbnail.attached? ? url_for(product.thumbnail) : nil
+      product.as_json(include: :tags).merge({ thumbnail_url: thumbnail_url })
     }
   end
 
   # GET /products/1
   def show
-    render json: @product
+    render json: @product.as_json(include: :tags)
   end
 
   # POST /products
@@ -48,6 +53,6 @@ class ProductsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def product_params
-      params.expect(product: [ :title, :description, :price, :original_price, :sale, :tags, :thumbnail ])
+      params.expect(product: [ :title, :description, :price, :original_price, :sale, :thumbnail, { tag_ids: [] } ])
     end
 end

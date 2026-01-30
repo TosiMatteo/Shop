@@ -1,9 +1,16 @@
 # db/seeds.rb
 require 'open-uri'
 
+ProductTag.destroy_all
 Product.destroy_all
+Tag.destroy_all
 
-10.times do |i|
+Faker::Config.locale = "it"
+
+tag_names = ["Elettronica", "Casa", "Abbigliamento", "Libri", "Sport", "Nuovi Arrivi"]
+created_tags = tag_names.map { |name| Tag.create!(name: name) }
+
+20.times do |i|
   # Generiamo dati casuali
   title = Faker::Commerce.product_name
   description = Faker::Lorem.paragraph(sentence_count: 5)
@@ -20,11 +27,11 @@ Product.destroy_all
     original_price: original_price,
     price: price,
     sale: is_sale,
-    tags: [ Faker::Commerce.department, "Promo", "New" ].sample(2)
   )
 
+  product.tags << created_tags.sample(rand(1..3))
+
   # Scarichiamo un'immagine casuale (200x300 px)
-  # Usiamo un seed casuale nell'URL per avere immagini diverse
   image_url = "https://picsum.photos/300/300"
   downloaded_image = URI.open(image_url)
 

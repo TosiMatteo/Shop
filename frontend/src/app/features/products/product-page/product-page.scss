@@ -13,10 +13,63 @@
 }
 .filters {
   display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filters-row {
+  display: flex;
   gap: 1rem;
   flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.filters-row-top {
+  justify-content: space-between;
+}
+
+.filters-row-bottom {
+  justify-content: space-between;
+}
+
+.filters-row mat-form-field {
+  flex: 1 1 220px;
+}
+
+.price-range {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.price-range mat-form-field {
+  flex: 1 1 180px;
+}
+
+.sort-field {
+  min-width: 220px;
+}
+
+.sale-only {
+  padding: 0.75rem 1rem;
+  border: 1px solid #111;
+  background: #fff;
+  color: #111;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sale-only:hover {
+  background: #111;
+  color: #fff;
+}
+
+.paginator :host ::ng-deep .mat-mdc-paginator-page-size-label,
+.paginator :host ::ng-deep .mat-mdc-paginator-range-label,
+.paginator :host ::ng-deep .mat-mdc-paginator-page-size {
+  font-size: 1rem;
 }
 
 // .grid {

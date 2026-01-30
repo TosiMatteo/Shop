@@ -3,35 +3,74 @@
   <header class="header">Prodotti</header>
 
   <form class="filters" (submit)="$event.preventDefault()">
-    <mat-form-field>
-      <mat-label>Titolo</mat-label>
-      <input matInput type="search" name="title" placeholder="Cerca per titolo"
-      (input)="updateTitle($any($event.target).value)"/>
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Price Min</mat-label>
-      <input matInput type="number" min="0" name="priceMin" placeholder="Prezzo minimo"
-          (input)="updatePriceMin($any($event.target).value)"/>
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Price Max</mat-label>
-      <input matInput type="number" min="0" name="priceMax" placeholder="Prezzo massimo"
-             (input)="updatePriceMax($any($event.target).value)"/>
-    </mat-form-field>
+    <div class="filters-row filters-row-top">
 
-    <mat-form-field appearance="outline">
-      <mat-label>Ordina</mat-label>
-      <mat-select (selectionChange)="updateSort($any($event.value))">
-        <mat-option value="dateAsc">Data</mat-option>
-        <mat-option value="dateDesc">Data (inversa)</mat-option>
-        <mat-option value="priceAsc">Prezzo</mat-option>
-        <mat-option value="priceDesc">Prezzo (inv)</mat-option>
-      </mat-select>
-    </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Tags</mat-label>
+        <mat-select #tagSelect (selectionChange)="updateTags($event.value)">
+          <mat-option [value]="null">
+            -- Tutti --
+          </mat-option>
+          @for (t of (tags$ | async) ?? []; track t.id) {
+            <mat-option [value]="t.name">
+              {{ t.name }}
+            </mat-option>
+          }
+        </mat-select>
+        @if (tagSelect.value) {
+          <button mat-icon-button matSuffix
+                  (click)="resetTag($event, tagSelect)"
+                  aria-label="Clear">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Titolo</mat-label>
+        <input matInput type="search" name="title" placeholder="Cerca per titolo"
+        (input)="updateTitle($any($event.target).value)"/>
+      </mat-form-field>
+
+      <div class="filter-switch">
+        <mat-slide-toggle
+          color="primary"
+          [checked]="(filters$ | async)?.saleFilter"
+          (change)="updateSale($event.checked)">
+          Solo in saldo
+        </mat-slide-toggle>
+      </div>
+    </div>
+
+    <div class="filters-row filters-row-bottom">
+      <div class="price-range">
+        <mat-form-field>
+          <mat-label>Price Min</mat-label>
+          <input matInput type="number" min="0" name="priceMin" placeholder="Prezzo minimo"
+              (input)="updatePriceMin($any($event.target).value)"/>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Price Max</mat-label>
+          <input matInput type="number" min="0" name="priceMax" placeholder="Prezzo massimo"
+                 (input)="updatePriceMax($any($event.target).value)"/>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>Ordina</mat-label>
+        <mat-select (selectionChange)="updateSort($any($event.value))">
+          <mat-option value="dateAsc">Data</mat-option>
+          <mat-option value="dateDesc">Data (inversa)</mat-option>
+          <mat-option value="priceAsc">Prezzo</mat-option>
+          <mat-option value="priceDesc">Prezzo (inv)</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
   </form>
 
 
   <mat-paginator
+    class="paginator"
     [length]="(filteredProducts$ | async)?.length || 0"
     [pageSize]="pageSize"
     [pageIndex]="((page$| async) || 1) - 1"
