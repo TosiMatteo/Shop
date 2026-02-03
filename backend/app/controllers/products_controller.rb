@@ -3,15 +3,21 @@ class ProductsController < ApplicationController
 
   # GET /products
   def index
-    @products = Product.all
+    filtered = Product
+                 .search_by_title(params[:title])
+                 .search_by_tag(params[:tag])
+                 .search_by_min_max_price(params[:min], params[:max])
+                 .search_by_sale(params[:sale])
+                 .apply_sort(params[:sort])
 
-    if params[:tag].present?
-      @products = @products.joins(:tags).where("tags.name = ?", params[:tag])
-    end
+    @pagy, @products = pagy(:countish, filtered, ttl: 300)
 
-    render json: @products.map { |product|
-      thumbnail_url = product.thumbnail.attached? ? url_for(product.thumbnail) : nil
-      product.as_json(include: :tags).merge({ thumbnail_url: thumbnail_url })
+    render json: {
+      pagy: @pagy.data_hash,
+      products: @products.map { |p|
+        thumbnail_url = p.thumbnail.attached? ? url_for(p.thumbnail) : nil
+        p.as_json(include: :tags).merge({ thumbnail_url: thumbnail_url })
+      }
     }
   end
 
