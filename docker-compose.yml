@@ -18,7 +18,7 @@ services:
     command: /bin/sh -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0'"
     volumes:
       - ./backend:/rails # Sincronizza la tua cartella locale col container (Hot reload!)
-      - /rails/vendor/bundle # Evita di reinstallare le gemme ogni volta
+      - bundle_cache:/usr/local/bundle 
     ports:
       - "3000:3000"
     depends_on:
@@ -42,3 +42,4 @@ services:
 
 volumes:
   mysql_data:
+  bundle_cache:
