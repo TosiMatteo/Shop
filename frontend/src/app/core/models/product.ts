@@ -9,3 +9,19 @@ export interface Product {
   tags?: string[];
   created_at: string;
 }
+
+export interface PagyData {
+  page: number;
+  count: number;
+  limit: number;
+  last: number;
+  from: number;
+  to: number;
+  prev: number | null;
+  next: number | null;
+}
+
+export interface ProductsResponse {
+  pagy: PagyData;
+  products: Product[];
+}

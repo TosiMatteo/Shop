@@ -29,7 +29,7 @@
       <mat-form-field>
         <mat-label>Titolo</mat-label>
         <input matInput type="search" name="title" placeholder="Cerca per titolo"
-        (input)="updateTitle($any($event.target).value)"/>
+               (input)="updateTitle($any($event.target).value)"/>
       </mat-form-field>
 
       <div class="filter-switch">
@@ -47,7 +47,7 @@
         <mat-form-field>
           <mat-label>Price Min</mat-label>
           <input matInput type="number" min="0" name="priceMin" placeholder="Prezzo minimo"
-              (input)="updatePriceMin($any($event.target).value)"/>
+                 (input)="updatePriceMin($any($event.target).value)"/>
         </mat-form-field>
         <mat-form-field>
           <mat-label>Price Max</mat-label>
@@ -59,30 +59,35 @@
       <mat-form-field appearance="outline" class="sort-field">
         <mat-label>Ordina</mat-label>
         <mat-select (selectionChange)="updateSort($any($event.value))">
-          <mat-option value="dateAsc">Data</mat-option>
-          <mat-option value="dateDesc">Data (inversa)</mat-option>
-          <mat-option value="priceAsc">Prezzo</mat-option>
-          <mat-option value="priceDesc">Prezzo (inv)</mat-option>
+          <mat-option value="dateAsc">Data ↑</mat-option>
+          <mat-option value="dateDesc">Data ↓</mat-option>
+          <mat-option value="priceAsc">Prezzo ↑</mat-option>
+          <mat-option value="priceDesc">Prezzo ↓</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
   </form>
 
+  <!-- Paginator PRIMA della griglia -->
+  @if (pagy$ | async; as pagy) {
+    <mat-paginator
+      class="paginator"
+      [length]="pagy.count"
+      [pageSize]="pagy.limit"
+      [pageSizeOptions]="[10, 20, 30]"
+      [pageIndex]="pagy.page - 1"
+      (page)="onPage($event)"
+      aria-label="Select page">
+    </mat-paginator>
 
-  <mat-paginator
-    class="paginator"
-    [length]="(filteredProducts$ | async)?.length || 0"
-    [pageSize]="pageSize"
-    [pageIndex]="((page$| async) || 1) - 1"
-    (page)="onPage($event)"
-  >
+  }
 
-  </mat-paginator>
-
-    @for (p of paged$| async; track p.id) {
+  <!-- Griglia prodotti -->
+  <div class="products-grid">
+    @for (p of products$ | async; track p.id) {
       <app-product-card [product]="p" (add)="onAdd($event)">
       </app-product-card>
     }
-
+  </div>
 
 </section>

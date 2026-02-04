@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Observable} from 'rxjs';
-import {Product} from '../models/product';
+import {ProductsResponse} from '../models/product';
 import {HttpClient, HttpParams} from '@angular/common/http';
 
 @Injectable({
@@ -9,17 +9,33 @@ import {HttpClient, HttpParams} from '@angular/common/http';
 export class ProductApi {
   private readonly url = 'http://localhost:3000/products';
 
-  constructor(private readonly  http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
-  // Accetta un tag opzionale (stringa o null)
-  list(tag?: string | null): Observable<Product[]>{
+  list(filters: {
+    tag?: string | null;
+    title?: string | null;
+    min?: number | null;
+    max?: number | null;
+    sale?: boolean | null;
+    sort?: string | null;
+    page?: number;
+    limit?: number;
+  }): Observable<ProductsResponse> {
     let params = new HttpParams();
 
-    // Se c'è un tag, lo aggiunge all'URL: /products?tag=Valore
-    if (tag) {
-      params = params.set('tag', tag);
+    if (filters.tag) params = params.set('tag', filters.tag);
+    if (filters.title) params = params.set('title', filters.title);
+    if (filters.min !== null && filters.min !== undefined) {
+      params = params.set('min', filters.min.toString());
     }
+    if (filters.max !== null && filters.max !== undefined) {
+      params = params.set('max', filters.max.toString());
+    }
+    if (filters.sale) params = params.set('sale', 'true');
+    if (filters.sort) params = params.set('sort', filters.sort);
+    if (filters.page) params = params.set('page', filters.page.toString());
+    if (filters.limit) params = params.set('limit', filters.limit.toString());
 
-    return this.http.get<Product[]>(this.url, { params });
+    return this.http.get<ProductsResponse>(this.url, { params });
   }
 }
