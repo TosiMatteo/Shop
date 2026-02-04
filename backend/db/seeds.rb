@@ -1,16 +1,30 @@
 # db/seeds.rb
 require 'open-uri'
 
+# 1. Cancella i record dal DB
 ProductTag.destroy_all
-Product.destroy_all
-Tag.destroy_all
+Product.delete_all # delete_all è più veloce di destroy_all e qui va bene
+Tag.delete_all
+
+# 2. Cancella anche i record interni di Active Storage (blobs e attachments)
+ActiveStorage::Attachment.delete_all
+ActiveStorage::VariantRecord.delete_all
+ActiveStorage::Blob.delete_all
+
+# 3. CRUCIALE: Cancella i file fisici dalla cartella storage
+# Attenzione: cancella tutto il contenuto di /storage tranne .keep
+storage_dir = Rails.root.join('storage')
+if Dir.exist?(storage_dir)
+  FileUtils.rm_rf(Dir.glob(storage_dir.join('*')))
+  puts "File fisici rimossi."
+end
 
 Faker::Config.locale = "it"
 
 tag_names = ["Elettronica", "Casa", "Abbigliamento", "Libri", "Sport", "Nuovi Arrivi"]
 created_tags = tag_names.map { |name| Tag.create!(name: name) }
 
-20.times do |i|
+30.times do |i|
   # Generiamo dati casuali
   title = Faker::Commerce.product_name
   description = Faker::Lorem.paragraph(sentence_count: 5)

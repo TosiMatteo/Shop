@@ -7,31 +7,22 @@ import {MatLabel} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
 import {AsyncPipe} from '@angular/common';
 import {
-  BehaviorSubject,
-  combineLatest,
+  BehaviorSubject, combineLatest,
   debounceTime,
   distinctUntilChanged,
   map,
   shareReplay,
-  startWith,
   switchMap
 } from 'rxjs';
-import {Product} from '../../../core/models/product';
 import {MatOption} from '@angular/material/core';
 import {MatSelect} from '@angular/material/select';
-import {MatPaginator, PageEvent} from '@angular/material/paginator';
+import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import {TagService} from '../../../core/services/tag-service';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {MatIcon} from '@angular/material/icon';
 import {MatIconButton} from '@angular/material/button';
 
 type Sort = 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc';
-const cmp = (s:Sort)=>(a:Product,b:Product)=>
-  s==='priceAsc'? a.price-b.price :
-    s==='priceDesc'? b.price-a.price :
-      s==='dateAsc'? a.created_at.localeCompare(b.created_at) :
-        b.created_at.localeCompare(a.created_at);
-
 
 @Component({
   selector: 'app-product-page',
@@ -45,7 +36,7 @@ const cmp = (s:Sort)=>(a:Product,b:Product)=>
     MatSelect,
     MatOption,
     MatOption,
-    MatPaginator,
+    MatPaginatorModule,
     MatSlideToggle,
     MatIcon,
     MatIconButton
@@ -62,92 +53,88 @@ export class ProductPage {
   protected filters$ = new BehaviorSubject({
     title:'',
     sort:'dateDesc' as Sort,
-    priceFilter:{min:0,max:Number.POSITIVE_INFINITY},
+    priceFilter:{min: null as number | null, max: null as number | null },
     saleFilter:false,
-    tag: null as string | null
+    tag: null as string | null,
+    page: 1,
+    limit: 10
   });
 
-
-  private title$ = this.filters$.pipe(map(f => f.title),
-    debounceTime(250),
-    distinctUntilChanged(),
-    startWith(this.filters$.value.title));
-
-  // 2. LOGICA IBRIDA (Server + Client)
-  // Questa stream gestisce il recupero dati dal SERVER
-  // Si attiva solo quando cambia il TAG.
-  private serverProducts$ = this.filters$.pipe(
-    map(f => f.tag),           // Prendiamo solo il campo tag
-    distinctUntilChanged(),    // Se cambio prezzo/titolo, NON rifare la chiamata API
-    switchMap(tag =>           // Chiama il backend
-      this.product_service.list(tag)
-    ),
-    shareReplay(1) // Evita chiamate doppie se ci sono più subscribe
+  private titleDebounced$ = this.filters$.pipe(
+    map(f => f.title),
+    debounceTime(300),
+    distinctUntilChanged()
   );
 
-  filteredProducts$ = combineLatest([
-    this.serverProducts$,
+
+  private response$ = combineLatest([
     this.filters$,
-    this.title$
-  ]).pipe(map(([products, filters, title]) => products.filter(products => {
-    const matchesTitle =
-      !title ||
-      products.title.toLowerCase().includes(title.toLowerCase());
-    const matchesPrice =
-      products.price >= filters.priceFilter.min &&
-      products.price <= filters.priceFilter.max;
-    const matchesSale = !filters.saleFilter || products.sale;
-    return matchesTitle && matchesPrice && matchesSale;
-  }).toSorted(cmp(filters.sort))));
-
-  page$ = new BehaviorSubject(1);
-  pageSize = 9;
-  paged$ = combineLatest([this.filteredProducts$, this.page$]).pipe(
-    map(([items, page]) => {
-      const start = (page-1)*this.pageSize;
-      return items.slice(start, start+this.pageSize);
-    })
+    this.titleDebounced$
+  ]).pipe(
+    map(([filters, title]) => ({ ...filters, title })),
+    switchMap(filters =>
+      this.product_service.list({
+        tag: filters.tag,
+        title: filters.title,
+        min: filters.priceFilter.min,
+        max: filters.priceFilter.max,
+        sale: filters.saleFilter || null,
+        sort: filters.sort,
+        page: filters.page,
+        limit: filters.limit
+      })
+    ),
+    shareReplay(1)
   );
-  onPage = (e:PageEvent)=>this.page$.next(e.pageIndex+1);
 
-  updateTitle(title:string) {
-    this.filters$.next(
-      {...this.filters$.value,
-      title:title}
-    );
-  };
 
-  onAdd(product: any) {
-    console.log('Aggiunto al carrello',product)
+  products$ = this.response$.pipe(map(r => r.products));
+  pagy$ = this.response$.pipe(map(r => r.pagy));
+
+  // Event handlers
+  onPage(e: PageEvent) {
+    this.filters$.next({
+      ...this.filters$.value,
+      page: e.pageIndex + 1,
+      limit: e.pageSize
+    });
   }
 
-  protected updateSort(sort: Sort) {
-    this.filters$.next(
-      {...this.filters$.value,
-      sort:sort
-      }
-    )
+  updateTitle(title: string) {
+    this.filters$.next({
+      ...this.filters$.value,
+      title: title,
+      page: 1
+    });
   }
 
-  protected updatePriceMin(value:any) {
-    const min = this.parsePrice(value, 0);
-    this.filters$.next(
-      {...this.filters$.value,
-      priceFilter:{min:min,max:this.filters$.value.priceFilter.max}
-      }
-    )
+  updateSort(sort: Sort) {
+    this.filters$.next({
+      ...this.filters$.value,
+      sort: sort,
+      page: 1
+    });
   }
 
-  protected updatePriceMax(value:any) {
-    const max = this.parsePrice(value, Number.POSITIVE_INFINITY);
-    this.filters$.next(
-      {...this.filters$.value,
-      priceFilter:{min:this.filters$.value.priceFilter.min,max:max}
-      }
-    )
+  updatePriceMin(value: any) {
+    const min = this.parsePrice(value, null);
+    this.filters$.next({
+      ...this.filters$.value,
+      priceFilter: { ...this.filters$.value.priceFilter, min },
+      page: 1
+    });
   }
 
-  private parsePrice(value:any, fallback:number) {
+  updatePriceMax(value: any) {
+    const max = this.parsePrice(value, null);
+    this.filters$.next({
+      ...this.filters$.value,
+      priceFilter: { ...this.filters$.value.priceFilter, max },
+      page: 1
+    });
+  }
+
+  private parsePrice(value: any, fallback: number | null): number | null {
     if (value === '' || value === null || value === undefined) {
       return fallback;
     }
@@ -158,29 +145,29 @@ export class ProductPage {
     return Number.isFinite(n) ? n : fallback;
   }
 
-  protected updateSale(value: boolean) {
-    this.filters$.next(
-      {...this.filters$.value,
-        saleFilter: value
-      }
-    )
-  }
-
-  protected updateTags(tag: string | null) {
+  updateSale(value: boolean) {
     this.filters$.next({
       ...this.filters$.value,
-      tag: tag
+      saleFilter: value,
+      page: 1
     });
-    // Resettiamo la paginazione alla pagina 1 quando si filtra
-    this.page$.next(1);
+  }
+
+  updateTags(tag: string | null) {
+    this.filters$.next({
+      ...this.filters$.value,
+      tag: tag,
+      page: 1
+    });
   }
 
   resetTag(event: Event, select: MatSelect) {
-    // 1. Ferma la propagazione per non aprire il menu a tendina quando clicchi la X
     event.stopPropagation();
-    // 2. Resetta il valore visivo della select
     select.value = null;
-    // 3. Aggiorna la logica dei filtri
     this.updateTags(null);
+  }
+
+  onAdd(product: any) {
+    console.log('Aggiunto al carrello', product);
   }
 }

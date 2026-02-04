@@ -8,8 +8,8 @@ class Product < ApplicationRecord
   validates :original_price, presence: true
   validates :sale, inclusion: { in: [ true, false ] }
 
-  scope :search_by_title, ->(t) { t.present? ? where("title ILIKE ?", "%#{t}%") : all }
-  scope :search_by_tag, ->(t) { t.present? ? joins(:tags).where("tags.name ILIKE ?", "%#{t}%") : all }
+  scope :search_by_title, ->(t) { t.present? ? where("title LIKE ?", "%#{t}%") : all }
+  scope :search_by_tag, ->(t) { t.present? ? joins(:tags).where("tags.name LIKE ?", "%#{t}%") : all }
   scope :search_by_sale, ->(s) { s.present? && s.to_s == "true" ? where(sale: true) : all }
   scope :search_by_min_max_price, ->(min, max) {
     min_val = min.present? ? min.to_f : 0

@@ -4,13 +4,14 @@ class ProductsController < ApplicationController
   # GET /products
   def index
     filtered = Product
+                 .includes(:tags)
                  .search_by_title(params[:title])
                  .search_by_tag(params[:tag])
                  .search_by_min_max_price(params[:min], params[:max])
                  .search_by_sale(params[:sale])
                  .apply_sort(params[:sort])
 
-    @pagy, @products = pagy(:countish, filtered, ttl: 300)
+    @pagy, @products = pagy(:countish, filtered, ttl: 300, limit: (params[:limit] || 10).to_i)
 
     render json: {
       pagy: @pagy.data_hash,

@@ -61,7 +61,7 @@ export class CheckoutPage {
   private orderService = inject(OrderService);
 
   readonly items$ = this.cart.list();
-  readonly total$ = this.items$.pipe(map(items=>items.reduce((sum,item)=>sum+item.price,0)));
+  readonly total$ = this.items$.pipe(map(items=>items.reduce((sum :number,item :any)=>sum+item.price,0)));
 
   loading = false;
   orderSuccess = false;
@@ -88,7 +88,7 @@ export class CheckoutPage {
         address: value.address!,
         items,
         total: items.reduce(
-          (sum, it) => sum + it.price, 0),
+          (sum :number, it :any) => sum + it.price, 0),
         createdAt: new Date().toISOString()
       };
       this.orderService.create(order).subscribe({
