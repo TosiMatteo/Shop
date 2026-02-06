@@ -29,11 +29,15 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  # Usa letter_opener per vedere le email nel browser invece di inviarle
+  config.action_mailer.delivery_method = :file
+  config.action_mailer.perform_deliveries = true
 
-  # Make template changes take effect immediately.
-  config.action_mailer.perform_caching = false
+  # Mostra errori mailer
+  config.action_mailer.raise_delivery_errors = true
+
+  # Preview emails: http://localhost:3000/rails/mailers
+  config.action_mailer.preview_paths = ["#{Rails.root}/test/mailers/previews"]
 
   # Set localhost to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }

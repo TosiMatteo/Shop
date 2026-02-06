@@ -1,5 +1,9 @@
 class ProductsController < ApplicationController
-  before_action :set_product, only: %i[ show update destroy ]
+  # Actions pubbliche (non richiedono autenticazione)
+  skip_before_action :authenticate_user!, only: [:index, :show]
+
+  # Actions solo per admin
+  before_action :authenticate_admin!, only: [:create, :update, :destroy]
 
   # GET /products
   def index

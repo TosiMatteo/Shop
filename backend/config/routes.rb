@@ -1,12 +1,33 @@
 Rails.application.routes.draw do
-  resources :products
-  resources :tags, only: [:index]
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # Raggruppiamo tutto sotto /api
+  scope :api, defaults: { format: :json } do
+      # --- AUTH: Endpoint Profilo Utente ---
+      get '/me', to: 'members#show'
+
+      # --- AUTH: Customer ---
+      devise_for :customers,
+                 path: 'customers',
+                 controllers: {
+                   sessions: 'customers/sessions',
+                   registrations: 'customers/registrations',
+                   passwords: 'customers/passwords',
+                   confirmations: 'customers/confirmations'
+                 }
+
+      # --- AUTH: Admin ---
+      devise_for :admins,
+                 path: 'admins',
+                 controllers: {
+                   sessions: 'admins/sessions',
+                   passwords: 'admins/passwords'
+                 },
+                 skip: [:registrations] # Gli admin non si registrano da soli
+
+      # --- RISORSE
+      resources :products
+      resources :tags, only: [:index]
+  end
 end
