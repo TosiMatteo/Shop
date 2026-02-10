@@ -21,9 +21,9 @@ class Customer < ApplicationRecord
     )
   end
 
-  # Associazioni future
-  # has_many :orders, dependent: :destroy
-  # has_one :cart, dependent: :destroy
+  # Associazioni
+  has_many :orders, dependent: :destroy
+  has_one :cart, dependent: :destroy
 
   private
 
