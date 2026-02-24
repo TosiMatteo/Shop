@@ -5,26 +5,16 @@ class CartItemsControllerTest < ActionDispatch::IntegrationTest
     @cart_item = cart_items(:one)
   end
 
-  test "should get index" do
-    get cart_items_url, as: :json
-    assert_response :success
-  end
 
   test "should create cart_item" do
     assert_difference("CartItem.count") do
-      post cart_items_url, params: { cart_item: { cart_id: @cart_item.cart_id, product_id: @cart_item.product_id, quantity: @cart_item.quantity } }, as: :json
+      post cart_cart_items_url(carts(:one)), params: { cart_item: { product_id: products(:shirt).id, quantity: 1 } }, as: :json
     end
-
     assert_response :created
   end
 
-  test "should show cart_item" do
-    get cart_item_url(@cart_item), as: :json
-    assert_response :success
-  end
-
   test "should update cart_item" do
-    patch cart_item_url(@cart_item), params: { cart_item: { cart_id: @cart_item.cart_id, product_id: @cart_item.product_id, quantity: @cart_item.quantity } }, as: :json
+    patch cart_item_url(@cart_item), params: { cart_item: { quantity: 5 } }, as: :json
     assert_response :success
   end
 

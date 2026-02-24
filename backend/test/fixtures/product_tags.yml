@@ -1,9 +1,7 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+pc_informatica:
+  product: pc
+  tag: Informatica
 
-one:
-  product: one
-  tag: one
-
-two:
-  product: two
-  tag: two
+book_tazze:
+  product: book
+  tag: Tazze

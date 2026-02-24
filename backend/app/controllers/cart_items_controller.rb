@@ -1,21 +1,10 @@
 class CartItemsController < ApplicationController
-  before_action :set_cart_item, only: %i[ show update destroy ]
+  before_action :set_cart_item, only: %i[ update destroy ]
 
-  # GET /cart_items
-  def index
-    @cart_items = CartItem.all
-
-    render json: @cart_items
-  end
-
-  # GET /cart_items/1
-  def show
-    render json: @cart_item
-  end
-
-  # POST /cart_items
+  # POST /api/carts/:cart_id/cart_items
   def create
-    @cart_item = CartItem.new(cart_item_params)
+    cart = Cart.find(params[:cart_id])
+    @cart_item = cart.cart_items.build(cart_item_params)
 
     if @cart_item.save
       render json: @cart_item, status: :created, location: @cart_item
@@ -24,7 +13,7 @@ class CartItemsController < ApplicationController
     end
   end
 
-  # PATCH/PUT /cart_items/1
+  # PATCH/PUT /api/cart_items/:id
   def update
     if @cart_item.update(cart_item_params)
       render json: @cart_item
@@ -33,19 +22,20 @@ class CartItemsController < ApplicationController
     end
   end
 
-  # DELETE /cart_items/1
+  # DELETE /api/cart_items/:id
   def destroy
     @cart_item.destroy!
+    head :no_content
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_cart_item
-      @cart_item = CartItem.find(params.expect(:id))
+      @cart_item = CartItem.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.
     def cart_item_params
-      params.expect(cart_item: [ :cart_id, :product_id, :quantity ])
+      params.expect(cart_item: [:product_id, :quantity])
     end
 end

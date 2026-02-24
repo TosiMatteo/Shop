@@ -1,9 +1,9 @@
 class ProductsController < ApplicationController
-  # Actions pubbliche (non richiedono autenticazione)
-  skip_before_action :authenticate_user!, only: [:index, :show]
 
   # Actions solo per admin
   before_action :authenticate_admin!, only: [:create, :update, :destroy]
+
+  before_action :set_product, only: %i[ update destroy ]
 
   # GET /products
   def index

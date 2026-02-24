@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_10_102503) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
   create_table "action_text_rich_texts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.text "body", size: :long
     t.datetime "created_at", null: false
@@ -56,7 +56,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_102503) do
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.integer "failed_attempts", default: 0, null: false
-    t.string "jti", null: false
+    t.string "jti"
     t.datetime "last_sign_in_at"
     t.string "last_sign_in_ip"
     t.datetime "locked_at"
@@ -134,6 +134,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_102503) do
     t.datetime "created_at", null: false
     t.bigint "customer_id", null: false
     t.string "shipping_city"
+    t.string "shipping_name"
     t.string "shipping_street"
     t.string "shipping_zip"
     t.integer "status", default: 0, null: false

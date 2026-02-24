@@ -1,11 +1,15 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+Customer_Auth:
+  first_name: "Mario"
+  last_name: "Rossi"
+  email: "mario.rossi@example.com"
+  encrypted_password: "$2a$12$3vq9Uvx3GX2BFCxhVGpzOewX4NwU13fJKnBQJ3AC3qzaHfLyH2Bvq"
+  jti: "auth-customer-jti-unique-001"
+  confirmed_at: "2026-01-01 10:00:00"
 
-# This model initially had no columns defined. If you add columns to the
-# model remove the "{}" from the fixture names and add the columns immediately
-# below each fixture, per the syntax in the comments below
-#
-one: {}
-# column: value
-#
-two: {}
-# column: value
+
+Customer_NoAuth:
+  first_name: "Giulia"
+  last_name: "Bianchi"
+  email: "giulia@example.com"
+  encrypted_password: "$2a$12$3vq9Uvx3GX2BFCxhVGpzOewX4NwU13fJKnBQJ3AC3qzaHfLyH2Bvq"
+  jti: "no-auth-customer-jti-unique-002"

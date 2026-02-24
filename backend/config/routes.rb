@@ -1,7 +1,4 @@
 Rails.application.routes.draw do
-  resources :orders
-  resources :cart_items
-  resources :carts
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
@@ -32,5 +29,12 @@ Rails.application.routes.draw do
       # --- RISORSE
       resources :products
       resources :tags, only: [:index]
+      resources :orders, only: [:index, :show, :create, :update, :destroy]
+      resources :carts, only: [:index, :show, :create, :destroy, :update] do
+        member do
+          post :checkout #POST /api/carts/:id/checkout
+        end
+        resources :cart_items,shallow: true, only: [:create, :destroy, :update]
+      end
   end
 end

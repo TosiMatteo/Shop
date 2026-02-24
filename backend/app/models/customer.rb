@@ -12,6 +12,7 @@ class Customer < ApplicationRecord
   validates :password, length: { minimum: 8 }, if: :password_required?
 
   before_validation :downcase_email
+  before_validation :ensure_jti_present
 
   def jwt_payload
     super.merge(
@@ -33,5 +34,9 @@ class Customer < ApplicationRecord
 
   def password_required?
     !persisted? || password.present? || password_confirmation.present?
+  end
+
+  def ensure_jti_present
+    self.jti ||= SecureRandom.uuid
   end
 end

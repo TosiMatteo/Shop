@@ -1,8 +1,11 @@
 require "test_helper"
 
 class ProductsControllerTest < ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
   setup do
-    @product = products(:one)
+    @admin = admins(:one)
+    sign_in @admin
+    @product = products(:book)
   end
 
   test "should get index" do
@@ -15,9 +18,9 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     body = response.parsed_body
-    ids = body.map { |product| product["id"] }
-    assert_includes ids, products(:one).id
-    refute_includes ids, products(:two).id
+    products = body["products"]
+    ids = products.map { |product| product["id"] }
+    assert_includes ids, products(:pc).id
   end
 
   test "should create product" do

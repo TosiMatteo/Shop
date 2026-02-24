@@ -8,6 +8,7 @@ class Admin < ApplicationRecord
          :jwt_authenticatable, jwt_revocation_strategy: self
 
   validates :password, length: { minimum: 6 }, if: :password_required?
+  validates :email, presence: true, uniqueness: true
 
   before_validation :downcase_email
 

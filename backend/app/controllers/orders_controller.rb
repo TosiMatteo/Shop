@@ -1,19 +1,19 @@
 class OrdersController < ApplicationController
+  before_action :authenticate_customer!
   before_action :set_order, only: %i[ show update destroy ]
 
-  # GET /orders
+  # GET /api/orders
   def index
-    @orders = Order.all
-
+    @orders = current_customer.orders
     render json: @orders
   end
 
-  # GET /orders/1
+  # GET /api/orders/1
   def show
     render json: @order
   end
 
-  # POST /orders
+  # POST /api/orders
   def create
     @order = Order.new(order_params)
 
@@ -24,18 +24,19 @@ class OrdersController < ApplicationController
     end
   end
 
-  # PATCH/PUT /orders/1
+  # PATCH/PUT /api/orders/1
   def update
-    if @order.update(order_params)
+    if @order.update(order_update_params)
       render json: @order
     else
       render json: @order.errors, status: :unprocessable_content
     end
   end
 
-  # DELETE /orders/1
+  # DELETE /api/orders/1
   def destroy
     @order.destroy!
+    head :no_content
   end
 
   private
@@ -46,6 +47,9 @@ class OrdersController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def order_params
-      params.expect(order: [ :customer_id, :total, :status, :shipping_name, :shipping_street, :shipping_city, :shipping_zip ])
+      params.expect(order: [ :customer_id, :shipping_name, :shipping_street, :shipping_city, :shipping_zip ])
+    end
+    def order_update_params
+      params.expect(order: [:shipping_name, :shipping_street, :shipping_city, :shipping_zip, :status ])
     end
 end

@@ -1,8 +1,13 @@
 require "test_helper"
 
 class CartsControllerTest < ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
   setup do
+    @customer = customers(:Customer_Auth)
+    sign_in @customer
+
     @cart = carts(:one)
+    @cart.update!(customer: @customer)
   end
 
   test "should get index" do
@@ -34,5 +39,55 @@ class CartsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :no_content
+  end
+
+  test "should reject checkout of empty cart" do
+    @cart.cart_items.destroy_all
+
+    post checkout_cart_url(@cart), params: {
+      shipping: {
+        name: "Mario Rossi",
+        street: "Via Roma 1",
+        city: "Milano",
+        zip: "20100"
+      }
+    }, as: :json
+
+    assert_response :unprocessable_content
+  end
+
+  test "should checkout successfully" do
+    # Assicurati che il carrello abbia items
+    assert @cart.cart_items.any?, "Cart should have items"
+
+    cart_items_count = @cart.cart_items.count
+    cart_total = @cart.total_price
+
+    assert_difference("Order.count", 1) do
+      assert_difference("OrderItem.count", cart_items_count) do
+        assert_difference("Cart.count", -1) do
+          post checkout_cart_url(@cart), params: {
+            shipping: {
+              name: "Mario Rossi",
+              street: "Via Roma 1",
+              city: "Milano",
+              zip: "20100"
+            }
+          }, as: :json
+        end
+      end
+    end
+
+    assert_response :created
+
+    # Verifica la risposta
+    json_response = JSON.parse(response.body)
+    assert_equal cart_total.to_s, json_response["total"]
+    assert_equal "processing", json_response["status"]
+    assert_equal "Mario Rossi", json_response["shipping_name"]
+    assert_equal cart_items_count, json_response["order_items"]
+
+    # Verifica che il carrello sia stato distrutto
+    assert_not Cart.exists?(@cart.id)
   end
 end
