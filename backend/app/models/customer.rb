@@ -10,6 +10,7 @@ class Customer < ApplicationRecord
   validates :first_name, presence: true
   validates :last_name, presence: true
   validates :password, length: { minimum: 8 }, if: :password_required?
+  validates :email, presence: true, uniqueness: true
 
   before_validation :downcase_email
   before_validation :ensure_jti_present
