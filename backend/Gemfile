@@ -13,6 +13,9 @@ gem "puma", ">= 5.0"
 # gem "bcrypt", "~> 3.1.7"
 
 gem "pagy"
+gem "devise"
+gem "devise-jwt"
+gem "rack-attack"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
@@ -51,4 +54,6 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 
   gem "faker"
+
+  gem 'letter_opener'
 end

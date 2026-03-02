@@ -1,6 +1,7 @@
 class Product < ApplicationRecord
   has_many :product_tags, dependent: :destroy
   has_many :tags, through: :product_tags
+  has_many :cart_items, dependent: :destroy
 
   has_one_attached :thumbnail
   validates :title, presence: true, length: { minimum: 2, maximum: 50 }

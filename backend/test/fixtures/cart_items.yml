@@ -1,0 +1,9 @@
+one:
+  cart: one
+  product: pc
+  quantity: 1
+
+two:
+  cart: two
+  product: book
+  quantity: 1

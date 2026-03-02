@@ -1,0 +1,7 @@
+pc_informatica:
+  product: pc
+  tag: Informatica
+
+book_tazze:
+  product: book
+  tag: Tazze

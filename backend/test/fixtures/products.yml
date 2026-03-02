@@ -1,19 +1,21 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  title: MyString
-  description: MyText
-  price: 9.99
-  original_price: 9.99
+pc:
+  title: Notebook
+  description: ASUS Notebook
+  price: 999.99
+  original_price: 999.99
   sale: false
-  tags:
-    - Informatica
 
-two:
-  title: MyString
-  description: MyText
-  price: 9.99
-  original_price: 9.99
+book:
+  title: Book of Tazze
+  description: A book about Tazze
+  price: 10
+  original_price: 15
+  sale: true
+
+shirt:
+  title: T-Shirt
+  description: A T-Shirt
+  price: 10
+  original_price: 10
   sale: false
-  tags:
-    - tazze

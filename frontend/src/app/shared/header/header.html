@@ -1,8 +1,22 @@
 <mat-toolbar>
-  <button matIconButton class="example-icon" aria-label="Example icon-button with menu icon">
+  <button matIconButton class="example-icon" aria-label="Menu" [matMenuTriggerFor]="menu">
     <mat-icon>menu</mat-icon>
   </button>
-  <span>My Shop</span>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item routerLink="/products">
+      <mat-icon>store</mat-icon>
+      <span>Products</span>
+    </button>
+    <button mat-menu-item routerLink="/checkout">
+      <mat-icon>shopping_cart</mat-icon>
+      <span>Checkout</span>
+    </button>
+    <button mat-menu-item (click)="goToLogout()">
+      <mat-icon>logout</mat-icon>
+      <span>Logout</span>
+    </button>
+  </mat-menu>
+  <span>Rails-Angular Shop</span>
   <span class="example-spacer"></span>
   <button matIconButton (click)="goToCheckout()">
     <mat-icon>shopping_cart</mat-icon>

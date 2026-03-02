@@ -1,0 +1,15 @@
+one:
+  order: one
+  product: pc
+  quantity: 1
+  unit_price: 1299.99
+  created_at: <%= Time.now %>
+  updated_at: <%= Time.now %>
+
+two:
+  order: two
+  product: laptop
+  quantity: 1
+  unit_price: 899.99
+  created_at: <%= Time.now %>
+  updated_at: <%= Time.now %>

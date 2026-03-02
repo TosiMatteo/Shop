@@ -1,0 +1,15 @@
+Customer_Auth:
+  first_name: "Mario"
+  last_name: "Rossi"
+  email: "mario.rossi@example.com"
+  encrypted_password: "$2a$12$3vq9Uvx3GX2BFCxhVGpzOewX4NwU13fJKnBQJ3AC3qzaHfLyH2Bvq"
+  jti: "auth-customer-jti-unique-001"
+  confirmed_at: "2026-01-01 10:00:00"
+
+
+Customer_NoAuth:
+  first_name: "Giulia"
+  last_name: "Bianchi"
+  email: "giulia@example.com"
+  encrypted_password: "$2a$12$3vq9Uvx3GX2BFCxhVGpzOewX4NwU13fJKnBQJ3AC3qzaHfLyH2Bvq"
+  jti: "no-auth-customer-jti-unique-002"

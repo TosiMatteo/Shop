@@ -7,7 +7,7 @@ import {HttpClient, HttpParams} from '@angular/common/http';
   providedIn: 'root',
 })
 export class ProductApi {
-  private readonly url = 'http://localhost:3000/products';
+  private readonly url = 'http://localhost:3000/api/products';
 
   constructor(private readonly http: HttpClient) {}
 

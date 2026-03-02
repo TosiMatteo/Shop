@@ -1,0 +1,5 @@
+one:
+  customer: Customer_Auth
+
+two:
+  customer: Customer_NoAuth
