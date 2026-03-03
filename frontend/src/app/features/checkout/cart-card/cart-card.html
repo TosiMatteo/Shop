@@ -1,0 +1,60 @@
+<mat-list>
+  @if (cart$ | async; as cart) {
+    @if (cart.items.length === 0) {
+      <p class="empty-cart">Il carrello è vuoto.</p>
+    } @else {
+      @for (item of cart.items; track item.id) {
+        <mat-list-item class="cart-item">
+          @if (item.product.thumbnail_url) {
+            <img
+              matListItemAvatar
+              [src]="item.product.thumbnail_url"
+              [alt]="item.product.title"
+            />
+          }
+          <span matListItemTitle>{{ item.product.title }}</span>
+          <span matListItemLine>
+            {{ item.product.price | currency: 'EUR' }} &times; {{ item.quantity }}
+            = {{ item.product.price * item.quantity | currency: 'EUR' }}
+          </span>
+
+          @if (!readonly) {
+            <div matListItemMeta class="quantity-controls">
+              <button
+                mat-icon-button
+                aria-label="Diminuisci quantità"
+                (click)="decrement(item)"
+              >
+                <mat-icon>remove</mat-icon>
+              </button>
+              <span class="quantity-value">{{ item.quantity }}</span>
+              <button
+                mat-icon-button
+                aria-label="Aumenta quantità"
+                (click)="increment(item)"
+              >
+                <mat-icon>add</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                color="warn"
+                aria-label="Rimuovi prodotto"
+                (click)="remove(item)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          }
+        </mat-list-item>
+        <mat-divider></mat-divider>
+      }
+
+      <div class="cart-total">
+        <span>Totale</span>
+        <strong>{{ cart.total_price | currency: 'EUR' }}</strong>
+      </div>
+    }
+  } @else {
+    <p class="empty-cart">Caricamento carrello…</p>
+  }
+</mat-list>

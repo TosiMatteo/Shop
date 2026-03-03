@@ -15,7 +15,7 @@ class ProductsController < ApplicationController
                  .search_by_sale(params[:sale])
                  .apply_sort(params[:sort])
 
-    @pagy, @products = pagy(:countish, filtered, ttl: 300, limit: (params[:limit] || 10).to_i)
+    @pagy, @products = pagy(:countish, filtered, ttl: 300, limit: (params[:limit] || 12).to_i)
 
     render json: {
       pagy: @pagy.data_hash,

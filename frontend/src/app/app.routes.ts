@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import {CheckoutPage} from './features/checkout/checkout-page/checkout-page';
 import {authGuard} from './core/guard/auth-guard';
 import {LoginPage} from './features/auth/login-page/login-page';
+import {CartPageComponent} from './features/checkout/cart-page/cart-page';
 
 // @ts-ignore
 export const routes: Routes = [
@@ -11,6 +12,7 @@ export const routes: Routes = [
       ()=> import('./features/products/product-page/product-page')
       .then(m => m.ProductPage)},
 
+  {path: 'cart', component:CartPageComponent},
   {path: 'checkout', component:CheckoutPage, canActivate: [authGuard]},
   {path: 'login', component:LoginPage },
   {path: 'logout', redirectTo: 'products', pathMatch: 'full'},
