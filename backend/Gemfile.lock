@@ -187,8 +187,6 @@ GEM
     minitest (6.0.1)
       prism (~> 1.5)
     msgpack (1.8.0)
-    mysql2 (0.5.7)
-      bigdecimal
     net-imap (0.6.2)
       date
       net-protocol
@@ -225,6 +223,11 @@ GEM
     parser (3.3.10.1)
       ast (~> 2.4.1)
       racc
+    pg (1.6.3)
+    pg (1.6.3-aarch64-linux)
+    pg (1.6.3-aarch64-linux-musl)
+    pg (1.6.3-x86_64-linux)
+    pg (1.6.3-x86_64-linux-musl)
     pp (0.6.3)
       prettyprint
     prettyprint (0.2.0)
@@ -396,8 +399,8 @@ DEPENDENCIES
   image_processing (~> 1.2)
   kamal
   letter_opener
-  mysql2 (~> 0.5)
   pagy
+  pg
   puma (>= 5.0)
   rack-attack
   rack-cors

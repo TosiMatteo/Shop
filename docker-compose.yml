@@ -1,45 +1,46 @@
 services:
-  # 1. IL DATABASE
   db:
-    image: mysql:8.0
+    image: postgres:16
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: rails
+      POSTGRES_DB: rails_development
     ports:
-      - "3306:3306" # Esposto per poterlo controllare con un tool grafico se vuoi
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql # Per non perdere i dati se spegni docker
+      - postgres_data:/var/lib/postgresql/data
 
-  # 2. IL BACKEND (RAILS)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
     command: /bin/sh -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0'"
     volumes:
-      - ./backend:/rails # Sincronizza la tua cartella locale col container (Hot reload!)
-      - bundle_cache:/usr/local/bundle 
+      - ./backend:/rails
+      - bundle_cache:/usr/local/bundle
     ports:
       - "3000:3000"
     depends_on:
       - db
     environment:
       DATABASE_HOST: db
+      DATABASE_USER: rails
       DATABASE_PASSWORD: password
+      DATABASE_NAME: rails_development
 
-  # 3. IL FRONTEND (ANGULAR)
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile # O Dockerfile.dev se l'hai chiamato così
+      dockerfile: Dockerfile
     volumes:
-      - ./frontend:/app # Sincronizza le modifiche in tempo reale
-      - /app/node_modules # Evita che il node_modules locale sovrascriva quello del container
+      - ./frontend:/app
+      - /app/node_modules
     ports:
       - "4200:4200"
     depends_on:
       - backend
 
 volumes:
-  mysql_data:
+  postgres_data:
   bundle_cache:

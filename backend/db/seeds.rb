@@ -17,8 +17,7 @@ ActiveStorage::Attachment.delete_all
 ActiveStorage::VariantRecord.delete_all
 ActiveStorage::Blob.delete_all
 
-# 4. CRUCIALE: Cancella i file fisici dalla cartella storage
-# Attenzione: cancella tutto il contenuto di /storage tranne .keep
+# 4. Cancella i file fisici dalla cartella storage
 storage_dir = Rails.root.join('storage')
 if Dir.exist?(storage_dir)
   FileUtils.rm_rf(Dir.glob(storage_dir.join('*')))
