@@ -11,14 +11,21 @@
       <mat-icon>shopping_cart</mat-icon>
       <span>Checkout</span>
     </button>
-    <button mat-menu-item (click)="goToLogout()">
-      <mat-icon>logout</mat-icon>
-      <span>Logout</span>
+
+
+    <button mat-menu-item (click)="manageSession()">
+      @if (isAuthenticated) {
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      } @else {
+        <mat-icon>login</mat-icon>
+        <span>Login</span>
+      }
     </button>
+
+
   </mat-menu>
   <span>Rails-Angular Shop</span>
   <span class="example-spacer"></span>
-  <button matIconButton (click)="goToCheckout()">
-    <mat-icon>shopping_cart</mat-icon>
-  </button>
+  <app-cart-icon/>
 </mat-toolbar>

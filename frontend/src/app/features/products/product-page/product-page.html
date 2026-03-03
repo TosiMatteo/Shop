@@ -74,7 +74,7 @@
       class="paginator"
       [length]="pagy.count"
       [pageSize]="pagy.limit"
-      [pageSizeOptions]="[10, 20, 30]"
+      [pageSizeOptions]="[12, 24, 36]"
       [pageIndex]="pagy.page - 1"
       (page)="onPage($event)"
       aria-label="Select page">
@@ -85,7 +85,7 @@
   <!-- Griglia prodotti -->
   <div class="products-grid">
     @for (p of products$ | async; track p.id) {
-      <app-product-card [product]="p" (add)="onAdd($event)">
+      <app-product-card [product]="p">
       </app-product-card>
     }
   </div>

@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {ProductCardComponent} from '../product-card/product-card';
-import {ProductApi} from '../../../core/services/product-service';
+import {ProductApi} from '../../../core/services/product/product-service';
 import {FormsModule} from '@angular/forms';
 import {MatFormField} from '@angular/material/form-field';
 import {MatLabel} from '@angular/material/form-field';
@@ -16,8 +16,8 @@ import {
 } from 'rxjs';
 import {MatOption} from '@angular/material/core';
 import {MatSelect} from '@angular/material/select';
-import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
-import {TagService} from '../../../core/services/tag-service';
+import {MatPaginatorModule, PageEvent} from '@angular/material/paginator';
+import {TagService } from '../../../core/services/product/tag-service';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {MatIcon} from '@angular/material/icon';
 import {MatIconButton} from '@angular/material/button';
@@ -57,7 +57,7 @@ export class ProductPage {
     saleFilter:false,
     tag: null as string | null,
     page: 1,
-    limit: 10
+    limit: 12
   });
 
   private titleDebounced$ = this.filters$.pipe(

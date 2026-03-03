@@ -1,0 +1,26 @@
+<div class="cart-page">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Il tuo carrello</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <app-cart-card [readonly]="false" />
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button
+        mat-raised-button
+        color="primary"
+        [disabled]="!(hasItems$ | async)"
+        (click)="proceedToCheckout()"
+      >
+        @if (isAuthenticated) {
+          Procedi al checkout
+        } @else {
+          Accedi per completare l'ordine
+        }
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

@@ -1,30 +1,35 @@
 <mat-card appearance="outlined">
   <mat-card-content>
+
     <div class="image-box">
       @if (product.thumbnail_url) {
-        <img class="product-image" mat-card-image
-          [ngSrc]="product.thumbnail_url"
-          [alt]="product.title"
-          [width]="150"
-          [height]="150"
+        <img class="product-image"
+             [ngSrc]="product.thumbnail_url"
+             [alt]="product.title"
+             [width]="150"
+             [height]="150"
         />
       }
     </div>
+
     <div class="info-box">
-      <div class="title">{{product.title}}</div>
-      <p class="description">{{product.description}}</p>
+      <div class="title">{{ product.title }}</div>
+      <p class="description">{{ product.description }}</p>
     </div>
+
     <div class="action-box">
+      <div class="prices">
+        @if (product.sale) {
+          <span class="original-price">{{ product.original_price | currency:'EUR' }}</span>
+        }
+        <span class="price">{{ product.price | currency:'EUR' }}</span>
+      </div>
 
-      @if (product.sale){
-        <div class="original-price">{{product.original_price|currency:'EUR'}}</div>
-        <div class="price">{{product.price|currency:'EUR'}}</div>
-      }@else{<div class="price">{{product.price|currency:'EUR'}}</div>}
-
-      <button mat-flat-button color="primary" aria-label="Aggiungi al carrello" (click)="add.emit(product)">
+      <button mat-flat-button color="primary" aria-label="Aggiungi al carrello" (click)="addToCart()">
         <mat-icon aria-hidden="true">add_shopping_cart</mat-icon>
         Aggiungi
       </button>
     </div>
+
   </mat-card-content>
 </mat-card>

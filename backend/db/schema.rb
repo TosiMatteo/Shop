@@ -12,7 +12,7 @@
 
 ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
   create_table "action_text_rich_texts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.text "body", size: :long
+    t.text "body"
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.bigint "record_id", null: false
@@ -21,7 +21,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
     t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
   end
 
-  create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -31,7 +31,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
-  create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "active_storage_blobs", force: :cascade do |t|
     t.bigint "byte_size", null: false
     t.string "checksum"
     t.string "content_type"
@@ -43,13 +43,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "active_storage_variant_records", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "admins", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "admins", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "current_sign_in_at"
     t.string "current_sign_in_ip"
@@ -72,7 +72,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
     t.index ["unlock_token"], name: "index_admins_on_unlock_token", unique: true
   end
 
-  create_table "cart_items", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "cart_items", force: :cascade do |t|
     t.bigint "cart_id", null: false
     t.datetime "created_at", null: false
     t.bigint "product_id", null: false
@@ -82,14 +82,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
     t.index ["product_id"], name: "index_cart_items_on_product_id"
   end
 
-  create_table "carts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "carts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "customer_id"
     t.datetime "updated_at", null: false
     t.index ["customer_id"], name: "index_carts_on_customer_id"
   end
 
-  create_table "customers", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "customers", force: :cascade do |t|
     t.datetime "confirmation_sent_at"
     t.string "confirmation_token"
     t.datetime "confirmed_at"
@@ -119,7 +119,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
     t.index ["unlock_token"], name: "index_customers_on_unlock_token", unique: true
   end
 
-  create_table "order_items", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "order_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "order_id", null: false
     t.bigint "product_id", null: false
@@ -130,7 +130,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
     t.index ["product_id"], name: "index_order_items_on_product_id"
   end
 
-  create_table "orders", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "orders", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "customer_id", null: false
     t.string "shipping_city"
@@ -143,7 +143,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
     t.index ["customer_id"], name: "index_orders_on_customer_id"
   end
 
-  create_table "product_tags", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "product_tags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "product_id", null: false
     t.bigint "tag_id", null: false
@@ -153,7 +153,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
     t.index ["tag_id"], name: "index_product_tags_on_tag_id"
   end
 
-  create_table "products", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "products", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
     t.decimal "original_price", precision: 10, scale: 2
@@ -163,7 +163,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_152854) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "tags", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "tags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name"
     t.datetime "updated_at", null: false

@@ -4,14 +4,16 @@ class CartsController < ApplicationController
 
   # GET /api/carts
   def index
-    @carts = current_customer.cart
-
-    render json: @carts
+    @cart = current_customer.cart
+    if @cart
+      render json: cart_json(@cart)
+    else
+      render json: nil
+    end
   end
 
-  # GET /api/carts/1
   def show
-    render json: @cart
+    render json: cart_json(@cart)
   end
 
   # POST /api/carts
@@ -70,5 +72,14 @@ class CartsController < ApplicationController
 
   def shipping_params
     params.require(:shipping).permit(:street, :city, :zip_code, :name)
+  end
+
+  def cart_json(cart)
+    cart.as_json.merge(
+      items: cart.cart_items.includes(:product).map do |ci|
+        ci.as_json.merge(product: ci.product)
+      end,
+      total_price: cart.total_price
+    )
   end
 end

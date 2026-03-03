@@ -1,62 +1,103 @@
-{{ form.value | json}}
-<form class="checkout-form" [formGroup]="form" (submit)="onSubmit()">
+<div class="checkout-layout">
 
-  <div class="error-summary" role="status" aria-live="polite">
-    <p>Il form contiene errori. Controlla i campi evidenziati prima di procedere</p>
-  </div>
+  <!-- ── Colonna sinistra: form ─────────────────────────────────── -->
+  <section class="checkout-form-section">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-    <div formGroupName="customer">
       <h2>Dati cliente</h2>
+
       <mat-form-field appearance="outline">
         <mat-label>Nome</mat-label>
-        <input matInput formControlName="firstName"/>
-
-        @if(hasError('customer.firstname', 'required')){
-          <mat-error> il nome è obbligatorio</mat-error>
+        <input matInput formControlName="firstName" />
+        @if (hasError('firstName', 'required')) {
+          <mat-error>Il nome è obbligatorio.</mat-error>
+        }
+        @if (hasError('firstName', 'minlength')) {
+          <mat-error>Il nome deve contenere almeno 2 caratteri.</mat-error>
         }
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Cognome</mat-label>
-        <input matInput formControlName="lastName"/>
+        <input matInput formControlName="lastName" />
+        @if (hasError('lastName', 'required')) {
+          <mat-error>Il cognome è obbligatorio.</mat-error>
+        }
+        @if (hasError('lastName', 'minlength')) {
+          <mat-error>Il cognome deve contenere almeno 2 caratteri.</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Email</mat-label>
-        <input matInput formControlName="email"/>
-        @if (hasError('customer.email', 'required')){
+        <input matInput formControlName="email" type="email" />
+        @if (hasError('email', 'required')) {
           <mat-error>L'email è obbligatoria.</mat-error>
         }
-        @if (hasError('customer.email', 'email')){
+        @if (hasError('email', 'email')) {
           <mat-error>Inserisci un indirizzo email valido.</mat-error>
         }
       </mat-form-field>
-    </div>
 
-    <div formGroupName="address">
-      <h2>Indirizzo</h2>
+      <h2>Indirizzo di spedizione</h2>
+
       <mat-form-field appearance="outline">
         <mat-label>Via</mat-label>
-        <input matInput formControlName="street"/>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>CAP</mat-label>
-        <input matInput formControlName="zip"/>
+        <input matInput formControlName="street" />
+        @if (hasError('street', 'required')) {
+          <mat-error>L'indirizzo è obbligatorio.</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Città</mat-label>
-        <input matInput formControlName="city"/>
+        <input matInput formControlName="city" />
+        @if (hasError('city', 'required')) {
+          <mat-error>La città è obbligatoria.</mat-error>
+        }
       </mat-form-field>
-    </div>
 
-    <mat-select formControlName="shippingMethod" placeholder="Metodo di spedizione">
-      <mat-option value="standard">Spedizione standard (3-5 giorni)</mat-option>
-      <mat-option value="express">Spedizione express (1-2 giorni)</mat-option>
-    </mat-select>
+      <mat-form-field appearance="outline">
+        <mat-label>CAP</mat-label>
+        <input matInput formControlName="zip" />
+        @if (hasError('zip', 'required')) {
+          <mat-error>Il CAP è obbligatorio.</mat-error>
+        }
+      </mat-form-field>
 
-    <mat-checkbox formControlName="privacy">Accetto termini e privacy</mat-checkbox>
+      <mat-checkbox formControlName="privacy">
+        Accetto i termini e la privacy policy
+      </mat-checkbox>
+      @if (hasError('privacy', 'required')) {
+        <p class="privacy-error">Devi accettare la privacy policy per procedere.</p>
+      }
 
-    <button mat-raised-button color="primary" type="submit">Conferma ordine</button>
-</form>
+      @if (orderError) {
+        <p class="server-error" role="alert">{{ orderError }}</p>
+      }
+
+      @if (orderSuccess) {
+        <p class="success-message" role="status">
+          Ordine confermato! Verrai reindirizzato ai tuoi ordini…
+        </p>
+      }
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        [disabled]="loading"
+      >
+        {{ loading ? 'Invio in corso…' : 'Conferma ordine' }}
+      </button>
+
+    </form>
+  </section>
+
+  <!-- ── Colonna destra: riepilogo carrello (readonly) ──────────── -->
+  <aside class="checkout-summary">
+    <h2>Riepilogo ordine</h2>
+    <app-cart-card [readonly]="true" />
+  </aside>
+
+</div>
