@@ -40,4 +40,8 @@ class Customer < ApplicationRecord
   def ensure_jti_present
     self.jti ||= SecureRandom.uuid
   end
+
+  def update_tracked_fields!(request)
+    # no-op
+  end
 end

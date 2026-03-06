@@ -8,7 +8,7 @@ class ProductsController < ApplicationController
   # GET /products
   def index
     filtered = Product
-                 .includes(:tags)
+                 .includes(:tags, thumbnail_attachment: { blob: :variant_records })
                  .search_by_title(params[:title])
                  .search_by_tag(params[:tag])
                  .search_by_min_max_price(params[:min], params[:max])
@@ -20,7 +20,7 @@ class ProductsController < ApplicationController
     render json: {
       pagy: @pagy.data_hash,
       products: @products.map { |p|
-        thumbnail_url = p.thumbnail.attached? ? url_for(p.thumbnail) : nil
+        thumbnail_url = p.thumbnail.attached? ? url_for(p.thumbnail.variant(resize_to_limit: [300, 300])) : nil
         p.as_json(include: :tags).merge({ thumbnail_url: thumbnail_url })
       }
     }
@@ -57,13 +57,11 @@ class ProductsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_product
-      @product = Product.find(params.expect(:id))
-    end
+  def set_product
+    @product = Product.find(params.expect(:id))
+  end
 
-    # Only allow a list of trusted parameters through.
-    def product_params
-      params.expect(product: [ :title, :description, :price, :original_price, :sale, :thumbnail, { tag_ids: [] } ])
-    end
+  def product_params
+    params.expect(product: [ :title, :description, :price, :original_price, :sale, :thumbnail, { tag_ids: [] } ])
+  end
 end
