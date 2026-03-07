@@ -8,7 +8,7 @@ one:
 
 two:
   order: two
-  product: laptop
+  product: pc
   quantity: 1
   unit_price: 899.99
   created_at: <%= Time.now %>

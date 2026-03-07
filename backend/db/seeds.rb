@@ -132,19 +132,24 @@ puts "\n✅ Creati #{Product.count} prodotti."
 
 puts "\n=== Creazione Ordini ==="
 
-ADDRESSES = [
-  { shipping_name: "Mario Rossi",   shipping_street: "Via Roma 1",      shipping_city: "Milano",  shipping_zip: "20100" },
-  { shipping_name: "Giulia Bianchi", shipping_street: "Corso Italia 42", shipping_city: "Roma",    shipping_zip: "00100" },
-  { shipping_name: "Mario Rossi",   shipping_street: "Via Garibaldi 7",  shipping_city: "Torino",  shipping_zip: "10100" },
-  { shipping_name: "Giulia Bianchi", shipping_street: "Viale Venezia 3", shipping_city: "Napoli",  shipping_zip: "80100" }
+MARIO_ADDRESSES = [
+  { shipping_name: "Mario Rossi", shipping_street: "Via Roma 1",      shipping_city: "Milano",  shipping_zip: "20100" },
+  { shipping_name: "Mario Rossi", shipping_street: "Via Garibaldi 7", shipping_city: "Torino",  shipping_zip: "10100" },
+  { shipping_name: "Mario Rossi", shipping_street: "Piazza Duomo 3",  shipping_city: "Firenze", shipping_zip: "50100" }
+]
+
+GIULIA_ADDRESSES = [
+  { shipping_name: "Giulia Bianchi", shipping_street: "Corso Italia 42", shipping_city: "Roma",   shipping_zip: "00100" },
+  { shipping_name: "Giulia Bianchi", shipping_street: "Viale Venezia 3", shipping_city: "Napoli", shipping_zip: "80100" },
+  { shipping_name: "Giulia Bianchi", shipping_street: "Via Manzoni 10",  shipping_city: "Milano", shipping_zip: "20121" }
 ]
 
 STATUSES = Order.statuses.keys # ["processing", "completed", "cancelled"]
 
 # Genera N ordini per un dato customer, con date e totali diversificati
-def create_orders_for(customer, products, count:)
+def create_orders_for(customer, products, addresses:, count:)
   count.times do |i|
-    address = ADDRESSES.sample
+    address = addresses.sample
     status  = STATUSES.sample
     # Date scalate nel passato per poter testare ordinamento dateAsc/dateDesc
     created_at = (count - i).weeks.ago
@@ -180,8 +185,8 @@ def create_orders_for(customer, products, count:)
   end
 end
 
-create_orders_for(customer1, created_products, count: 6)
-create_orders_for(customer2, created_products, count: 5)
+create_orders_for(customer1, created_products, addresses: MARIO_ADDRESSES, count: 6)
+create_orders_for(customer2, created_products, addresses: GIULIA_ADDRESSES, count: 5)
 
 puts "\n✅ Creati #{Order.count} ordini con #{OrderItem.count} order items."
 

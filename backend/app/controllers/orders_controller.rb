@@ -4,8 +4,20 @@ class OrdersController < ApplicationController
 
   # GET /api/orders
   def index
-    @orders = current_customer.orders
-    render json: @orders
+    if params[:min].present? && params[:max].present? && params[:min].to_f > params[:max].to_f
+      return render json: { error: "Il filtro min non può essere maggiore di max" }, status: :bad_request
+    end
+
+    filtered = current_customer.orders
+                               .search_by_min_max_total(params[:min], params[:max])
+                               .apply_sort(params[:sort])
+
+    @pagy, @orders = pagy(:countish, filtered, ttl: 300, limit: (params[:limit] || 10).to_i)
+
+    render json: {
+      pagy: @pagy.data_hash,
+      orders: @orders
+    }
   end
 
   # GET /api/orders/1
@@ -40,16 +52,15 @@ class OrdersController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_order
-      @order = Order.find(params.expect(:id))
-    end
+  def set_order
+    @order = current_customer.orders.find(params.expect(:id))
+  end
 
-    # Only allow a list of trusted parameters through.
-    def order_params
-      params.expect(order: [ :customer_id, :shipping_name, :shipping_street, :shipping_city, :shipping_zip ])
-    end
-    def order_update_params
-      params.expect(order: [:shipping_name, :shipping_street, :shipping_city, :shipping_zip, :status ])
-    end
+  def order_params
+    params.expect(order: [ :customer_id, :shipping_name, :shipping_street, :shipping_city, :shipping_zip ])
+  end
+
+  def order_update_params
+    params.expect(order: [ :shipping_name, :shipping_street, :shipping_city, :shipping_zip, :status ])
+  end
 end

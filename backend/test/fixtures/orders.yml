@@ -18,5 +18,5 @@ two:
   shipping_street: "Via Milano 456"
   shipping_city: "Milano"
   shipping_zip: "20121"
-  created_at: <%= Time.now %>
-  updated_at: <%= Time.now %>
+  created_at: "2026-01-01 10:00:00"
+  updated_at: "2026-01-01 10:00:00"

@@ -3,6 +3,7 @@ import {CheckoutPage} from './features/checkout/checkout-page/checkout-page';
 import {authGuard} from './core/guard/auth-guard';
 import {LoginPage} from './features/auth/login-page/login-page';
 import {CartPageComponent} from './features/checkout/cart-page/cart-page';
+import {OrderPage} from './features/orders/order-page/order-page';
 
 // @ts-ignore
 export const routes: Routes = [
@@ -17,6 +18,7 @@ export const routes: Routes = [
   {path: 'login', component:LoginPage },
   {path: 'logout', redirectTo: 'products', pathMatch: 'full'},
   {path: 'register', component:LoginPage},
+  {path: 'orders', component:OrderPage, canActivate: [authGuard]},
 
   {path: '**', redirectTo: 'products'}
 ];
