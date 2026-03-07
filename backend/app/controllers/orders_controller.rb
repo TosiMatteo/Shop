@@ -9,6 +9,7 @@ class OrdersController < ApplicationController
     end
 
     filtered = current_customer.orders
+                               .includes(order_items: :product)
                                .search_by_min_max_total(params[:min], params[:max])
                                .apply_sort(params[:sort])
 
@@ -16,13 +17,24 @@ class OrdersController < ApplicationController
 
     render json: {
       pagy: @pagy.data_hash,
-      orders: @orders
+      orders: @orders.map { |o|
+        o.as_json.merge(
+          order_items: o.order_items.map { |item|
+            item.as_json.merge(product: item.product.as_json(only: [:id, :title]))
+          }
+        )
+      }
     }
   end
 
+
   # GET /api/orders/1
   def show
-    render json: @order
+    render json: @order.as_json.merge(
+      order_items: @order.order_items.includes(:product).map { |item|
+        item.as_json.merge(product: item.product.as_json(only: [:id, :title]))
+      }
+    )
   end
 
   # POST /api/orders
