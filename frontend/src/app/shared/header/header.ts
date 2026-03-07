@@ -45,4 +45,11 @@ export class Header {
       this.router.navigate(['/login']);
     }
   }
+
+  orders(): void {
+    if (this.isAuthenticated) {
+      this.router.navigate(['/orders'])
+    }
+  }
+
 }

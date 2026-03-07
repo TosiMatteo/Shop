@@ -1,0 +1,49 @@
+<section class="container">
+
+  <header class="header">I tuoi ordini</header>
+
+  <form class="filters" (submit)="$event.preventDefault()">
+    <div class="filters-row">
+
+      <mat-form-field>
+        <mat-label>Totale min (€)</mat-label>
+        <input matInput type="number" min="0" name="totalMin" placeholder="Minimo"
+               (input)="updateMinTotal($any($event.target).value)" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Totale max (€)</mat-label>
+        <input matInput type="number" min="0" name="totalMax" placeholder="Massimo"
+               (input)="updateMaxTotal($any($event.target).value)" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>Ordina</mat-label>
+        <mat-select (selectionChange)="updateSort($any($event.value))">
+          <mat-option value="dateDesc">Data ↓</mat-option>
+          <mat-option value="dateAsc">Data ↑</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </div>
+  </form>
+
+  @if (pagy$ | async; as pagy) {
+    <mat-paginator
+      class="paginator"
+      [length]="pagy.count"
+      [pageSize]="pagy.limit"
+      [pageSizeOptions]="[10, 20, 30]"
+      [pageIndex]="pagy.page - 1"
+      (page)="onPage($event)"
+      aria-label="Seleziona pagina">
+    </mat-paginator>
+  }
+
+  <div class="orders-list">
+    @for (order of orders$ | async; track order.id) {
+      <app-order-card [order]="order" />
+    }
+  </div>
+
+</section>

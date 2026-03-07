@@ -1,0 +1,44 @@
+<mat-card class="order-card">
+  <mat-card-header>
+    <mat-card-title>Ordine #{{ order.id }}</mat-card-title>
+    <mat-card-subtitle>{{ order.created_at | date:'dd/MM/yyyy HH:mm' }}</mat-card-subtitle>
+    <mat-chip-set class="order-card__status">
+      <mat-chip [color]="statusColor[order.status]" highlighted>
+        {{ statusLabel[order.status] }}
+      </mat-chip>
+    </mat-chip-set>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="order-card__row">
+      <mat-icon>person</mat-icon>
+      <span>{{ order.shipping_name }}</span>
+    </div>
+    <div class="order-card__row">
+      <mat-icon>location_on</mat-icon>
+      <span>{{ order.shipping_street }}, {{ order.shipping_zip }} {{ order.shipping_city }}</span>
+    </div>
+
+    <!-- Sezione items: visibile solo quando expanded, animata via CSS max-height -->
+    <div class="order-card__items" [class.order-card__items--open]="expanded">
+      <mat-divider class="order-card__divider" />
+      <p class="order-card__items-title">Prodotti ordinati</p>
+      @for (item of order.order_items; track item.id) {
+        <div class="order-card__item">
+          <span class="order-card__item-title">{{ item.product.title }}</span>
+          <span class="order-card__item-qty">x{{ item.quantity }}</span>
+          <span class="order-card__item-price">{{ item.unit_price * item.quantity | currency:'EUR' }}</span>
+        </div>
+      }
+    </div>
+  </mat-card-content>
+
+  <mat-card-footer>
+    <button mat-button class="order-card__toggle" (click)="toggleExpand()"
+            [attr.aria-expanded]="expanded">
+      <mat-icon>{{ expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+      {{ expanded ? 'Nascondi dettagli' : 'Vedi dettagli (' + order.order_items.length + ')' }}
+    </button>
+    <span class="order-card__total">Totale: {{ order.total | currency:'EUR' }}</span>
+  </mat-card-footer>
+</mat-card>

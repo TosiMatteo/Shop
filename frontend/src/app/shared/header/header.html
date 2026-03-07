@@ -11,7 +11,12 @@
       <mat-icon>shopping_cart</mat-icon>
       <span>Checkout</span>
     </button>
-
+    @if (isAuthenticated) {
+      <button mat-menu-item (click)="orders()">
+          <mat-icon>receipt</mat-icon>
+          <span>Orders</span>
+      </button>
+    }
 
     <button mat-menu-item (click)="manageSession()">
       @if (isAuthenticated) {
