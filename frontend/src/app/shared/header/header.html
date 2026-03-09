@@ -18,15 +18,17 @@
       </button>
     }
 
-    <button mat-menu-item (click)="manageSession()">
-      @if (isAuthenticated) {
+    @if (isAuthenticated) {
+      <button mat-menu-item (click)="manageSession()">
         <mat-icon>logout</mat-icon>
         <span>Logout</span>
-      } @else {
+      </button>
+    } @else {
+      <button mat-menu-item (click)="manageSession()">
         <mat-icon>login</mat-icon>
         <span>Login</span>
-      }
-    </button>
+      </button>
+    }
 
 
   </mat-menu>

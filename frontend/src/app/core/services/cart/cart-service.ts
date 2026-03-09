@@ -159,7 +159,7 @@ export class CartService {
       .post<CheckoutResponse>(`/api/carts/${cartId}/checkout`, { shipping })
       .pipe(
         tap(() =>
-          this.cartSubject.next({ id: cartId, customerId: 0, items: [], total_price: 0 }),
+          this.cartSubject.next(null),
         ),
       );
   }
