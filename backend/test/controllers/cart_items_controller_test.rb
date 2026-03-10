@@ -1,14 +1,19 @@
 require "test_helper"
 
 class CartItemsControllerTest < ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
   setup do
+    @customer = customers(:Customer_Auth)
+    @cart = carts(:one)
     @cart_item = cart_items(:one)
+    sign_in @customer
+    @cart.update!(customer: @customer)
   end
 
 
   test "should create cart_item" do
     assert_difference("CartItem.count") do
-      post cart_cart_items_url(carts(:one)), params: { cart_item: { product_id: products(:shirt).id, quantity: 1 } }, as: :json
+      post cart_cart_items_url(@cart), params: { cart_item: { product_id: products(:shirt).id, quantity: 1 } }, as: :json
     end
     assert_response :created
   end
