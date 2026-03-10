@@ -2,7 +2,7 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChang
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
-import {AuthInterceptor} from './core/services/auth/auth-interceptor';
+import {AuthInterceptor} from './core/interceptors/auth-interceptor';
 
 // @ts-ignore
 export const appConfig: ApplicationConfig = {
