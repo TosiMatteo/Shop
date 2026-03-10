@@ -7,7 +7,7 @@ import { OrderResponse } from '../../models/order';
   providedIn: 'root',
 })
 export class OrderService {
-  private readonly orderUrl = 'http://localhost:3000/api/orders';
+  private readonly orderUrl = '/api/orders';
 
   constructor(private readonly http: HttpClient) {}
 

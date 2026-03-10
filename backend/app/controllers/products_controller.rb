@@ -20,7 +20,7 @@ class ProductsController < ApplicationController
     render json: {
       pagy: @pagy.data_hash,
       products: @products.map { |p|
-        thumbnail_url = p.thumbnail.attached? ? url_for(p.thumbnail.variant(resize_to_limit: [300, 300])) : nil
+        thumbnail_url = p.thumbnail.attached? ? rails_representation_path(p.thumbnail.variant(resize_to_limit: [300, 300])) : nil
         p.as_json(include: :tags).merge({ thumbnail_url: thumbnail_url })
       }
     }
