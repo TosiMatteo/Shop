@@ -7,6 +7,9 @@ class ProductsController < ApplicationController
 
   # GET /products
   def index
+    if params[:min].present? && params[:max].present? && params[:min].to_f > params[:max].to_f
+      return render_error(status: :bad_request, message: 'Min must be less than max')
+    end
     filtered = Product
                  .includes(:tags, thumbnail_attachment: { blob: :variant_records })
                  .search_by_title(params[:title])
