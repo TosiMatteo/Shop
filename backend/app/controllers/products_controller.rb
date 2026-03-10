@@ -3,7 +3,7 @@ class ProductsController < ApplicationController
   # Actions solo per admin
   before_action :authenticate_admin!, only: [:create, :update, :destroy]
 
-  before_action :set_product, only: %i[ update destroy ]
+  before_action :set_product, only: %i[ update destroy show]
 
   # GET /products
   def index
@@ -34,26 +34,20 @@ class ProductsController < ApplicationController
   # POST /products
   def create
     @product = Product.new(product_params)
-
-    if @product.save
-      render json: @product, status: :created, location: @product
-    else
-      render json: @product.errors, status: :unprocessable_content
-    end
+    @product.save!
+    render json: @product, status: :created, location: @product
   end
 
   # PATCH/PUT /products/1
   def update
-    if @product.update(product_params)
-      render json: @product
-    else
-      render json: @product.errors, status: :unprocessable_content
-    end
+    @product.update!(product_params)
+    render json: @product
   end
 
   # DELETE /products/1
   def destroy
     @product.destroy!
+    head :no_content
   end
 
   private

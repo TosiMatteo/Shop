@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::API
   include Pagy::Method
+  include ErrorHandler
 
   before_action :configure_permitted_parameters, if: :devise_controller?
 
@@ -14,21 +15,15 @@ class ApplicationController < ActionController::API
   end
 
   def authenticate_user!
-    unless current_user
-      render json: { error: 'Non autorizzato' }, status: :unauthorized
-    end
+    raise ErrorHandler::AuthenticationError unless current_user
   end
 
   def authenticate_admin!
-    unless current_admin
-      render json: { error: 'Accesso riservato agli amministratori' }, status: :forbidden
-    end
+    raise ErrorHandler::ForbiddenError unless current_admin
   end
 
   def authenticate_customer!
-    unless current_customer
-      render json: { error: 'Accesso riservato ai clienti' }, status: :forbidden
-    end
+    raise ErrorHandler::ForbiddenError unless current_customer
   end
 
   protected
