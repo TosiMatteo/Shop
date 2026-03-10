@@ -30,7 +30,6 @@ export class CheckoutPage {
   readonly form = this.fb.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
     lastName:  ['', [Validators.required, Validators.minLength(2)]],
-    email:     ['', [Validators.required, Validators.email]],
     street:    ['', Validators.required],
     city:      ['', Validators.required],
     zip:       ['', Validators.required],
@@ -60,7 +59,6 @@ export class CheckoutPage {
 
     this.cartService
       .checkout({
-        // Il backend Rails si aspetta "name" come stringa unica
         name: `${firstName} ${lastName}`.trim(),
         street: street!,
         city: city!,
