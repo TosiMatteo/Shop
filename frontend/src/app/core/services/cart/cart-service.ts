@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
+import {BehaviorSubject, catchError, forkJoin, map, Observable, of, switchMap, tap, throwError} from 'rxjs';
 import { AuthService } from '../auth/auth-service';
 import { Cart } from '../../models/cart';
 import { CartItem } from '../../models/cart-item';
@@ -27,6 +27,9 @@ export class CartService {
 
   private cartSubject = new BehaviorSubject<Cart | null>(null);
   readonly cart$ = this.cartSubject.asObservable();
+
+  private loadingSubject = new BehaviorSubject<boolean>(this.auth.isAuthenticated());
+  readonly isLoading$ = this.loadingSubject.asObservable();
 
   constructor() {
     if (this.auth.isAuthenticated()) {
@@ -72,7 +75,10 @@ export class CartService {
   private loadServerCart(): Observable<Cart> {
     return this.http.get<Cart | null>('/api/carts').pipe(
       switchMap(cart => (cart ? of(cart) : this.createServerCart())),
-      tap(cart => this.cartSubject.next(cart)),
+      tap(cart => {
+        this.cartSubject.next(cart);
+        this.loadingSubject.next(false);
+      }),
     );
   }
 
@@ -108,7 +114,6 @@ export class CartService {
         error: () => (this.pendingAdd = false),
       });
     } else {
-
       const items = this.getGuestItems();
       const existing = items.find(i => i.productId === +product.id);
       if (existing) {
@@ -154,13 +159,11 @@ export class CartService {
 
   checkout(shipping: ShippingParams): Observable<CheckoutResponse> {
     const cartId = this.cartSubject.value?.id;
-    if (!cartId) throw new Error('Nessun carrello attivo');
+    if (!cartId) return throwError(() => new Error('Nessun carrello attivo'));
     return this.http
       .post<CheckoutResponse>(`/api/carts/${cartId}/checkout`, { shipping })
       .pipe(
-        tap(() =>
-          this.cartSubject.next(null),
-        ),
+        tap(() => this.cartSubject.next(null)),
       );
   }
 

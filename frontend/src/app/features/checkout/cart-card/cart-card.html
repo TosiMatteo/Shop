@@ -1,5 +1,7 @@
 <mat-list>
-  @if (cart$ | async; as cart) {
+  @if (isLoading$ | async) {
+    <p class="empty-cart">Caricamento carrello…</p>
+  } @else if (cart$ | async; as cart) {
     @if (cart.items.length === 0) {
       <p class="empty-cart">Il carrello è vuoto.</p>
     } @else {
@@ -55,6 +57,6 @@
       </div>
     }
   } @else {
-    <p class="empty-cart">Caricamento carrello…</p>
+    <p class="empty-cart">Il carrello è vuoto.</p>
   }
 </mat-list>

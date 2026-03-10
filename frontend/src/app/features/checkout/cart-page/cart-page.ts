@@ -21,12 +21,12 @@ export class CartPageComponent {
   private router = inject(Router);
 
   readonly cart$ = this.cartService.cart$;
-  /**
-   * Disabilita il pulsante checkout se il carrello è vuoto.
-   */
+
   readonly hasItems$ = this.cart$.pipe(map(cart => (cart?.items.length ?? 0) > 0));
 
-  readonly isAuthenticated = this.auth.isAuthenticated();
+  get isAuthenticated(): boolean {
+    return this.auth.isAuthenticated();
+  }
 
   proceedToCheckout(): void {
     if (this.isAuthenticated) {
