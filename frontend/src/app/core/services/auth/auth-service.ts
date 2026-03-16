@@ -26,9 +26,9 @@ export interface RegisterCredentials {
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly CUSTOMER_URL = 'http://localhost:3000/api/customers';
+  private readonly CUSTOMER_URL= '/api/customers';
   private readonly TOKEN = 'auth_token';
-  private readonly ME = 'http://localhost:3000/api/me';
+  private readonly ME = '/api/me';
 
   constructor(private http: HttpClient) { }
 

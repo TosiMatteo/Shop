@@ -30,6 +30,7 @@ export class CartCardComponent {
 
   private cartService = inject(CartService);
   readonly cart$ = this.cartService.cart$;
+  readonly isLoading$ = this.cartService.isLoading$;
 
   increment(item: CartItem): void {
     this.cartService.updateItem(item.id, item.quantity + 1);

@@ -3,8 +3,12 @@
     "target": "http://backend:3000",
     "secure": false,
     "changeOrigin": true,
-    "headers": {
-      "Host": "localhost"
-    }
+    "headers": { "Host": "localhost:3000" }
+  },
+  "/rails": {
+    "target": "http://backend:3000",
+    "secure": false,
+    "changeOrigin": true,
+    "headers": { "Host": "localhost:3000" }
   }
 }

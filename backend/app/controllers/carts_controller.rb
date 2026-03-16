@@ -19,21 +19,14 @@ class CartsController < ApplicationController
   # POST /api/carts
   def create
     @cart = Cart.new(cart_params)
-
-    if @cart.save
-      render json: @cart, status: :created, location: @cart
-    else
-      render json: @cart.errors, status: :unprocessable_content
-    end
+    @cart.save!
+    render json: @cart, status: :created, location: @cart
   end
 
   # PATCH/PUT /api/carts/1
   def update
-    if @cart.update(cart_params)
-      render json: @cart
-    else
-      render json: @cart.errors, status: :unprocessable_content
-    end
+    @cart.update!(cart_params)
+    render json: @cart
   end
 
   # DELETE /api/carts/1
@@ -44,19 +37,14 @@ class CartsController < ApplicationController
 
   def checkout
     shipping_params = params.expect(shipping: [:name, :street, :city, :zip])
-    begin
-      order = @cart.checkout(shipping_params)
-      render json: {
-        id: order.id,
-        total: order.total.to_s,
-        status: order.status,
-        shipping_name: order.shipping_name,
-        order_items: order.order_items.count
-      }, status: :created
-    rescue ActiveRecord::RecordInvalid => e
-      render json: { errors: e.record.errors.full_messages },
-             status: :unprocessable_content
-    end
+    order = @cart.checkout(shipping_params)
+    render json: {
+      id: order.id,
+      total: order.total.to_s,
+      status: order.status,
+      shipping_name: order.shipping_name,
+      order_items: order.order_items.count
+    }, status: :created
   end
 
   private
@@ -70,16 +58,12 @@ class CartsController < ApplicationController
       params.expect(cart: [ :customer_id ])
     end
 
-  def shipping_params
-    params.require(:shipping).permit(:street, :city, :zip_code, :name)
-  end
-
-  def cart_json(cart)
-    cart.as_json.merge(
-      items: cart.cart_items.includes(:product).map do |ci|
-        ci.as_json.merge(product: ci.product)
-      end,
-      total_price: cart.total_price
-    )
-  end
+    def cart_json(cart)
+      cart.as_json.merge(
+        items: cart.cart_items.includes(:product).map do |ci|
+          ci.as_json.merge(product: ci.product)
+        end,
+        total_price: cart.total_price
+      )
+    end
 end

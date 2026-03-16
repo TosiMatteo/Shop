@@ -3,10 +3,13 @@ class ProductsController < ApplicationController
   # Actions solo per admin
   before_action :authenticate_admin!, only: [:create, :update, :destroy]
 
-  before_action :set_product, only: %i[ update destroy ]
+  before_action :set_product, only: %i[ update destroy show]
 
   # GET /products
   def index
+    if params[:min].present? && params[:max].present? && params[:min].to_f > params[:max].to_f
+      return render_error(status: :bad_request, message: 'Min must be less than max')
+    end
     filtered = Product
                  .includes(:tags, thumbnail_attachment: { blob: :variant_records })
                  .search_by_title(params[:title])
@@ -20,7 +23,7 @@ class ProductsController < ApplicationController
     render json: {
       pagy: @pagy.data_hash,
       products: @products.map { |p|
-        thumbnail_url = p.thumbnail.attached? ? url_for(p.thumbnail.variant(resize_to_limit: [300, 300])) : nil
+        thumbnail_url = p.thumbnail.attached? ? rails_representation_path(p.thumbnail.variant(resize_to_limit: [300, 300])) : nil
         p.as_json(include: :tags).merge({ thumbnail_url: thumbnail_url })
       }
     }
@@ -34,26 +37,20 @@ class ProductsController < ApplicationController
   # POST /products
   def create
     @product = Product.new(product_params)
-
-    if @product.save
-      render json: @product, status: :created, location: @product
-    else
-      render json: @product.errors, status: :unprocessable_content
-    end
+    @product.save!
+    render json: @product, status: :created, location: @product
   end
 
   # PATCH/PUT /products/1
   def update
-    if @product.update(product_params)
-      render json: @product
-    else
-      render json: @product.errors, status: :unprocessable_content
-    end
+    @product.update!(product_params)
+    render json: @product
   end
 
   # DELETE /products/1
   def destroy
     @product.destroy!
+    head :no_content
   end
 
   private

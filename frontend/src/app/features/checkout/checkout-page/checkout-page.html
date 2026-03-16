@@ -4,7 +4,7 @@
   <section class="checkout-form-section">
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-      <h2>Dati cliente</h2>
+      <h2>Dati di spedizione</h2>
 
       <mat-form-field appearance="outline">
         <mat-label>Nome</mat-label>
@@ -25,17 +25,6 @@
         }
         @if (hasError('lastName', 'minlength')) {
           <mat-error>Il cognome deve contenere almeno 2 caratteri.</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Email</mat-label>
-        <input matInput formControlName="email" type="email" />
-        @if (hasError('email', 'required')) {
-          <mat-error>L'email è obbligatoria.</mat-error>
-        }
-        @if (hasError('email', 'email')) {
-          <mat-error>Inserisci un indirizzo email valido.</mat-error>
         }
       </mat-form-field>
 

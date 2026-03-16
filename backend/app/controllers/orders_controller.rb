@@ -5,7 +5,7 @@ class OrdersController < ApplicationController
   # GET /api/orders
   def index
     if params[:min].present? && params[:max].present? && params[:min].to_f > params[:max].to_f
-      return render json: { error: "Il filtro min non può essere maggiore di max" }, status: :bad_request
+      return render_error(status: :bad_request, message: 'Min must be less than max')
     end
 
     filtered = current_customer.orders
@@ -40,21 +40,14 @@ class OrdersController < ApplicationController
   # POST /api/orders
   def create
     @order = Order.new(order_params)
-
-    if @order.save
-      render json: @order, status: :created, location: @order
-    else
-      render json: @order.errors, status: :unprocessable_content
-    end
+    @order.save!
+    render json: @order, status: :created, location: @order
   end
 
   # PATCH/PUT /api/orders/1
   def update
-    if @order.update(order_update_params)
-      render json: @order
-    else
-      render json: @order.errors, status: :unprocessable_content
-    end
+    @order.update!(order_update_params)
+    render json: @order
   end
 
   # DELETE /api/orders/1
