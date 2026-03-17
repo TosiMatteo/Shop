@@ -48,6 +48,8 @@ class OrdersController < ApplicationController
   def update
     @order.update!(order_update_params)
     render json: @order
+  rescue ArgumentError => e
+    render_error(status: :unprocessable_entity, message: e.message)
   end
 
   # DELETE /api/orders/1

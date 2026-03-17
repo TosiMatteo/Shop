@@ -50,7 +50,8 @@ class CartsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_cart
-      @cart = Cart.find(params.expect(:id))
+      @cart = current_customer.cart
+      raise ActiveRecord::RecordNotFound unless @cart && @cart.id == params[:id].to_i
     end
 
     # Only allow a list of trusted parameters through.
