@@ -1,4 +1,6 @@
 import {Injectable, signal} from '@angular/core';
+import {NavigationStart, Router} from '@angular/router';
+import {filter} from 'rxjs';
 
 export interface AppError {
   message: string;
@@ -6,17 +8,16 @@ export interface AppError {
   details?: string[];
 }
 
-@Injectable(
-  {providedIn: 'root'}
-)
+@Injectable({ providedIn: 'root' })
 export class ErrorService {
   readonly error = signal<AppError | null>(null);
 
-  setError(error: AppError): void {
-    this.error.set(error);
+  constructor(private router: Router) {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationStart)
+    ).subscribe(() => this.clearError());
   }
 
-  clearError(): void {
-    this.error.set(null);
-  }
+  setError(error: AppError): void { this.error.set(error); }
+  clearError(): void { this.error.set(null); }
 }
