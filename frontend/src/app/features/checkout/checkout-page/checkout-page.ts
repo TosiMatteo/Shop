@@ -7,6 +7,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { CartService } from '../../../core/services/cart/cart-service';
 import {CartCardComponent} from '../cart-card/cart-card';
+import {ErrorService} from '../../../core/services/error-service';
+import {finalize} from 'rxjs';
 
 @Component({
   selector: 'app-checkout-page',
@@ -26,6 +28,7 @@ export class CheckoutPage {
   private fb = inject(FormBuilder);
   private cartService = inject(CartService);
   private router = inject(Router);
+  protected errorService = inject(ErrorService);
 
   readonly form = this.fb.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -38,7 +41,6 @@ export class CheckoutPage {
 
   loading = false;
   orderSuccess = false;
-  orderError: string | null = null;
 
   hasError(field: string, errorCode: string): boolean {
     const control = this.form.get(field);
@@ -53,8 +55,6 @@ export class CheckoutPage {
     }
 
     this.loading = true;
-    this.orderError = null;
-
     const { firstName, lastName, street, city, zip } = this.form.getRawValue();
 
     this.cartService
@@ -63,20 +63,16 @@ export class CheckoutPage {
         street: street!,
         city: city!,
         zip: zip!,
-      })
+      }).pipe(
+        finalize(() => this.loading = false)
+    )
       .subscribe({
         next: () => {
-          this.loading = false;
           this.orderSuccess = true;
           this.form.reset();
           // Reindirizza alla pagina di conferma dopo 2 secondi
           setTimeout(() => this.router.navigate(['/orders']), 2000);
-        },
-        error: (err) => {
-          this.loading = false;
-          this.orderError =
-            err?.error?.errors?.join(', ') ?? 'Si è verificato un errore. Riprova.';
-        },
+        }
       });
   }
 

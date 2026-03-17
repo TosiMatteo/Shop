@@ -2,7 +2,7 @@ import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
 import {inject} from '@angular/core';
 import {ErrorService} from '../services/error-service';
 import {Router} from '@angular/router';
-import {catchError, EMPTY, throwError} from 'rxjs';
+import {catchError, EMPTY} from 'rxjs';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const errorService = inject(ErrorService);
