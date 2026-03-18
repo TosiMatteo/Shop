@@ -50,4 +50,26 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :no_content
   end
+
+  test "should filter orders by year" do
+    @order.update!(created_at: Time.zone.parse("2025-05-20 10:00:00"))
+    other_order = Order.create!(
+      customer: @customer,
+      total: 250.50,
+      status: "completed",
+      shipping_name: "Luigi",
+      shipping_street: "Via Napoli 10",
+      shipping_city: "Napoli",
+      shipping_zip: "80121",
+      created_at: Time.zone.parse("2026-02-10 12:00:00"),
+      updated_at: Time.zone.parse("2026-02-10 12:00:00")
+    )
+
+    get "/api/orders", params: { year: 2025 }, headers: { "ACCEPT" => "application/json" }
+    assert_response :success
+
+    ids = response.parsed_body.fetch("orders", []).map { |o| o["id"] }
+    assert_includes ids, @order.id
+    assert_not_includes ids, other_order.id
+  end
 end

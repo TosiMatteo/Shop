@@ -11,6 +11,8 @@ class OrdersController < ApplicationController
     filtered = current_customer.orders
                                .includes(order_items: :product)
                                .search_by_min_max_total(params[:min], params[:max])
+                               .search_by_status(params[:status])
+                               .search_by_year(params[:year])
                                .apply_sort(params[:sort])
 
     @pagy, @orders = pagy(:countish, filtered, ttl: 300, limit: (params[:limit] || 10).to_i)
