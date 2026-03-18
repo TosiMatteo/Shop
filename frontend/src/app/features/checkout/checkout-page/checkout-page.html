@@ -61,17 +61,6 @@
         <p class="privacy-error">Devi accettare la privacy policy per procedere.</p>
       }
 
-      @if (errorService.error()) {
-        <p class="server-error" role="alert">{{ errorService.error()!.message }}</p>
-        @if (errorService.error()!.details?.length) {
-          <ul class="server-error">
-            @for (detail of errorService.error()!.details!; track detail) {
-              <li>{{ detail }}</li>
-            }
-          </ul>
-        }
-      }
-
       @if (orderSuccess) {
         <p class="success-message" role="status">
           Ordine confermato! Verrai reindirizzato ai tuoi ordini…

@@ -7,7 +7,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { CartService } from '../../../core/services/cart/cart-service';
 import {CartCardComponent} from '../cart-card/cart-card';
-import {ErrorService} from '../../../core/services/error-service';
 import {finalize} from 'rxjs';
 
 @Component({
@@ -28,7 +27,6 @@ export class CheckoutPage {
   private fb = inject(FormBuilder);
   private cartService = inject(CartService);
   private router = inject(Router);
-  protected errorService = inject(ErrorService);
 
   readonly form = this.fb.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],

@@ -14,6 +14,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       const details = err.error?.error?.details ?? [];
 
       switch(err.status){
+        case 0:
+          errorService.setError({statusCode: 0, message: 'server not available'});
+          break;
+
         case 400:
           errorService.setError({statusCode:400, message, details});
           break;
