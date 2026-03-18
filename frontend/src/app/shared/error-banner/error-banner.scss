@@ -1,0 +1,76 @@
+.error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background-color: #fdf0ef;
+  border-left: 4px solid #d32f2f;
+  border-radius: 0 4px 4px 0;
+  margin: 8px 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+
+  animation: slide-in 0.2s ease-out;
+
+  &__icon {
+    color: #d32f2f;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__message {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a1a;
+    line-height: 1.5;
+  }
+
+  &__details {
+    margin: 6px 0 0 0;
+    padding-left: 18px;
+    list-style: disc;
+
+    li {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.6;
+    }
+  }
+
+  &__close {
+    flex-shrink: 0;
+    color: #888;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      color: #d32f2f;
+    }
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

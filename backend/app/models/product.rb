@@ -9,13 +9,29 @@ class Product < ApplicationRecord
   validates :original_price, presence: true
   validates :sale, inclusion: { in: [ true, false ] }
 
-  scope :search_by_title, ->(t) { t.present? ? where("title LIKE ?", "%#{t}%") : all }
-  scope :search_by_tag, ->(t) { t.present? ? joins(:tags).where("tags.name LIKE ?", "%#{t}%") : all }
-  scope :search_by_sale, ->(s) { s.present? && s.to_s == "true" ? where(sale: true) : all }
+  scope :search_by_title, ->(title) {
+    scope = where(nil)
+    scope = scope.where("title LIKE ?", "%#{title}%") if title.present?
+    scope
+  }
+
+  scope :search_by_tag, ->(tag) {
+    scope = where(nil)
+    scope = scope.joins(:tags).where("tags.name LIKE ?", "%#{tag}%") if tag.present?
+    scope
+  }
+
+  scope :search_by_sale, ->(sale) {
+    scope = where(nil)
+    scope = scope.where(sale: true) if sale.present? && sale.to_s == "true"
+    scope
+  }
+
   scope :search_by_min_max_price, ->(min, max) {
-    min_val = min.present? ? min.to_f : 0
-    max_val = max.present? ? max.to_f : Float::INFINITY
-    where(price: min_val..max_val)
+    scope = where(nil)
+    scope = scope.where("price >= ?", min.to_f) if min.present?
+    scope = scope.where("price <= ?", max.to_f) if max.present?
+    scope
   }
 
   scope :apply_sort, ->(sort) {
@@ -24,7 +40,7 @@ class Product < ApplicationRecord
     when "dateDesc" then order(created_at: :desc)
     when "priceAsc"  then order(price: :asc)
     when "priceDesc" then order(price: :desc)
-    else all
+    else order(created_at: :desc)
     end
   }
 end

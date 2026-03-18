@@ -20,6 +20,18 @@ class Order < ApplicationRecord
     scope
   }
 
+  scope :search_by_status, ->(status) {
+    scope = where(nil)
+    scope = scope.where(status: status) if status.present?
+    scope
+  }
+
+  scope :search_by_year, ->(year) {
+    scope = where(nil)
+    scope = scope.where("extract(year from created_at) = ?", year) if year.present?
+    scope
+  }
+
   scope :apply_sort, ->(sort) {
     case sort
     when "dateAsc"   then order(created_at: :asc)

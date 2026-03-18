@@ -11,6 +11,8 @@ class OrdersController < ApplicationController
     filtered = current_customer.orders
                                .includes(order_items: :product)
                                .search_by_min_max_total(params[:min], params[:max])
+                               .search_by_status(params[:status])
+                               .search_by_year(params[:year])
                                .apply_sort(params[:sort])
 
     @pagy, @orders = pagy(:countish, filtered, ttl: 300, limit: (params[:limit] || 10).to_i)
@@ -48,6 +50,8 @@ class OrdersController < ApplicationController
   def update
     @order.update!(order_update_params)
     render json: @order
+  rescue ArgumentError => e
+    render_error(status: :unprocessable_entity, message: e.message)
   end
 
   # DELETE /api/orders/1

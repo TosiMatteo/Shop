@@ -2,7 +2,7 @@ import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
 import {inject} from '@angular/core';
 import {ErrorService} from '../services/error-service';
 import {Router} from '@angular/router';
-import {catchError, throwError} from 'rxjs';
+import {catchError, EMPTY} from 'rxjs';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const errorService = inject(ErrorService);
@@ -14,6 +14,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       const details = err.error?.error?.details ?? [];
 
       switch(err.status){
+        case 0:
+          errorService.setError({statusCode: 0, message: 'server not available'});
+          break;
+
         case 400:
           errorService.setError({statusCode:400, message, details});
           break;
@@ -43,7 +47,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         default:
           errorService.setError({statusCode: err.status, message });
       }
-      return throwError(()=>err);
+      return EMPTY;
     })
   );
 }

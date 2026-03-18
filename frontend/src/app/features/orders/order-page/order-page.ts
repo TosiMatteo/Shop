@@ -11,6 +11,7 @@ import {AsyncPipe} from '@angular/common';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 type Sort = 'dateAsc' | 'dateDesc' | 'totalAsc' | 'totalDesc';
+type Status = 'processing' | 'completed' | 'cancelled';
 
 @Component({
   selector: 'app-order-page',
@@ -29,26 +30,34 @@ type Sort = 'dateAsc' | 'dateDesc' | 'totalAsc' | 'totalDesc';
 export class OrderPage {
   private orderService = inject(OrderService);
 
+  protected availableYears: number[] = this.buildYearList();
+
+  protected statusOptions: { value: Status; label: string }[] = [
+    { value: 'processing', label: 'In elaborazione' },
+    { value: 'completed',  label: 'Completato' },
+    { value: 'cancelled',  label: 'Annullato' },
+  ];
+
   protected filters$ = new BehaviorSubject({
     totalFilter: { min: null as number | null, max: null as number | null },
     sort: 'dateDesc' as Sort,
+    status: null as Status | null,
+    year: null as number | null,
     page: 1,
     limit: 10,
   });
 
-  // Subject dedicati per il debounce degli input testuali min/max.
-  // Senza di essi ogni tasto scatena una chiamata HTTP.
   private minInput$ = new Subject<string>();
   private maxInput$ = new Subject<string>();
 
-  // shareReplay(1): un solo HTTP call condiviso tra tutti i subscriber (orders$, pagy$).
-  // Senza shareReplay ogni pipe separata attiva il proprio switchMap → double firing.
   private response$ = this.filters$.pipe(
     switchMap(filters =>
       this.orderService.list({
         min: filters.totalFilter.min,
         max: filters.totalFilter.max,
         sort: filters.sort,
+        status: filters.status,
+        year: filters.year,
         page: filters.page,
         limit: filters.limit,
       })
@@ -83,7 +92,6 @@ export class OrderPage {
     this.filters$.next({ ...this.filters$.value, sort, page: 1 });
   }
 
-  // I metodi alimentano il Subject — il debounce è gestito nella subscription in costruttore
   protected updateMinTotal(value: string): void {
     this.minInput$.next(value);
   }
@@ -92,11 +100,24 @@ export class OrderPage {
     this.maxInput$.next(value);
   }
 
+  protected updateStatus(status: Status | null): void {
+    this.filters$.next({ ...this.filters$.value, status, page: 1 });
+  }
+
+  protected updateYear(year: number | null): void {
+    this.filters$.next({ ...this.filters$.value, year, page: 1 });
+  }
+
   protected onPage(event: PageEvent): void {
     this.filters$.next({
       ...this.filters$.value,
       page: event.pageIndex + 1,
       limit: event.pageSize,
     });
+  }
+
+  private buildYearList(): number[] {
+    const current = new Date().getFullYear();
+    return Array.from({ length: 5 }, (_, i) => current - i);
   }
 }
