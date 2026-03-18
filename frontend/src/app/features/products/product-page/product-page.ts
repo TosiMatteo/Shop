@@ -7,10 +7,10 @@ import {MatLabel} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
 import {AsyncPipe} from '@angular/common';
 import {
-  BehaviorSubject, combineLatest,
+  BehaviorSubject, catchError, combineLatest,
   debounceTime,
   distinctUntilChanged,
-  map,
+  map, of,
   shareReplay,
   switchMap
 } from 'rxjs';
@@ -48,7 +48,9 @@ type Sort = 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc';
 export class ProductPage {
   private product_service = inject(ProductApi);
   private tag_service = inject(TagService);
-  tags$ = this.tag_service.list();
+  tags$ = this.tag_service.list().pipe(
+    catchError(() => of([]))
+  );
 
   protected filters$ = new BehaviorSubject({
     title:'',
