@@ -17,6 +17,26 @@
                (input)="updateMaxTotal($any($event.target).value)" />
       </mat-form-field>
 
+      <mat-form-field appearance="outline">
+        <mat-label>Stato</mat-label>
+        <mat-select (selectionChange)="updateStatus($any($event.value) ?? null)">
+          <mat-option [value]="null">Tutti</mat-option>
+          @for (s of statusOptions; track s.value) {
+            <mat-option [value]="s.value">{{ s.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Anno</mat-label>
+        <mat-select (selectionChange)="updateYear($any($event.value) ?? null)">
+          <mat-option [value]="null">Tutti</mat-option>
+          @for (year of availableYears; track year) {
+            <mat-option [value]="year">{{ year }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
       <mat-form-field appearance="outline" class="sort-field">
         <mat-label>Ordina</mat-label>
         <mat-select (selectionChange)="updateSort($any($event.value))">
