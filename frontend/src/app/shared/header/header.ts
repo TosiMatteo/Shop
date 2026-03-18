@@ -6,6 +6,7 @@ import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 import {Router, RouterLink} from '@angular/router';
 import {AuthService} from '../../core/services/auth/auth-service';
 import {CartIconComponent} from '../cart-icon';
+import {NgOptimizedImage} from '@angular/common';
 
 @Component({
   selector: 'app-header',
@@ -17,7 +18,8 @@ import {CartIconComponent} from '../cart-icon';
     MatMenuTrigger,
     MatMenuItem,
     RouterLink,
-    CartIconComponent
+    CartIconComponent,
+    NgOptimizedImage
   ],
   templateUrl: './header.html',
   styleUrl: './header.scss',
