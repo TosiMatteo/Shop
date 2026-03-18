@@ -1,0 +1,25 @@
+@if (error()) {
+  <div class="error-banner" role="alert">
+    <mat-icon class="error-banner__icon">error_outline</mat-icon>
+
+    <div class="error-banner__body">
+      <span class="error-banner__message">{{ error()!.message }}</span>
+      @if (error()!.details?.length) {
+        <ul class="error-banner__details">
+          @for (detail of error()!.details!; track detail) {
+            <li>{{ detail }}</li>
+          }
+        </ul>
+      }
+    </div>
+
+    <button
+      mat-icon-button
+      class="error-banner__close"
+      (click)="errorService.clearError()"
+      aria-label="Chiudi errore"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+}
