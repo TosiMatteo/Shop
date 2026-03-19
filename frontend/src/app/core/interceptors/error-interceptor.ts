@@ -3,14 +3,16 @@ import {inject} from '@angular/core';
 import {ErrorService} from '../services/error-service';
 import {Router} from '@angular/router';
 import {catchError, EMPTY} from 'rxjs';
+import {AuthService} from '../services/auth/auth-service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const errorService = inject(ErrorService);
   const router = inject(Router);
+  const authService = inject(AuthService);
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
-      const message = err.error?.error?.message ?? 'An unexpected error occured';
+      const message = err.error?.error?.message ?? 'An unexpected error occurred';
       const details = err.error?.error?.details ?? [];
 
       switch(err.status){
@@ -24,6 +26,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
         case 401:
           errorService.setError({statusCode:401, details, message});
+          authService.clearSession();
           router.navigate(['/login']);
           break;
 
@@ -50,4 +53,4 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       return EMPTY;
     })
   );
-}
+};

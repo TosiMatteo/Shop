@@ -38,7 +38,7 @@ export class AuthService {
         tap((response: HttpResponse<any>) => {
           const authHeader = response.headers.get('Authorization');
           if(authHeader) {
-            localStorage.setItem(this.TOKEN, authHeader)
+            localStorage.setItem(this.TOKEN, authHeader);
           }
         })
       );
@@ -46,7 +46,7 @@ export class AuthService {
 
   logout(): Observable<any> {
     return this.http.delete(`${this.CUSTOMER_URL}/sign_out`)
-      .pipe(tap(() => localStorage.removeItem(this.TOKEN)));
+      .pipe(tap(() => this.clearSession()));
   }
 
   register(credentials: RegisterCredentials): Observable<HttpResponse<any>> {
@@ -59,15 +59,19 @@ export class AuthService {
       }));
   }
 
-  getToken() {
+  getToken(): string | null {
     return localStorage.getItem(this.TOKEN);
   }
 
-  isAuthenticated() {
+  isAuthenticated(): boolean {
     return !!this.getToken();
   }
 
-  getCurrentUser() {
-    return this.http.get(`${this.ME}`);
+  getCurrentUser(): Observable<any> {
+    return this.http.get(this.ME);
+  }
+
+  public clearSession(): void {
+    localStorage.removeItem(this.TOKEN);
   }
 }
