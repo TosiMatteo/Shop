@@ -36,10 +36,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           break;
         }
 
-        case 403:
-          errorService.setError({statusCode: 403, message });
-          router.navigate(['/forbidden']);
+        case 403: {
+          errorService.setError({ statusCode: 403, message });
+          const isAdminContext = authService.isAdmin();
+          if (!isAdminContext) {
+            router.navigate(['/forbidden']);
+          }
           break;
+        }
 
         case 404:
           errorService.setError({statusCode: 404, message });
