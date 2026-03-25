@@ -1,0 +1,109 @@
+<div class="admin-page">
+
+  <!-- ===== FORM CREAZIONE / MODIFICA ===== -->
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>
+        {{ formMode === 'create' ? 'Nuovo prodotto' : 'Modifica: ' + editingProduct?.title }}
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
+
+        <mat-form-field appearance="outline">
+          <mat-label>Titolo</mat-label>
+          <input matInput formControlName="title" />
+          @if (productForm.get('title')?.hasError('required')) {
+            <mat-error>Titolo obbligatorio</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Descrizione</mat-label>
+          <textarea matInput formControlName="description" rows="3"></textarea>
+        </mat-form-field>
+
+        <div class="price-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Prezzo</mat-label>
+            <input matInput type="number" formControlName="price" min="0" step="0.01" />
+            @if (productForm.get('price')?.hasError('required')) {
+              <mat-error>Prezzo obbligatorio</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Prezzo originale</mat-label>
+            <input matInput type="number" formControlName="original_price" min="0" step="0.01" />
+          </mat-form-field>
+        </div>
+
+        <mat-checkbox formControlName="sale">In saldo</mat-checkbox>
+
+        <!-- Tags -->
+        @if (tags.length > 0) {
+          <div class="tags-section">
+            <span class="tags-label">Tag</span>
+            <div class="tags-grid">
+              @for (tag of tags; track tag.id) {
+                <mat-checkbox
+                  [checked]="isTagSelected(tag.id)"
+                  (change)="toggleTag(tag.id)">
+                  {{ tag.name }}
+                </mat-checkbox>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Thumbnail -->
+        <div class="file-field">
+          <label class="file-label">Immagine</label>
+          <input type="file" accept="image/*" (change)="onThumbnailChange($event)" />
+          @if (thumbnailFile) {
+            <span class="file-name">{{ thumbnailFile.name }}</span>
+          }
+        </div>
+
+        <!-- Azioni form -->
+        <div class="form-actions">
+          @if (formMode === 'edit') {
+            <button mat-stroked-button type="button" (click)="resetForm()">
+              Annulla
+            </button>
+          }
+          <button mat-raised-button color="primary" type="submit"
+                  [disabled]="productForm.invalid || loading">
+            {{ loading ? 'Salvataggio...' : (formMode === 'create' ? 'Crea prodotto' : 'Salva modifiche') }}
+          </button>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-divider></mat-divider>
+
+  <!-- ===== RICERCA E LISTA ===== -->
+  <div class="list-section">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Cerca prodotto</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="searchControl" placeholder="Nome prodotto..." />
+    </mat-form-field>
+
+    <div class="product-list">
+      @for (product of products; track product.id) {
+        <app-admin-product-card
+          [product]="product"
+          (edit)="onEdit($event)"
+          (delete)="onDelete($event)">
+        </app-admin-product-card>
+      } @empty {
+        <p class="empty-state">Nessun prodotto trovato.</p>
+      }
+    </div>
+  </div>
+
+</div>
