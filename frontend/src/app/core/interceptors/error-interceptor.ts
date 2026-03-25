@@ -2,7 +2,7 @@ import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
 import {inject} from '@angular/core';
 import {ErrorService} from '../services/error-service';
 import {Router} from '@angular/router';
-import {catchError, EMPTY} from 'rxjs';
+import {catchError, EMPTY, throwError} from 'rxjs';
 import {AuthService} from '../services/auth/auth-service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
@@ -24,11 +24,17 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           errorService.setError({statusCode:400, message, details});
           break;
 
-        case 401:
-          errorService.setError({statusCode:401, details, message});
+        case 401: {
+          const isAuthCall = req.url.includes('/sign_in');  // ← aggiunta
+          if (isAuthCall) {
+            return throwError(() => err); // propaga l'errore al componente
+          }
+          const redirectUrl = authService.isAdmin() ? '/admin/login' : '/login';
+          errorService.setError({ statusCode: 401, details, message });
           authService.clearSession();
-          router.navigate(['/login']);
+          router.navigate([redirectUrl]);
           break;
+        }
 
         case 403:
           errorService.setError({statusCode: 403, message });
