@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Observable} from 'rxjs';
-import {ProductsResponse} from '../../models/product';
+import {Product, ProductsResponse} from '../../models/product';
 import {HttpClient, HttpParams} from '@angular/common/http';
 
 @Injectable({
@@ -33,5 +33,17 @@ export class ProductApi {
     if (filters.limit)       params = params.set('limit', filters.limit.toString());
 
     return this.http.get<ProductsResponse>(this.url, { params });
+  }
+
+  create(product: FormData): Observable<any> {
+    return this.http.post(this.url, product);
+  }
+
+  update(id: string, product: FormData): Observable<Product>{
+    return this.http.patch<Product>(`${this.url}/${id}`, product);
+  }
+
+  delete(id: string): Observable<any> {
+    return this.http.delete(`${this.url}/${id}`);
   }
 }
