@@ -56,7 +56,7 @@ export class AdminPage implements OnInit {
       price: [null, [Validators.required, Validators.min(0)]],
       original_price: [null, Validators.min(0)],
       sale: [false],
-      tag_ids: [[]], // array di ID numerici
+      tag_ids: [[]],
     });
   }
 
