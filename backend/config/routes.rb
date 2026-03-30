@@ -28,7 +28,7 @@ Rails.application.routes.draw do
 
       # --- RISORSE
       resources :products
-      resources :tags, only: [:index]
+      resources :tags, only: [:index, :update, :create, :destroy]
       resources :orders, only: [:index, :show, :create, :update, :destroy]
       resources :carts, only: [:index, :show, :create, :destroy, :update] do
         member do

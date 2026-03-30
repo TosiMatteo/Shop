@@ -32,6 +32,10 @@ export class Header {
     return this.authService.isAuthenticated();
   }
 
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
   protected goToCart() {
     this.router.navigate(['/cart'])
   }

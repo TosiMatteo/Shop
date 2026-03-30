@@ -2,15 +2,17 @@ import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
 import {inject} from '@angular/core';
 import {ErrorService} from '../services/error-service';
 import {Router} from '@angular/router';
-import {catchError, EMPTY} from 'rxjs';
+import {catchError, EMPTY, throwError} from 'rxjs';
+import {AuthService} from '../services/auth/auth-service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const errorService = inject(ErrorService);
   const router = inject(Router);
+  const authService = inject(AuthService);
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
-      const message = err.error?.error?.message ?? 'An unexpected error occured';
+      const message = err.error?.error?.message ?? 'An unexpected error occurred';
       const details = err.error?.error?.details ?? [];
 
       switch(err.status){
@@ -22,15 +24,26 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           errorService.setError({statusCode:400, message, details});
           break;
 
-        case 401:
-          errorService.setError({statusCode:401, details, message});
-          router.navigate(['/login']);
+        case 401: {
+          const isAuthCall = req.url.includes('/sign_in');  // ← aggiunta
+          if (isAuthCall) {
+            return throwError(() => err); // propaga l'errore al componente
+          }
+          const redirectUrl = authService.isAdmin() ? '/admin/login' : '/login';
+          errorService.setError({ statusCode: 401, details, message });
+          authService.clearSession();
+          router.navigate([redirectUrl]);
           break;
+        }
 
-        case 403:
-          errorService.setError({statusCode: 403, message });
-          router.navigate(['/forbidden']);
+        case 403: {
+          errorService.setError({ statusCode: 403, message });
+          const isAdminContext = authService.isAdmin();
+          if (!isAdminContext) {
+            router.navigate(['/forbidden']);
+          }
           break;
+        }
 
         case 404:
           errorService.setError({statusCode: 404, message });
@@ -50,4 +63,4 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       return EMPTY;
     })
   );
-}
+};

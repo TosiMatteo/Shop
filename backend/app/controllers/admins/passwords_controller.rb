@@ -12,9 +12,7 @@ class Admins::PasswordsController < Devise::PasswordsController
         message: 'Email inviata con successo'
       }, status: :ok
     else
-      render json: {
-        errors: resource.errors.full_messages
-      }, status: :unprocessable_entity
+      render_error(status: :unprocessable_entity, message: "Validation failed", details: resource.errors.full_messages)
     end
   end
 
@@ -30,9 +28,7 @@ class Admins::PasswordsController < Devise::PasswordsController
         message: 'Password cambiata con successo'
       }, status: :ok
     else
-      render json: {
-        errors: resource.errors.full_messages
-      }, status: :unprocessable_entity
+      render_error(status: :unprocessable_entity, message: "Validation failed", details: resource.errors.full_messages)
     end
   end
 

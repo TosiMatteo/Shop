@@ -1,0 +1,30 @@
+<div class="admin-login-container">
+  <mat-card class="auth-card">
+
+    <mat-card-header>
+      <mat-card-title>Accesso Admin</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" />
+          @if (loginForm.get('email')?.hasError('email')) {
+            <mat-error>Email non valida</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput formControlName="password" type="password" />
+          @if (loginForm.get('password')?.hasError('required')) {
+            <mat-error>Password obbligatoria</mat-error>
+          }
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit">
+          Accedi
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

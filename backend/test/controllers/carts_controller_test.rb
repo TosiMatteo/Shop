@@ -57,7 +57,6 @@ class CartsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should checkout successfully" do
-    # Assicurati che il carrello abbia items
     assert @cart.cart_items.any?, "Cart should have items"
 
     cart_items_count = @cart.cart_items.count
@@ -80,14 +79,12 @@ class CartsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :created
 
-    # Verifica la risposta
     json_response = JSON.parse(response.body)
     assert_equal cart_total.to_s, json_response["total"]
     assert_equal "processing", json_response["status"]
     assert_equal "Mario Rossi", json_response["shipping_name"]
     assert_equal cart_items_count, json_response["order_items"]
 
-    # Verifica che il carrello sia stato distrutto
     assert_not Cart.exists?(@cart.id)
   end
 end

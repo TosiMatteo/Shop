@@ -19,11 +19,13 @@ class ApplicationController < ActionController::API
   end
 
   def authenticate_admin!
-    raise ErrorHandler::ForbiddenError unless current_admin
+    admin = warden.authenticate(scope: :admin)
+    raise ErrorHandler::AuthenticationError if admin.nil?
   end
 
   def authenticate_customer!
-    raise ErrorHandler::ForbiddenError unless current_customer
+    customer = warden.authenticate(scope: :customer)
+    raise ErrorHandler::AuthenticationError if customer.nil?
   end
 
   protected
