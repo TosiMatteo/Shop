@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpResponse} from '@angular/common/http';
-import {Observable, tap} from 'rxjs';
+import {Observable, Subject, tap} from 'rxjs';
 
 export interface AuthCredentials {
   email: string;
@@ -34,6 +34,9 @@ export class AuthService {
 
   constructor(private http: HttpClient) { }
 
+  private loginEventSubject = new Subject<void>();
+  readonly loginEvent$ = this.loginEventSubject.asObservable();
+
   login(credentials: AuthCredentials) {
     return this.http
       .post<Customer>(`${this.CUSTOMER_URL}/sign_in`, { customer: credentials }, { observe: 'response' })
@@ -43,6 +46,7 @@ export class AuthService {
           if (authHeader) {
             localStorage.setItem(this.TOKEN, authHeader);
             localStorage.setItem(this.USER_TYPE, 'Customer');
+            this.loginEventSubject.next();
           }
         })
       );
@@ -78,6 +82,7 @@ export class AuthService {
           if (authHeader) {
             localStorage.setItem(this.TOKEN, authHeader);
             localStorage.setItem(this.USER_TYPE, 'Customer');
+            this.loginEventSubject.next();
           }
         })
       );
