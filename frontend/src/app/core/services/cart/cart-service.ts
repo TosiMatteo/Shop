@@ -37,6 +37,9 @@ export class CartService {
     } else {
       this.cartSubject.next(this.buildGuestCart());
     }
+    this.auth.loginEvent$.pipe(
+      switchMap(() => this.syncGuestCart())
+    ).subscribe();
   }
 
   // ─── Guest cart helpers ──────────────────────────────────────────────────────
