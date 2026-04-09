@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
-import {MatButton} from '@angular/material/button';
+import {MatButton, MatIconButton} from '@angular/material/button';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
+import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
 import {AuthService} from '../../../core/services/auth/auth-service';
 import {Router} from '@angular/router';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatTab, MatTabGroup} from '@angular/material/tabs';
+import {MatIcon} from '@angular/material/icon';
 
 @Component({
   selector: 'app-login-page',
@@ -21,7 +22,10 @@ import {MatTab, MatTabGroup} from '@angular/material/tabs';
     MatCardContent,
     MatTabGroup,
     MatTab,
-    MatError
+    MatError,
+    MatIconButton,
+    MatIcon,
+    MatSuffix
   ],
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',
@@ -29,6 +33,9 @@ import {MatTab, MatTabGroup} from '@angular/material/tabs';
 export class LoginPage {
   loginForm: FormGroup;
   registerForm: FormGroup;
+
+  hideLoginPassword = true;
+  hideRegisterPassword = true;
 
   constructor(
     private fb: FormBuilder,
