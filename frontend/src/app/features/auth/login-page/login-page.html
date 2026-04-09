@@ -6,7 +6,7 @@
     </mat-card-header>
 
     <mat-card-content>
-      <mat-tab-group>
+      <mat-tab-group dynamicHeight>
 
         <!-- TAB LOGIN -->
         <mat-tab label="Accedi">
@@ -22,7 +22,12 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Password</mat-label>
-              <input matInput formControlName="password" type="password" />
+              <input matInput formControlName="password" [type]="hideLoginPassword ? 'password' : 'text'" />
+              <button mat-icon-button matSuffix type="button"
+                      (click)="hideLoginPassword = !hideLoginPassword"
+                      [attr.aria-label]="hideLoginPassword ? 'Mostra password' : 'Nascondi password'">
+                <mat-icon>{{ hideLoginPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
               @if (loginForm.get('password')?.hasError('required')) {
                 <mat-error>Password obbligatoria</mat-error>
               }
@@ -33,6 +38,9 @@
             </button>
 
           </form>
+          <a routerLink="/forgot-password" class="forgot-password-link">
+            Hai dimenticato la password?
+          </a>
         </mat-tab>
 
         <!-- TAB REGISTRAZIONE -->
@@ -59,7 +67,12 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Password</mat-label>
-              <input matInput formControlName="password" type="password" />
+              <input matInput formControlName="password" [type]="hideRegisterPassword ? 'password' : 'text'" />
+              <button mat-icon-button matSuffix type="button"
+                      (click)="hideRegisterPassword = !hideRegisterPassword"
+                      [attr.aria-label]="hideRegisterPassword ? 'Mostra password' : 'Nascondi password'">
+                <mat-icon>{{ hideRegisterPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
               @if (registerForm.get('password')?.hasError('minlength')) {
                 <mat-error>Minimo 6 caratteri</mat-error>
               }
@@ -67,7 +80,12 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Conferma Password</mat-label>
-              <input matInput formControlName="password_confirmation" type="password" />
+              <input matInput formControlName="password_confirmation" [type]="hideRegisterPassword ? 'password' : 'text'" />
+              <button mat-icon-button matSuffix type="button"
+                      (click)="hideRegisterPassword = !hideRegisterPassword"
+                      [attr.aria-label]="hideRegisterPassword ? 'Mostra password' : 'Nascondi password'">
+                <mat-icon>{{ hideRegisterPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
             </mat-form-field>
 
             <button mat-raised-button color="accent" type="submit">

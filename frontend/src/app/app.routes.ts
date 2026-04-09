@@ -20,6 +20,18 @@ export const routes: Routes = [
   {path: 'register', component:LoginPage},
   {path: 'orders', component:OrderPage, canActivate: [authGuard]},
   {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password')
+        .then(m => m.ResetPasswordPage)
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password')
+        .then(m => m.ForgotPasswordPage)
+  },
+  {
     path: 'admin',
     loadChildren: () =>
       import('./features/admin/admin-routes').then(m => m.ADMIN_ROUTES)
