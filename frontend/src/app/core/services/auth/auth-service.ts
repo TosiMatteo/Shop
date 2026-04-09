@@ -108,4 +108,20 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN);
     localStorage.removeItem(this.USER_TYPE);
   }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post('/api/customers/password', {
+      customer: { email },
+    });
+  }
+
+  resetPassword(token: string, password: string, password_confirmation: string): Observable<any> {
+    return this.http.put('/api/customers/password', {
+      customer: {
+        reset_password_token: token,
+        password,
+        password_confirmation,
+      },
+    });
+  }
 }

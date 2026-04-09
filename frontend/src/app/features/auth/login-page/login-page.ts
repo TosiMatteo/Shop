@@ -3,7 +3,7 @@ import {MatButton, MatIconButton} from '@angular/material/button';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
 import {AuthService} from '../../../core/services/auth/auth-service';
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatTab, MatTabGroup} from '@angular/material/tabs';
 import {MatIcon} from '@angular/material/icon';
@@ -25,7 +25,8 @@ import {MatIcon} from '@angular/material/icon';
     MatError,
     MatIconButton,
     MatIcon,
-    MatSuffix
+    MatSuffix,
+    RouterLink
   ],
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',
