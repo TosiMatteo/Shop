@@ -181,8 +181,7 @@ I file statici vengono generati in `dist/shop/browser/` e possono essere serviti
 │   │   └── ...
 │   └── angular.json
 ├── docker-compose.yml
-├── README.md
-└── ARCHITETTURA.md
+└── README.md
 ```
 
 ---

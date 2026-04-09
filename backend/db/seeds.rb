@@ -203,5 +203,3 @@ puts "  Email: test.unconfirmed@example.com"
 puts "  Password: Password123!"
 puts "  Conferma token: #{customer3.confirmation_token}"
 puts "\n=== NOTE ==="
-
-puts "- Per testare password reset POST /api/customers/password"
