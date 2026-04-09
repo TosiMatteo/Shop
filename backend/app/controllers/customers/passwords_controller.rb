@@ -32,6 +32,12 @@ class Customers::PasswordsController < Devise::PasswordsController
     end
   end
 
+  # GET /api/customers/password/edit?reset_password_token=TOKEN
+  def edit
+    redirect_to "#{ENV.fetch('FRONTEND_URL', 'http://localhost:4200')}/reset-password?reset_password_token=#{params[:reset_password_token]}",
+                allow_other_host: true
+  end
+
   protected
 
   def resource_params
