@@ -56,4 +56,7 @@ group :development, :test do
   gem "faker"
 
   gem 'letter_opener'
+
+  gem 'simplecov', require: false, group: :test
+
 end
