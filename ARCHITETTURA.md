@@ -91,7 +91,6 @@ Il **frontend** è una Single Page Application Angular 20 che comunica col backe
 │   │   └── ...
 │   └── angular.json
 ├── docker-compose.yml
-├── ARCHITETTURA.md
 └── README.md
 ```
 
@@ -257,6 +256,23 @@ Copre CRUD degli ordini, il filtraggio per anno e la modifica dello status.
 | `should filter orders by year` | `GET /orders?year=2025` restituisce solo gli ordini del 2025, escludendo quelli del 2026 |
 
 Il test del filtro per anno crea esplicitamente due ordini con `created_at` fisso in anni diversi, poi verifica che l'ID dell'ordine 2026 non compaia nella risposta. Questo approccio è deterministico e non dipende dalla data di sistema.
+
+### ProductTest (model test)
+
+L'unico test di tipo model della suite. Usa `ActiveSupport::TestCase` direttamente, senza stack HTTP, il che lo rende più veloce e più preciso nell'isolare la logica del modello da quella del controller.
+
+| Test | Cosa verifica                                                                                              |
+|---|------------------------------------------------------------------------------------------------------------|
+| `should be valid` | Il prodotto fixture di partenza supera tutte le validazioni                                                |
+| `should not be valid without a title` | La validazione `presence: true` su `title` è attiva                                                        |
+| `should not be valid without a price` | La validazione `presence: true` su `price` è attiva                                                        |
+| `should not be valid without a description` | La validazione `presence: true` su `description` è attiva                                                  |
+| `search_by_title` | Con stringa corrispondente restituisce il prodotto; con stringa non corrispondente restituisce array vuoto |
+| `search_by_tag` | Con tag corrispondente restituisce il prodotto; con tag assente restituisce array vuoto                    |
+| `search_by_sale` | Il prodotto compare in `search_by_sale(false)` e non compare in `search_by_sale(true)`                     |
+| `search_by_min_max_price` | Range che include il prezzo restituisce il prodotto; range che esclude il prezzo restituisce array vuoto   |
+
+Gli scope vengono testati con asserzioni simmetriche (caso positivo e caso negativo nello stesso test), il che aumenta la confidenza che lo scope non restituisca semplicemente tutto il catalogo per qualsiasi input.
 
 ### ProductsControllerTest
 
