@@ -272,39 +272,82 @@ Se il carrello è vuoto viene sollevata `ActiveRecord::RecordInvalid` e la trans
 ## Funzionalità avanzate
 
 <details>
-<summary><strong>Autenticazione JWT stateless</strong></summary>
+<summary><strong>Area Admin — gestione prodotti e tag</strong></summary>
+<br>
+Sezione riservata per creare, modificare ed eliminare prodotti e tag. La protezione opera su due livelli indipendenti.
 
-Tramite `devise-jwt`, ogni risposta al login include `Authorization: Bearer <token>`. Il token viene conservato nel `localStorage` e re-inviato su ogni richiesta dall'`AuthInterceptor` Angular. Il backend valida il token in `authenticate_customer!` e `authenticate_admin!` definiti nell'`ApplicationController`.
+**Backend**
 
+`Admins::SessionsController` e `Admins::PasswordsController` gestiscono autenticazione e reset password su endpoint separati da quelli del customer (`/api/admins/sign_in`, `/api/admins/password`). Il token JWT emesso al login identifica il ruolo admin e viene validato dal `before_action :authenticate_admin!` presente in `ProductsController` e `TagsController` sulle sole action di scrittura (`create`, `update`, `destroy`). Le action di lettura (`index`, `show`) rimangono pubbliche.
+
+```ruby
+# products_controller.rb
+before_action :authenticate_admin!, only: [:create, :update, :destroy]
+ 
+# tags_controller.rb
+before_action :authenticate_admin!, only: [:create, :update, :destroy]
+```
+
+**Frontend — routing e guard**
+
+Le rotte admin sono raggruppate in `ADMIN_ROUTES` sotto il prefisso `/admin`. La rotta `login` è pubblica; tutte le rotte figlie sono protette da `adminGuard`, che blocca l'accesso e reindirizza al login se il token admin non è presente.
+
+```
+/admin/login       → AdminLogin  (pubblica)
+/admin/admin-page  → AdminPage   (protetta da adminGuard)
+```
+
+**Frontend — AdminPage**
+
+`AdminPage` gestisce prodotti e tag in un'unica vista con due sezioni a scomparsa (`MatExpansionPanel`):
+
+- **Form prodotto** — supporta modalità `create` ed `edit`. Al click su "modifica" da un `AdminProductCard`, il form viene popolato via `patchValue`, il panel viene aperto programmaticamente (`productPanel.open()`) e la pagina scorre in cima. L'invio costruisce un `FormData` per supportare l'upload dell'immagine (`product[thumbnail]`) insieme ai campi testuali e all'array di tag (`product[tag_ids][]`).
+- **Gestione tag** — form separato con le stesse modalità `create`/`edit`. La cancellazione di un tag mostra un `confirm` esplicito che avverte della rimozione da tutti i prodotti associati.
+- **Ricerca prodotti** — `searchControl` (FormControl standalone) applica `debounceTime(400)` e `distinctUntilChanged()` prima di invocare `productApi.list({ title })`, evitando chiamate al server a ogni carattere digitato.
 </details>
 
-<details>
-<summary><strong>Paginazione server-side con cache</strong></summary>
-
-Il catalogo prodotti usa `pagy` con `ttl: 300` (cache dei conteggi per 5 minuti) per ridurre le query `COUNT(*)` sul database. La risposta include un oggetto `pagy` con metadati (pagina corrente, totale pagine, totale elementi) che il frontend usa per costruire il paginatore.
-
-</details>
 
 <details>
-<summary><strong>Ricerca e filtri combinabili</strong></summary>
+<summary><strong>Storico ordini avanzato</strong></summary>
+<br>
+Pagina "I miei ordini" accessibile solo a utenti autenticati (`authGuard` su `/orders`). Permette di filtrare, ordinare e consultare il dettaglio di ogni ordine.
 
-I prodotti si possono filtrare per titolo (LIKE), tag (JOIN su `product_tags`), fascia di prezzo (min/max), stato offerta e ordinamento (data/prezzo, asc/desc). I filtri sono scope Rails concatenabili: ogni combinazione genera una singola query.
+**Backend**
 
-</details>
+`OrdersController` richiede `authenticate_customer!` su tutte le action. `set_order` usa `current_customer.orders.find(...)` invece di `Order.find(...)`, impedendo a un customer di accedere agli ordini di un altro anche conoscendone l'ID.
 
-<details>
-<summary><strong>Gestione immagini con Active Storage</strong></summary>
+La `index` applica quattro scope concatenabili definiti nel modello `Order`:
 
-Le immagini vengono caricate tramite Active Storage con `has_one_attached :thumbnail` e servite come varianti ridimensionate (`resize_to_limit: [300, 300]`) con lazy generation al primo accesso. Il controller include esplicitamente `thumbnail_attachment: { blob: :variant_records }` per evitare N+1 query sul catalogo.
+| Scope | Parametro | Logica |
+|---|---|---|
+| `search_by_min_max_total` | `min`, `max` | `WHERE total >= min AND total <= max` — ogni bound è opzionale |
+| `search_by_status` | `status` | `WHERE status = ?` con enum `processing / completed / cancelled` |
+| `search_by_year` | `year` | `WHERE extract(year from created_at) = ?` |
+| `apply_sort` | `sort` | `dateAsc`, `dateDesc`, `totalAsc`, `totalDesc`; default `dateDesc` |
 
-</details>
+La risposta include la paginazione `pagy` e, per ogni ordine, gli `order_items` con il titolo del prodotto associato. Il caricamento usa `includes(order_items: :product)` per evitare N+1 query.
 
-<details>
-<summary><strong>Rate limiting e sicurezza</strong></summary>
+**Frontend — OrderPage**
 
-`rack-attack` protegge le API da brute force sul login e flood di richieste. Le regole di throttling sono definite in `config/initializers/rack_attack.rb`.
+I filtri sono centralizzati in un `BehaviorSubject<filters>`. Ogni aggiornamento (sort, status, year, pagina) chiama `filters$.next(...)` resettando la pagina a 1, tranne il cambio pagina che preserva i filtri correnti.
 
-`brakeman` e `bundler-audit` vengono eseguiti in CI per rilevare vulnerabilità statiche e dipendenze con CVE note prima di ogni deploy.
+I filtri per totale minimo e massimo transitano attraverso due `Subject` dedicati con `debounceTime(400)`, così la chiamata HTTP viene ritardata finché l'utente smette di digitare.
+
+`response$` è costruito con `switchMap` su `filters$`: ogni nuova emissione cancella automaticamente la richiesta HTTP precedente ancora in volo. `shareReplay(1)` fa sì che `orders$` e `pagy$` (due pipe derivate dalla stessa sorgente) condividano un'unica chiamata HTTP invece di generarne due.
+
+Gli anni selezionabili sono calcolati dinamicamente da `buildYearList()`: ultimi 5 anni a partire dall'anno corrente, senza valori hardcoded.
+
+**Frontend — OrderCard**
+
+Ogni ordine è un `OrderCard` con dettaglio espandibile (toggle via `expanded` boolean). Collassato mostra data, totale e status; espanso mostra l'elenco completo degli `order_items` con quantità, prezzo unitario e titolo del prodotto, più i dati di spedizione.
+
+Lo status è visualizzato con un `MatChip` a colore contestuale:
+
+| Status | Colore Material |
+|---|---|
+| `processing` | `accent` |
+| `completed` | `primary` |
+| `cancelled` | `warn` |
 
 </details>
 
