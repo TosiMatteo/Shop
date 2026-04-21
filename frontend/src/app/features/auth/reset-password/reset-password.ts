@@ -8,6 +8,7 @@ import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/m
 import { AuthService } from '../../../core/services/auth/auth-service';
 
 function passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
+  // Cross-field validator for password confirmation.
   const password = group.get('password')?.value;
   const confirmation = group.get('password_confirmation')?.value;
   return password === confirmation ? null : { passwordMismatch: true };
@@ -58,11 +59,11 @@ export class ResetPasswordPage implements OnInit {
   }
 
   ngOnInit(): void {
-    // Il token arriva come query param dall'email di Devise
+    // Reset token is provided as query param in the password-reset email link.
     this.resetToken = this.route.snapshot.queryParamMap.get('reset_password_token') ?? '';
 
     if (!this.resetToken) {
-      // Token assente: l'utente ha aperto la pagina senza un link valido
+      // Missing token means user opened page without a valid reset URL.
       this.router.navigate(['/forgot-password']);
     }
   }
@@ -75,6 +76,7 @@ export class ResetPasswordPage implements OnInit {
 
     const { password, password_confirmation } = this.resetForm.value;
 
+    // Complete reset flow, then send user back to login.
     this.authService.resetPassword(this.resetToken, password, password_confirmation).subscribe({
       next: () => this.router.navigate(['/login']),
       error: () => {

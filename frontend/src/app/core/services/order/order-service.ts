@@ -20,6 +20,7 @@ export class OrderService {
     page?: number;
     limit?: number;
   }): Observable<OrderResponse> {
+    // Serialize only provided filters to keep query string minimal.
     let params = new HttpParams();
 
     if (filters.min != null) params = params.set('min', filters.min.toString());
@@ -30,6 +31,7 @@ export class OrderService {
     if (filters.page)        params = params.set('page', filters.page.toString());
     if (filters.limit)       params = params.set('limit', filters.limit.toString());
 
+    // Returns paginated/filtered order list from backend.
     return this.http.get<OrderResponse>(this.orderUrl, { params });
   }
 }

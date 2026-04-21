@@ -23,8 +23,8 @@ import { CartService } from '../../../core/services/cart/cart-service';
 })
 export class CartCardComponent {
   /**
-   * Se true, nasconde i controlli di modifica (quantità e rimozione).
-   * Usato nella checkout page per mostrare un riepilogo non modificabile.
+   * When true, hides quantity/remove controls.
+   * Used on checkout to render a read-only order summary.
    */
   @Input() readonly = false;
 
@@ -32,14 +32,17 @@ export class CartCardComponent {
   readonly cart$ = this.cartService.cart$;
   readonly isLoading$ = this.cartService.isLoading$;
 
+  // Increase item quantity by one.
   increment(item: CartItem): void {
     this.cartService.updateItem(item.id, item.quantity + 1);
   }
 
+  // Decrease item quantity by one (service removes item if quantity goes below 1).
   decrement(item: CartItem): void {
     this.cartService.updateItem(item.id, item.quantity - 1);
   }
 
+  // Remove item from cart.
   remove(item: CartItem): void {
     this.cartService.removeItem(item.id);
   }

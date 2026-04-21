@@ -1,12 +1,15 @@
 class Cart < ApplicationRecord
+  # A cart belongs to one customer and holds many products via cart items.
   belongs_to :customer
   has_many :cart_items, dependent: :destroy
   has_many :products, through: :cart_items
 
+  # Calculates the current total by summing item quantities * product prices.
   def total_price
     cart_items.joins(:product).sum('cart_items.quantity * products.price')
   end
 
+  # Creates an order from the cart, then clears the cart in a transaction.
   def checkout (shipping_params)
     if cart_items.empty?
       errors.add(:base, "Empty cart")

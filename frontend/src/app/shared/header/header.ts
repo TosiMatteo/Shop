@@ -28,31 +28,31 @@ export class Header {
   private router = inject(Router)
   private authService = inject(AuthService)
 
+  // Template helper for authenticated-only actions/menu items.
   get isAuthenticated(): boolean {
     return this.authService.isAuthenticated();
   }
 
+  // Template helper for admin-specific navigation/menu items.
   get isAdmin(): boolean {
     return this.authService.isAdmin();
   }
 
-  protected goToCart() {
-    this.router.navigate(['/cart'])
-  }
-
   manageSession(): void {
     if (this.isAuthenticated) {
+      // End session server-side, then route to public entry point.
       this.authService.logout().subscribe({
         next: () => this.router.navigate(['/api/products']),
         error: () => this.router.navigate(['/login']),
       })
     } else {
-      // Porta al login mantenendo il redirect verso checkout
+      // No active session: go to login page.
       this.router.navigate(['/login']);
     }
   }
 
   orders(): void {
+    // Orders page is available only for authenticated users.
     if (this.isAuthenticated) {
       this.router.navigate(['/orders'])
     }

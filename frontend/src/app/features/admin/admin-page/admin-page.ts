@@ -42,6 +42,7 @@ import {
 })
 export class AdminPage implements OnInit {
   productForm: FormGroup;
+  // Debounced title search for product list.
   searchControl = new FormControl('');
   @ViewChild('productPanel') productPanel!: MatExpansionPanel;
 
@@ -80,6 +81,7 @@ export class AdminPage implements OnInit {
   }
 
   ngOnInit(): void {
+    // Initial bootstrap: load tags and products.
     this.tagService.list().subscribe(tags => (this.tags = tags));
     this.loadProducts('');
 
@@ -96,6 +98,7 @@ export class AdminPage implements OnInit {
 
   onThumbnailChange(event: Event): void {
     const input = event.target as HTMLInputElement;
+    // Keep only the first selected file as thumbnail source.
     this.thumbnailFile = input.files?.[0] ?? null;
   }
 
@@ -106,6 +109,7 @@ export class AdminPage implements OnInit {
 
   toggleTag(tagId: number): void {
     const current: number[] = this.productForm.get('tag_ids')?.value ?? [];
+    // Toggle tag id in the form array.
     const updated = current.includes(tagId)
       ? current.filter(id => id !== tagId)
       : [...current, tagId];
@@ -116,7 +120,7 @@ export class AdminPage implements OnInit {
     this.formMode = 'edit';
     this.editingProduct = product;
 
-    // Risolve i tag_ids dai nomi presenti nel prodotto, incrociandoli con i tag caricati
+    // Map product tag names to ids expected by the form controls.
     const tagIds = this.tags
       .filter(t => (product.tags ?? []).includes(t.name))
       .map(t => t.id);
@@ -137,6 +141,7 @@ export class AdminPage implements OnInit {
   onDelete(product: Product): void {
     if (!confirm(`Eliminare "${product.title}"?`)) return;
     this.productApi.delete(product.id).subscribe(() => {
+      // Optimistic local update after successful delete.
       this.products = this.products.filter(p => p.id !== product.id);
     });
   }
@@ -152,6 +157,7 @@ export class AdminPage implements OnInit {
     if (this.productForm.invalid) return;
 
     const v = this.productForm.value;
+    // Use multipart payload to support optional thumbnail upload.
     const fd = new FormData();
 
     fd.append('product[title]', v.title);
@@ -171,6 +177,7 @@ export class AdminPage implements OnInit {
     if (this.formMode === 'create') {
       this.productApi.create(fd).subscribe({
         next: product => {
+          // Put newly created product first in list.
           this.products = [product, ...this.products];
           this.resetForm();
           this.loading = false;
@@ -180,6 +187,7 @@ export class AdminPage implements OnInit {
     } else {
       this.productApi.update(this.editingProduct!.id, fd).subscribe({
         next: updated => {
+          // Replace updated product in local list.
           this.products = this.products.map(p => (p.id === updated.id ? updated : p));
           this.resetForm();
           this.loading = false;
@@ -198,6 +206,7 @@ export class AdminPage implements OnInit {
   onDeleteTag(tag: Tag): void {
     if (!confirm(`Eliminare il tag "${tag.name}"? Verrà rimosso da tutti i prodotti associati.`)) return;
     this.tagService.delete(tag.id).subscribe(() => {
+      // Remove deleted tag from local collection.
       this.tags = this.tags.filter(t => t.id !== tag.id);
     });
   }

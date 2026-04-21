@@ -12,11 +12,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
+      // Normalize backend payload shape and keep a safe fallback message.
       const message = err.error?.error?.message ?? 'An unexpected error occurred';
       const details = err.error?.error?.details ?? [];
 
       switch(err.status){
         case 0:
+          // Network/server unreachable (no HTTP response received).
           errorService.setError({statusCode: 0, message: 'server not available'});
           break;
 
@@ -25,10 +27,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           break;
 
         case 401: {
-          const isAuthCall = req.url.includes('/sign_in');  // ← aggiunta
+          // Keep login failures available to the caller (e.g. login form) instead of redirecting.
+          const isAuthCall = req.url.includes('/sign_in');
           if (isAuthCall) {
-            return throwError(() => err); // propaga l'errore al componente
+            return throwError(() => err);
           }
+
+          // For expired/invalid sessions, clear local auth state and send user to the right login page.
           const redirectUrl = authService.isAdmin() ? '/admin/login' : '/login';
           errorService.setError({ statusCode: 401, details, message });
           authService.clearSession();
@@ -38,6 +43,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
         case 403: {
           errorService.setError({ statusCode: 403, message });
+          // In user context, route to forbidden page; admin area can handle this in-place.
           const isAdminContext = authService.isAdmin();
           if (!isAdminContext) {
             router.navigate(['/forbidden']);

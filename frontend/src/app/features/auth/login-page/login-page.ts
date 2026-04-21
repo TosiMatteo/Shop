@@ -59,6 +59,8 @@ export class LoginPage {
 
   onLogin(): void {
     if (this.loginForm.invalid) return;
+
+    // Login success creates a session; redirect to the authenticated landing page.
     this.authService.login(this.loginForm.value).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => console.error('Login fallito', err),
@@ -67,6 +69,8 @@ export class LoginPage {
 
   onRegister(): void {
     if (this.registerForm.invalid) return;
+
+    // Registration endpoint also authenticates user on success.
     this.authService.register(this.registerForm.value).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => console.error('Registrazione fallita', err),

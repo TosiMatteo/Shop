@@ -28,15 +28,18 @@ export class CartService {
   private cartSubject = new BehaviorSubject<Cart | null>(null);
   readonly cart$ = this.cartSubject.asObservable();
 
+  // Start in loading state only when cart must be fetched from backend.
   private loadingSubject = new BehaviorSubject<boolean>(this.auth.isAuthenticated());
   readonly isLoading$ = this.loadingSubject.asObservable();
 
   constructor() {
+    // Initialize cart source based on current auth state.
     if (this.auth.isAuthenticated()) {
       this.loadServerCart().subscribe();
     } else {
       this.cartSubject.next(this.buildGuestCart());
     }
+    // After login, merge local guest items into server cart.
     this.auth.loginEvent$.pipe(
       switchMap(() => this.syncGuestCart())
     ).subscribe();
@@ -46,6 +49,7 @@ export class CartService {
 
   private getGuestItems(): GuestItem[] {
     try {
+      // Defensive parsing in case storage was manually edited/corrupted.
       return JSON.parse(localStorage.getItem(GUEST_CART_KEY) ?? '[]');
     } catch {
       return [];
@@ -59,6 +63,7 @@ export class CartService {
 
   private buildGuestCart(): Cart {
     const items = this.getGuestItems();
+    // Build a cart-shaped object so UI can render guest and server carts uniformly.
     return {
       id: 0,
       customerId: 0,
@@ -77,6 +82,7 @@ export class CartService {
 
   private loadServerCart(): Observable<Cart> {
     return this.http.get<Cart | null>('/api/carts').pipe(
+      // Backend can return null when no cart exists yet.
       switchMap(cart => (cart ? of(cart) : this.createServerCart())),
       tap(cart => {
         this.cartSubject.next(cart);
@@ -97,6 +103,7 @@ export class CartService {
   private pendingAdd = false;
   addItem(product: Product, quantity = 1): void {
     if (this.auth.isAuthenticated()) {
+      // Prevent duplicate add requests from fast repeated clicks.
       if (this.pendingAdd) return;
       this.pendingAdd = true;
 
@@ -117,6 +124,7 @@ export class CartService {
         error: () => (this.pendingAdd = false),
       });
     } else {
+      // Guest users store items locally until they authenticate.
       const items = this.getGuestItems();
       const existing = items.find(i => i.productId === +product.id);
       if (existing) {
@@ -166,6 +174,7 @@ export class CartService {
     return this.http
       .post<CheckoutResponse>(`/api/carts/${cartId}/checkout`, { shipping })
       .pipe(
+        // Clear local cart state after successful checkout.
         tap(() => this.cartSubject.next(null)),
       );
   }
@@ -175,6 +184,7 @@ export class CartService {
     return this.loadServerCart().pipe(
       switchMap(cart => {
         if (guestItems.length === 0) return of(undefined);
+        // Best-effort merge: continue even if one item fails.
         return forkJoin(
           guestItems.map(g =>
             this.http
@@ -188,6 +198,7 @@ export class CartService {
           map(() => undefined),
         );
       }),
+      // Remove guest cart only after merge attempt is completed.
       tap(() => localStorage.removeItem(GUEST_CART_KEY)),
     );
   }

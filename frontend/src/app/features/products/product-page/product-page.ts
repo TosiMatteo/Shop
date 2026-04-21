@@ -48,10 +48,12 @@ type Sort = 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc';
 export class ProductPage {
   private product_service = inject(ProductApi);
   private tag_service = inject(TagService);
+  // Load tag list; fallback to empty list if request fails.
   tags$ = this.tag_service.list().pipe(
     catchError(() => of([]))
   );
 
+  // Single source of truth for product list filters and pagination.
   protected filters$ = new BehaviorSubject({
     title:'',
     sort:'dateDesc' as Sort,
@@ -69,6 +71,7 @@ export class ProductPage {
   );
 
 
+  // Re-query products whenever filters or debounced title change.
   private response$ = combineLatest([
     this.filters$,
     this.titleDebounced$
@@ -93,7 +96,7 @@ export class ProductPage {
   products$ = this.response$.pipe(map(r => r.products));
   pagy$ = this.response$.pipe(map(r => r.pagy));
 
-  // Event handlers
+  // Angular paginator is zero-based; backend pagination is one-based.
   onPage(e: PageEvent) {
     this.filters$.next({
       ...this.filters$.value,
@@ -106,6 +109,7 @@ export class ProductPage {
     this.filters$.next({
       ...this.filters$.value,
       title: title,
+      // Reset to first page when filters change.
       page: 1
     });
   }
@@ -114,6 +118,7 @@ export class ProductPage {
     this.filters$.next({
       ...this.filters$.value,
       sort: sort,
+      // Reset to first page when filters change.
       page: 1
     });
   }
@@ -137,6 +142,7 @@ export class ProductPage {
   }
 
   private parsePrice(value: any, fallback: number | null): number | null {
+    // Normalize form input values and ignore invalid numbers.
     if (value === '' || value === null || value === undefined) {
       return fallback;
     }
@@ -164,12 +170,9 @@ export class ProductPage {
   }
 
   resetTag(event: Event, select: MatSelect) {
+    // Prevent select panel toggle while clicking clear action.
     event.stopPropagation();
     select.value = null;
     this.updateTags(null);
-  }
-
-  onAdd(product: any) {
-    console.log('Aggiunto al carrello', product);
   }
 }

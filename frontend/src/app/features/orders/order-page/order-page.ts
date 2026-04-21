@@ -30,6 +30,7 @@ type Status = 'processing' | 'completed' | 'cancelled';
 export class OrderPage {
   private orderService = inject(OrderService);
 
+  // Last 5 years used by year filter select.
   protected availableYears: number[] = this.buildYearList();
 
   protected statusOptions: { value: Status; label: string }[] = [
@@ -47,9 +48,11 @@ export class OrderPage {
     limit: 10,
   });
 
+  // Raw text streams for debounced min/max inputs.
   private minInput$ = new Subject<string>();
   private maxInput$ = new Subject<string>();
 
+  // Single request pipeline driven by current filters.
   private response$ = this.filters$.pipe(
     switchMap(filters =>
       this.orderService.list({
@@ -73,6 +76,7 @@ export class OrderPage {
       debounceTime(400),
       takeUntilDestroyed()
     ).subscribe((value: string | number) => {
+      // Reset to first page whenever a filter changes.
       const min = value ? +value : null;
       const totalFilter = { ...this.filters$.value.totalFilter, min };
       this.filters$.next({ ...this.filters$.value, totalFilter, page: 1 });
@@ -82,6 +86,7 @@ export class OrderPage {
       debounceTime(400),
       takeUntilDestroyed()
     ).subscribe((value: string | number) => {
+      // Reset to first page whenever a filter changes.
       const max = value ? +value : null;
       const totalFilter = { ...this.filters$.value.totalFilter, max };
       this.filters$.next({ ...this.filters$.value, totalFilter, page: 1 });
@@ -109,6 +114,7 @@ export class OrderPage {
   }
 
   protected onPage(event: PageEvent): void {
+    // Angular paginator is zero-based; backend pagination is one-based.
     this.filters$.next({
       ...this.filters$.value,
       page: event.pageIndex + 1,

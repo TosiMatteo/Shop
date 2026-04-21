@@ -22,6 +22,7 @@ export class CartPageComponent {
 
   readonly cart$ = this.cartService.cart$;
 
+  // Drives empty-state/CTA visibility in template.
   readonly hasItems$ = this.cart$.pipe(map(cart => (cart?.items.length ?? 0) > 0));
 
   get isAuthenticated(): boolean {
@@ -32,7 +33,7 @@ export class CartPageComponent {
     if (this.isAuthenticated) {
       this.router.navigate(['/checkout']);
     } else {
-      // Porta al login mantenendo il redirect verso checkout
+      // Redirect unauthenticated users to login and preserve checkout return path.
       this.router.navigate(['/login'], { queryParams: { returnUrl: '/checkout' } });
     }
   }

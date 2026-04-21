@@ -16,6 +16,7 @@ import {MatDividerModule} from '@angular/material/divider';
 export class OrderCard {
   @Input({ required: true }) order!: Order;
 
+  // Controls expand/collapse of order details section.
   protected expanded = false;
 
   protected toggleExpand(): void {
@@ -28,10 +29,10 @@ export class OrderCard {
     cancelled:  'warn',
   };
 
+  // User-facing labels for backend status values.
   protected readonly statusLabel: Record<Order['status'], string> = {
     processing: 'In elaborazione',
     completed:  'Completato',
     cancelled:  'Annullato',
   };
 }
-

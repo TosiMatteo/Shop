@@ -5,6 +5,8 @@ import {AuthService} from '../services/auth/auth-service';
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
+
+  // Allow access only for authenticated users; otherwise redirect to login.
   return auth.isAuthenticated()
     ? true
     : router.createUrlTree(['/login']);

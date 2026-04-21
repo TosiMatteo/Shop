@@ -20,6 +20,8 @@ import {MatIconButton} from '@angular/material/button';
 })
 export class AdminProductCard {
   @Input({ required: true }) product!: Product;
+  // Bubble edit action to parent container (admin page).
   @Output() edit = new EventEmitter<Product>();
+  // Bubble delete action to parent container (admin page).
   @Output() delete = new EventEmitter<Product>();
 }

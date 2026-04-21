@@ -1,8 +1,11 @@
 class MembersController < ApplicationController
+  # Require authentication for member profile access.
   before_action :authenticate_user!
 
+  # Returns the current authenticated user's profile (customer or admin).
   def show
     if current_customer
+      # Customer profile payload.
       render json: {
         user: {
           id: current_customer.id,
@@ -15,6 +18,7 @@ class MembersController < ApplicationController
         }
       }, status: :ok
     elsif current_admin
+      # Admin profile payload.
       render json: {
         user: {
           id: current_admin.id,

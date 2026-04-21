@@ -40,6 +40,7 @@ export class CheckoutPage {
   loading = false;
   orderSuccess = false;
 
+  // Show field errors only after user interaction.
   hasError(field: string, errorCode: string): boolean {
     const control = this.form.get(field);
     return !!control && control.hasError(errorCode) && control.touched;
@@ -47,6 +48,7 @@ export class CheckoutPage {
 
   onSubmit(): void {
     if (this.form.invalid) {
+      // Surface all validation messages and move focus to the first invalid field.
       this.form.markAllAsTouched();
       this.focusFirstInvalid();
       return;
@@ -68,13 +70,14 @@ export class CheckoutPage {
         next: () => {
           this.orderSuccess = true;
           this.form.reset();
-          // Reindirizza alla pagina di conferma dopo 2 secondi
+          // Navigate to orders after a short success feedback delay.
           setTimeout(() => this.router.navigate(['/orders']), 2000);
         }
       });
   }
 
   private focusFirstInvalid(): void {
+    // Improves accessibility/usability on validation failure.
     const el = document.querySelector('form .ng-invalid[formControlName]') as HTMLElement | null;
     el?.focus();
   }

@@ -21,6 +21,7 @@ export class ProductApi {
     page?: number;
     limit?: number;
   }): Observable<ProductsResponse> {
+    // Include only active filters so backend receives a clean query string.
     let params = new HttpParams();
 
     if (filters.tag)         params = params.set('tag', filters.tag);
@@ -32,17 +33,21 @@ export class ProductApi {
     if (filters.page)        params = params.set('page', filters.page.toString());
     if (filters.limit)       params = params.set('limit', filters.limit.toString());
 
+    // Returns paginated/filtered products.
     return this.http.get<ProductsResponse>(this.url, { params });
   }
 
+  // Create a product (multipart/form-data supports image upload).
   create(product: FormData): Observable<any> {
     return this.http.post(this.url, product);
   }
 
+  // Update an existing product using multipart payload.
   update(id: string, product: FormData): Observable<Product>{
     return this.http.patch<Product>(`${this.url}/${id}`, product);
   }
 
+  // Delete product by id.
   delete(id: string): Observable<any> {
     return this.http.delete(`${this.url}/${id}`);
   }

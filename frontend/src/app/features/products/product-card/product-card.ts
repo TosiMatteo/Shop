@@ -18,6 +18,7 @@ export class ProductCardComponent {
 
   private cartService = inject(CartService);
 
+  // Add one unit of the displayed product to cart.
   addToCart(): void {
     this.cartService.addItem(this.product);
   }
