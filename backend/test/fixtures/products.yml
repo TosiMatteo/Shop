@@ -9,7 +9,7 @@ pc:
 book:
   title: Book of Tazze
   description: A book about Tazze
-  price: 10
+  price: 12
   original_price: 15
   sale: true
 

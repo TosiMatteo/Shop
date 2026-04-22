@@ -59,6 +59,6 @@ class ProductsController < ApplicationController
   end
 
   def product_params
-    params.expect(product: [ :title, :description, :price, :original_price, :sale, :thumbnail, { tag_ids: [] } ])
+    params.expect(product: [ :title, :description, :price, :original_price, :sale, :discount_percentage,:thumbnail, { tag_ids: [] } ])
   end
 end

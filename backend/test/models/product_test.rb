@@ -3,6 +3,7 @@ require "test_helper"
 class ProductTest < ActiveSupport::TestCase
   def setup
     @product = products(:pc)
+    @sale_product = products(:book)
   end
 
   test "should be valid" do
@@ -14,8 +15,8 @@ class ProductTest < ActiveSupport::TestCase
     assert_not @product.valid?
   end
 
-  test "should not be valid without a price" do
-    @product.price = nil
+  test "should not be valid without an original_price" do
+    @product.original_price = nil
     assert_not @product.valid?
   end
 
@@ -35,13 +36,31 @@ class ProductTest < ActiveSupport::TestCase
   end
 
   test "search_by_sale should return products with matching sale" do
-    assert_includes Product.search_by_sale(false), @product
-    assert_not_includes Product.search_by_sale(true), @product
+    assert_includes Product.search_by_sale("true"), @sale_product
+    assert_not_includes Product.search_by_sale("true"), @product
+    assert_includes Product.search_by_sale("false"), @sale_product
+    assert_includes Product.search_by_sale("false"), @product
   end
 
   test "search_by_min_max_price should return products with matching price range" do
     assert_equal Product.search_by_min_max_price(900, 1100), [@product]
     assert_equal Product.search_by_min_max_price(100, 200), []
+  end
+
+  test "should apply discount_percentage before save" do
+    product = Product.new(
+      title: "Gaming Mouse",
+      description: "Lightweight gaming mouse",
+      original_price: 100.0,
+      price: 100.0,
+      sale: false
+    )
+
+    product.discount_percentage = 25
+    assert product.save
+
+    assert_equal 75.0, product.price
+    assert product.sale
   end
 
 end
