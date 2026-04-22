@@ -12,6 +12,7 @@ export interface Customer {
   first_name: string;
   last_name: string;
   email: string;
+  member_since: number;
 }
 
 export interface RegisterCredentials {
@@ -33,6 +34,7 @@ export class AuthService {
   private readonly TOKEN = 'auth_token';
   private readonly USER_TYPE = 'user_type';
   private readonly ME = '/api/me';
+  private readonly MEMBER_SINCE = 'member_since';
 
   constructor(private http: HttpClient) { }
 
@@ -50,6 +52,8 @@ export class AuthService {
             // Backend sends auth token in header; store it for subsequent API calls.
             localStorage.setItem(this.TOKEN, authHeader);
             localStorage.setItem(this.USER_TYPE, 'Customer');
+            const memberSince = response.body?.user?.member_since;
+            if (memberSince) localStorage.setItem(this.MEMBER_SINCE, memberSince.toString());
             this.loginEventSubject.next();
           }
         })
@@ -85,10 +89,17 @@ export class AuthService {
             // Registration also creates a valid authenticated session.
             localStorage.setItem(this.TOKEN, authHeader);
             localStorage.setItem(this.USER_TYPE, 'Customer');
+            const memberSince = response.body?.user?.member_since;
+            if (memberSince) localStorage.setItem(this.MEMBER_SINCE, memberSince.toString());
             this.loginEventSubject.next();
           }
         })
       );
+  }
+
+  getMemberSince(): number | null {
+    const value = localStorage.getItem(this.MEMBER_SINCE);
+    return value ? +value : null;
   }
 
   getToken(): string | null {
@@ -111,6 +122,7 @@ export class AuthService {
   public clearSession(): void {
     localStorage.removeItem(this.TOKEN);
     localStorage.removeItem(this.USER_TYPE);
+    localStorage.removeItem(this.MEMBER_SINCE);
   }
 
   // Starts password reset flow by requesting a reset email.

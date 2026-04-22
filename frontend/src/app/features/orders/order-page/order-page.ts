@@ -9,6 +9,7 @@ import {MatInputModule} from '@angular/material/input';
 import {OrderCard} from '../order-card/order-card';
 import {AsyncPipe} from '@angular/common';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {AuthService} from '../../../core/services/auth/auth-service';
 
 type Sort = 'dateAsc' | 'dateDesc' | 'totalAsc' | 'totalDesc';
 type Status = 'processing' | 'completed' | 'cancelled';
@@ -29,6 +30,7 @@ type Status = 'processing' | 'completed' | 'cancelled';
 })
 export class OrderPage {
   private orderService = inject(OrderService);
+  private authService = inject(AuthService)
 
   // Last 5 years used by year filter select.
   protected availableYears: number[] = this.buildYearList();
@@ -123,7 +125,8 @@ export class OrderPage {
   }
 
   private buildYearList(): number[] {
-    const current = new Date().getFullYear();
-    return Array.from({ length: 5 }, (_, i) => current - i);
+    const current     = new Date().getFullYear();
+    const memberSince = this.authService.getMemberSince() ?? current - 4;
+    return Array.from({ length: current - memberSince + 1 }, (_, i) => current - i);
   }
 }

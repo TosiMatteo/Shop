@@ -13,7 +13,8 @@ class Customers::SessionsController < Devise::SessionsController
           first_name: resource.first_name,
           last_name: resource.last_name,
           user_type: 'Customer',
-          confirmed: resource.confirmed?
+          confirmed: resource.confirmed?,
+          member_since: resource.created_at.year
         }
       }, status: :ok
     else

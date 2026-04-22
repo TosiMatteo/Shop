@@ -335,7 +335,7 @@ I filtri per totale minimo e massimo transitano attraverso due `Subject` dedicat
 
 `response$` è costruito con `switchMap` su `filters$`: ogni nuova emissione cancella automaticamente la richiesta HTTP precedente ancora in volo. `shareReplay(1)` fa sì che `orders$` e `pagy$` (due pipe derivate dalla stessa sorgente) condividano un'unica chiamata HTTP invece di generarne due.
 
-Gli anni selezionabili sono calcolati dinamicamente da `buildYearList()`: ultimi 5 anni a partire dall'anno corrente, senza valori hardcoded.
+Gli anni selezionabili sono calcolati dinamicamente da `buildYearList()` controllando l'anno di creazione dell'account del customer.
 
 **Frontend — OrderCard**
 
