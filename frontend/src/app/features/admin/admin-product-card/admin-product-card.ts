@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {Product} from '../../../core/models/product';
 import {MatCard, MatCardContent} from '@angular/material/card';
-import {CurrencyPipe, NgOptimizedImage} from '@angular/common';
+import {CurrencyPipe, DecimalPipe, NgOptimizedImage} from '@angular/common';
 import {MatIcon} from '@angular/material/icon';
 import {MatIconButton} from '@angular/material/button';
 
@@ -13,7 +13,8 @@ import {MatIconButton} from '@angular/material/button';
     NgOptimizedImage,
     MatIcon,
     CurrencyPipe,
-    MatIconButton
+    MatIconButton,
+    DecimalPipe
   ],
   templateUrl: './admin-product-card.html',
   styleUrl: './admin-product-card.scss',

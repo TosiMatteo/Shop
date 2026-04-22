@@ -15,7 +15,9 @@
       <span class="card-title">{{ product.title }}</span>
       <span class="card-price">{{ product.price | currency:'EUR' }}</span>
       @if (product.sale) {
-        <span class="sale-badge">SALDO</span>
+        <span class="sale-badge">
+      -{{ ((product.original_price - product.price) / product.original_price * 100) | number:'1.0-0' }}%
+    </span>
       }
     </div>
 

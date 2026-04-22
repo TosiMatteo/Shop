@@ -69,10 +69,9 @@ export class AdminPage implements OnInit {
     this.productForm = this.fb.group({
       title: ['', Validators.required],
       description: [''],
-      price: [null, [Validators.required, Validators.min(0)]],
-      original_price: [null, Validators.min(0)],
-      sale: [false],
+      original_price: [null, [Validators.required, Validators.min(0)]],
       tag_ids: [[]],
+      discount_percentage: [0, [Validators.min(0), Validators.max(99)]]
     });
 
     this.tagForm = this.fb.group({
@@ -125,12 +124,16 @@ export class AdminPage implements OnInit {
       .filter(t => (product.tags ?? []).includes(t.name))
       .map(t => t.id);
 
+    const discountPercentage = this.computeDiscountPercentage(
+      product.original_price,
+      product.price
+    );
+
     this.productForm.patchValue({
       title: product.title,
       description: product.description,
-      price: product.price,
       original_price: product.original_price,
-      sale: product.sale,
+      discount_percentage: discountPercentage,
       tag_ids: tagIds,
     });
 
@@ -150,21 +153,29 @@ export class AdminPage implements OnInit {
     this.formMode = 'create';
     this.editingProduct = null;
     this.thumbnailFile = null;
-    this.productForm.reset({ sale: false, tag_ids: [] });
+    this.productForm.reset({ discount_percentage: 0, tag_ids: [] });
   }
 
   onSubmit(): void {
     if (this.productForm.invalid) return;
 
     const v = this.productForm.value;
+    const originalPrice = Number(v.original_price);
+    const discountPercentage = Number(v.discount_percentage ?? 0);
+    const safeDiscount = Number.isFinite(discountPercentage)
+      ? Math.min(99, Math.max(0, discountPercentage))
+      : 0;
+    const price = this.calculatePriceFromDiscount(originalPrice, safeDiscount);
+    const sale = safeDiscount > 0 && price < originalPrice;
+
     // Use multipart payload to support optional thumbnail upload.
     const fd = new FormData();
 
     fd.append('product[title]', v.title);
     fd.append('product[description]', v.description ?? '');
-    fd.append('product[price]', v.price.toString());
-    fd.append('product[original_price]', (v.original_price ?? v.price).toString());
-    fd.append('product[sale]', v.sale ? 'true' : 'false');
+    fd.append('product[original_price]', originalPrice.toString());
+    fd.append('product[price]', price.toString());
+    fd.append('product[sale]', sale ? 'true' : 'false');
     (v.tag_ids as number[]).forEach(id =>
       fd.append('product[tag_ids][]', id.toString())
     );
@@ -195,6 +206,17 @@ export class AdminPage implements OnInit {
         error: () => (this.loading = false),
       });
     }
+  }
+
+  private calculatePriceFromDiscount(originalPrice: number, discountPercentage: number): number {
+    const discounted = originalPrice * (1 - discountPercentage / 100);
+    return Number(discounted.toFixed(2));
+  }
+
+  private computeDiscountPercentage(originalPrice: number, price: number): number {
+    if (!originalPrice || originalPrice <= 0 || price >= originalPrice) return 0;
+    const discount = ((originalPrice - price) / originalPrice) * 100;
+    return Math.round(discount);
   }
 
   onEditTag(tag: Tag): void {
