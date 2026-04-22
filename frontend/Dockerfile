@@ -22,4 +22,4 @@ EXPOSE 4200
 # Avvia l'applicazione
 # --host 0.0.0.0 serve per rendere il sito accessibile da fuori il container
 # --poll 2000 serve per far funzionare il ricaricamento automatico su alcuni sistemi (come Windows/WSL o Linux specifici)
-CMD ["ng", "serve", "--host", "0.0.0.0", "--poll", "2000"]
+CMD ["ng", "serve", "--host", "0.0.0.0", "--poll", "2000", "--proxy-config", "proxy.json"]
