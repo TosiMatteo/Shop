@@ -13,7 +13,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(retry({
       count: 3,
       delay: (err: HttpErrorResponse, retryCount) => {
-        if (err.status === 0) {
+        if (err.status === 0 && req.method == 'GET') {
           return timer(retryCount * 2000);
         }
         throw err;
