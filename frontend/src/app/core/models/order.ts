@@ -6,6 +6,7 @@ export interface OrderItem {
   product: {
     id: number;
     title: string;
+    thumbnail_url?: string;
   };
 }
 

@@ -28,6 +28,12 @@
     }
   }
 
+  .order-card__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   // Accordion: collassato di default, si espande con la classe --open.
   // max-height invece di display:none permette la transizione CSS.
   // Il valore 600px è un upper-bound sicuro per N items ragionevoli.
