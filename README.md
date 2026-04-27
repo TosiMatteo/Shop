@@ -289,7 +289,7 @@ L'errore viene azzerato automaticamente a ogni navigazione tramite `NavigationSt
 
 | Codice | Causa | Comportamento frontend |
 |---|---|---|
-| `0` | Rete/server non raggiungibile | Banner: *"server not available"* |
+| `0` | Rete/server non raggiungibile | Per richieste `GET` il client riprova automaticamente la connessione **fino a 3 volte**. Se fallisce ancora, mostra banner: *"server not available"* |
 | `400` | Parametro mancante o malformato | Banner con messaggio |
 | `401` | Sessione scaduta o token non valido | Pulizia sessione + redirect a `/login` o `/admin/login`. **Eccezione:** su `/sign_in` l'errore viene rilanciato al form di login |
 | `403` | Accesso negato | Redirect a `/forbidden` (solo contesto utente); in area admin rimane in-place |
