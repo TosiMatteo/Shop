@@ -9,7 +9,7 @@ class OrdersController < ApplicationController
     end
 
     filtered = current_customer.orders
-                               .includes(order_items: :product)
+                               .includes(order_items: { product: { thumbnail_attachment: { blob: :variant_records } } })
                                .search_by_min_max_total(params[:min], params[:max])
                                .search_by_status(params[:status])
                                .search_by_year(params[:year])
@@ -22,7 +22,11 @@ class OrdersController < ApplicationController
       orders: @orders.map { |o|
         o.as_json.merge(
           order_items: o.order_items.map { |item|
-            item.as_json.merge(product: item.product.as_json(only: [:id, :title]))
+            item.as_json.merge(
+              product: item.product.as_json(only: [:id, :title]).merge(
+                thumbnail_url: item.product.thumbnail.attached? ? rails_representation_path(item.product.thumbnail.variant(resize_to_limit: [300, 300])) : nil
+              )
+            )
           }
         )
       }
@@ -33,8 +37,12 @@ class OrdersController < ApplicationController
   # GET /api/orders/1
   def show
     render json: @order.as_json.merge(
-      order_items: @order.order_items.includes(:product).map { |item|
-        item.as_json.merge(product: item.product.as_json(only: [:id, :title]))
+      order_items: @order.order_items.includes(product: { thumbnail_attachment: { blob: :variant_records } }).map { |item|
+        item.as_json.merge(
+          product: item.product.as_json(only: [:id, :title]).merge(
+            thumbnail_url: item.product.thumbnail.attached? ? rails_representation_path(item.product.thumbnail.variant(resize_to_limit: [300, 300])) : nil
+          )
+        )
       }
     )
   end
