@@ -1,7 +1,7 @@
-<mat-card appearance="outlined">
+<mat-card appearance="outlined" [class.expanded]="expanded">
   <mat-card-content>
 
-    <div class="image-box">
+    <div class="image-box" (click)="toggleExpand()" style="cursor:pointer">
       @if (product.thumbnail_url) {
         <img class="product-image"
              [ngSrc]="product.thumbnail_url"
@@ -13,8 +13,18 @@
     </div>
 
     <div class="info-box">
-      <div class="title">{{ product.title }}</div>
-      <p class="description">{{ product.description }}</p>
+      <div class="title" (click)="toggleExpand()" style="cursor:pointer">
+        {{ product.title }}
+      </div>
+
+      @if (expanded) {
+        <p class="description">{{ product.description }}</p>
+        <div class="tags">
+          @for (tag of product.tags; track $index) {
+            <mat-chip>{{ $any(tag).name }}</mat-chip>
+          }
+        </div>
+      }
     </div>
 
     <div class="action-box">
