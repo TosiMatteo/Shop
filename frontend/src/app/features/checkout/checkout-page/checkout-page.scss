@@ -1,0 +1,155 @@
+// ── Layout generale ────────────────────────────────────────────────────────
+.checkout-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Colonna form ───────────────────────────────────────────────────────────
+.checkout-form-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+// ── Intestazioni di sezione con icona ──────────────────────────────────────
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1rem 0 0.75rem;
+  color: #3c3c3c;
+
+  &:first-of-type {
+    margin-top: 0;
+  }
+
+  mat-icon {
+    font-size: 1.25rem;
+    height: 1.25rem;
+    width: 1.25rem;
+    color: var(--mat-primary, #1976d2);
+  }
+}
+
+// ── Riga doppia campo (Nome+Cognome / Città+CAP) ────────────────────────────
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media (max-width: 540px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Il campo CAP è più stretto nella riga città+CAP
+.zip-field {
+  max-width: 140px;
+
+  @media (max-width: 540px) {
+    max-width: 100%;
+  }
+}
+
+// I mat-form-field occupano tutta la larghezza della loro cella
+mat-form-field {
+  width: 100%;
+}
+
+.full-width {
+  width: 100%;
+}
+
+// ── Privacy ────────────────────────────────────────────────────────────────
+.privacy-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.privacy-error {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--mat-error, #f44336);
+  margin: 0;
+
+  mat-icon {
+    font-size: 1rem;
+    height: 1rem;
+    width: 1rem;
+  }
+}
+
+// ── Bottone submit ─────────────────────────────────────────────────────────
+.submit-btn {
+  margin-top: 1.25rem;
+  height: 48px;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// ── Pannello di successo (sostituisce il form) ─────────────────────────────
+.success-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #f0faf4;
+  border: 1.5px solid #4caf50;
+  border-radius: 10px;
+  padding: 1.5rem;
+
+  .success-icon {
+    font-size: 2.5rem;
+    height: 2.5rem;
+    width: 2.5rem;
+    color: #4caf50;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #2e7d32;
+  }
+
+  p {
+    margin: 0;
+    color: #555;
+    font-size: 0.9rem;
+  }
+}
+
+// ── Colonna riepilogo ──────────────────────────────────────────────────────
+.checkout-summary {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  height: fit-content;
+  position: sticky;
+  top: 1.5rem;
+}

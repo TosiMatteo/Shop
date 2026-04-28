@@ -4,10 +4,11 @@ import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { CartService } from '../../../core/services/cart/cart-service';
-import {CartCardComponent} from '../cart-card/cart-card';
-import {finalize} from 'rxjs';
+import { CartCardComponent } from '../cart-card/cart-card';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-checkout-page',
@@ -18,6 +19,7 @@ import {finalize} from 'rxjs';
     MatInputModule,
     MatCheckboxModule,
     MatButtonModule,
+    MatIconModule,       // aggiunto per le icone nel template
     CartCardComponent,
   ],
   templateUrl: './checkout-page.html',
@@ -72,7 +74,9 @@ export class CheckoutPage {
           this.form.reset();
           // Navigate to orders after a short success feedback delay.
           setTimeout(() => this.router.navigate(['/orders']), 2000);
-        }
+        },
+        error: () => {
+        },
       });
   }
 
