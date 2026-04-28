@@ -2,7 +2,7 @@ import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
 import {inject} from '@angular/core';
 import {ErrorService} from '../services/error-service';
 import {Router} from '@angular/router';
-import {catchError, EMPTY, throwError} from 'rxjs';
+import {catchError, EMPTY, retry, throwError, timer} from 'rxjs';
 import {AuthService} from '../services/auth/auth-service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
@@ -10,8 +10,16 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const authService = inject(AuthService);
 
-  return next(req).pipe(
-    catchError((err: HttpErrorResponse) => {
+  return next(req).pipe(retry({
+      count: 3,
+      delay: (err: HttpErrorResponse, retryCount) => {
+        if (err.status === 0 && req.method == 'GET') {
+          return timer(retryCount * 2000);
+        }
+        throw err;
+      }
+    })
+    ,catchError((err: HttpErrorResponse) => {
       // Normalize backend payload shape and keep a safe fallback message.
       const message = err.error?.error?.message ?? 'An unexpected error occurred';
       const details = err.error?.error?.details ?? [];

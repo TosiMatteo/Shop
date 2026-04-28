@@ -2,86 +2,116 @@
 
   <!-- ── Colonna sinistra: form ─────────────────────────────────── -->
   <section class="checkout-form-section">
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-      <h2>Dati di spedizione</h2>
+    @if (orderSuccess) {
+      <div class="success-banner" role="status">
+        <mat-icon class="success-icon">check_circle</mat-icon>
+        <div>
+          <h3>Ordine confermato!</h3>
+          <p>Verrai reindirizzato ai tuoi ordini tra pochi secondi…</p>
+        </div>
+      </div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-      <mat-form-field appearance="outline">
-        <mat-label>Nome</mat-label>
-        <input matInput formControlName="firstName" />
-        @if (hasError('firstName', 'required')) {
-          <mat-error>Il nome è obbligatorio.</mat-error>
-        }
-        @if (hasError('firstName', 'minlength')) {
-          <mat-error>Il nome deve contenere almeno 2 caratteri.</mat-error>
-        }
-      </mat-form-field>
+        <h2 class="section-heading">
+          <mat-icon>person</mat-icon>
+          Dati di spedizione
+        </h2>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Cognome</mat-label>
-        <input matInput formControlName="lastName" />
-        @if (hasError('lastName', 'required')) {
-          <mat-error>Il cognome è obbligatorio.</mat-error>
-        }
-        @if (hasError('lastName', 'minlength')) {
-          <mat-error>Il cognome deve contenere almeno 2 caratteri.</mat-error>
-        }
-      </mat-form-field>
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Nome</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
+            <input matInput formControlName="firstName" />
+            @if (hasError('firstName', 'required')) {
+              <mat-error>Il nome è obbligatorio.</mat-error>
+            }
+            @if (hasError('firstName', 'minlength')) {
+              <mat-error>Almeno 2 caratteri.</mat-error>
+            }
+          </mat-form-field>
 
-      <h2>Indirizzo di spedizione</h2>
+          <mat-form-field appearance="outline">
+            <mat-label>Cognome</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
+            <input matInput formControlName="lastName" />
+            @if (hasError('lastName', 'required')) {
+              <mat-error>Il cognome è obbligatorio.</mat-error>
+            }
+            @if (hasError('lastName', 'minlength')) {
+              <mat-error>Almeno 2 caratteri.</mat-error>
+            }
+          </mat-form-field>
+        </div>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Via</mat-label>
-        <input matInput formControlName="street" />
-        @if (hasError('street', 'required')) {
-          <mat-error>L'indirizzo è obbligatorio.</mat-error>
-        }
-      </mat-form-field>
+        <h2 class="section-heading">
+          <mat-icon>local_shipping</mat-icon>
+          Indirizzo di spedizione
+        </h2>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Città</mat-label>
-        <input matInput formControlName="city" />
-        @if (hasError('city', 'required')) {
-          <mat-error>La città è obbligatoria.</mat-error>
-        }
-      </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Via</mat-label>
+          <mat-icon matPrefix>edit_road</mat-icon>
+          <input matInput formControlName="street" />
+          @if (hasError('street', 'required')) {
+            <mat-error>L'indirizzo è obbligatorio.</mat-error>
+          }
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>CAP</mat-label>
-        <input matInput formControlName="zip" />
-        @if (hasError('zip', 'required')) {
-          <mat-error>Il CAP è obbligatorio.</mat-error>
-        }
-      </mat-form-field>
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Città</mat-label>
+            <mat-icon matPrefix>location_city</mat-icon>
+            <input matInput formControlName="city" />
+            @if (hasError('city', 'required')) {
+              <mat-error>La città è obbligatoria.</mat-error>
+            }
+          </mat-form-field>
 
-      <mat-checkbox formControlName="privacy">
-        Accetto i termini e la privacy policy
-      </mat-checkbox>
-      @if (hasError('privacy', 'required')) {
-        <p class="privacy-error">Devi accettare la privacy policy per procedere.</p>
-      }
+          <mat-form-field appearance="outline" class="zip-field">
+            <mat-label>CAP</mat-label>
+            <mat-icon matPrefix>markunread_mailbox</mat-icon>
+            <input matInput formControlName="zip" />
+            @if (hasError('zip', 'required')) {
+              <mat-error>Il CAP è obbligatorio.</mat-error>
+            }
+          </mat-form-field>
+        </div>
 
-      @if (orderSuccess) {
-        <p class="success-message" role="status">
-          Ordine confermato! Verrai reindirizzato ai tuoi ordini…
-        </p>
-      }
+        <div class="privacy-row">
+          <mat-checkbox formControlName="privacy">
+            Accetto i termini e la privacy policy
+          </mat-checkbox>
+          @if (hasError('privacy', 'required')) {
+            <p class="privacy-error">
+              <mat-icon>error_outline</mat-icon>
+              Devi accettare la privacy policy per procedere.
+            </p>
+          }
+        </div>
 
-      <button
-        mat-raised-button
-        color="primary"
-        type="submit"
-        [disabled]="loading"
-      >
-        {{ loading ? 'Invio in corso…' : 'Conferma ordine' }}
-      </button>
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="submit-btn"
+          [disabled]="loading"
+        >
+          <mat-icon>{{ loading ? 'hourglass_top' : 'shopping_cart_checkout' }}</mat-icon>
+          {{ loading ? 'Invio in corso…' : 'Conferma ordine' }}
+        </button>
 
-    </form>
+      </form>
+    }
   </section>
 
   <!-- ── Colonna destra: riepilogo carrello (readonly) ──────────── -->
   <aside class="checkout-summary">
-    <h2>Riepilogo ordine</h2>
+    <h2 class="section-heading">
+      <mat-icon>receipt_long</mat-icon>
+      Riepilogo ordine
+    </h2>
     <app-cart-card [readonly]="true" />
   </aside>
 

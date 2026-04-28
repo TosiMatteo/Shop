@@ -64,6 +64,12 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.25rem;
   width: 100%;
+  align-items: start;
+}
+
+.products-grid app-product-card {
+  display: block;
+  height: auto;
 }
 
 @media (max-width: 600px) {

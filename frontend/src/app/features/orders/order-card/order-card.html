@@ -25,6 +25,15 @@
       <p class="order-card__items-title">Prodotti ordinati</p>
       @for (item of order.order_items; track item.id) {
         <div class="order-card__item">
+          @if (item.product.thumbnail_url) {
+            <img
+              [ngSrc]="item.product.thumbnail_url"
+              [alt]="item.product.title"
+              width="40"
+              height="40"
+              class="order-card__item-thumb"
+            />
+          }
           <span class="order-card__item-title">{{ item.product.title }}</span>
           <span class="order-card__item-qty">x{{ item.quantity }}</span>
           <span class="order-card__item-price">{{ item.unit_price * item.quantity | currency:'EUR' }}</span>

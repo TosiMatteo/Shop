@@ -12,6 +12,7 @@
 - [Struttura del repository](#struttura-del-repository)
 - [Modelli di dominio](#modelli-di-dominio)
 - [Flusso principale](#flusso-principale)
+- [Gestione degli errori](#gestione-degli-errori)
 - [Funzionalità avanzate](#funzionalità-avanzate)
 - [Testing](#testing)
 
@@ -57,10 +58,9 @@ docker compose exec backend rails db:create db:migrate db:seed
 | Frontend Angular | `http://localhost:4200` |
 | Backend Rails API | `http://localhost:3000` |
 | PostgreSQL | `localhost:5432` |
- 
----
 
-### Senza Docker
+<details>
+<summary><strong>Senza Docker</strong></summary>
 
 **Prerequisiti:** Ruby `3.4.x`, PostgreSQL `16`, Node.js `20.x`, Angular CLI `20.3.x`.
 
@@ -82,6 +82,7 @@ cd frontend
 npm install
 npm start
 ```
+</details>
 
 Le chiamate API vengono proxate verso `http://localhost:3000` tramite `proxy.conf.json`, senza configurazioni CORS aggiuntive.
 
@@ -268,6 +269,36 @@ Il frontend invia `POST /api/carts/:id/checkout` con i parametri di spedizione. 
 Se il carrello è vuoto viene sollevata `ActiveRecord::RecordInvalid` e la transazione viene annullata. In caso di successo il frontend riceve i dati dell'ordine e azzera il `cartSubject` localmente.
 
 ---
+
+
+## Gestione degli errori
+
+Il sistema adotta un contratto HTTP/JSON condiviso tra backend e frontend: ogni errore viene normalizzato lato Rails e consumato in modo uniforme da Angular.
+
+**Backend (`ErrorHandler`)** — Concern incluso nei controller che intercetta le eccezioni Rails/JWT e le converte sempre nello stesso payload:
+
+```json
+{ "error": { "message": "...", "details": ["..."] } }
+```
+
+`details` è presente solo per gli errori di validazione (422).
+
+**Frontend (`errorInterceptor`)** — Interceptor HTTP funzionale che aggancia ogni risposta in errore, legge il payload e delega allo `ErrorService` (signal globale). I componenti non gestiscono gli errori localmente: l'Observable viene terminato con `EMPTY` e lo stato reattivo aggiornato viene letto dall'`ErrorBanner`, visibile in ogni layout.
+
+L'errore viene azzerato automaticamente a ogni navigazione tramite `NavigationStart`.
+
+| Codice | Causa | Comportamento frontend |
+|---|---|---|
+| `0` | Rete/server non raggiungibile | Per richieste `GET` il client riprova automaticamente la connessione **fino a 3 volte**. Se fallisce ancora, mostra banner: *"server not available"* |
+| `400` | Parametro mancante o malformato | Banner con messaggio |
+| `401` | Sessione scaduta o token non valido | Pulizia sessione + redirect a `/login` o `/admin/login`. **Eccezione:** su `/sign_in` l'errore viene rilanciato al form di login |
+| `403` | Accesso negato | Redirect a `/forbidden` (solo contesto utente); in area admin rimane in-place |
+| `404` | Risorsa non trovata | Banner con messaggio |
+| `422` | Errori di validazione | Banner con messaggio + lista dettagliata dei campi |
+| `500` | Errore interno Rails | Banner con messaggio generico (dettaglio loggato server-side) |
+
+---
+
 
 ## Funzionalità avanzate
 

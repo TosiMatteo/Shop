@@ -12,6 +12,11 @@ class Product < ApplicationRecord
   validates :description, presence: true, length: { minimum: 5, maximum: 1000 }
   validates :original_price, presence: true
   validates :sale, inclusion: { in: [ true, false ] }
+  validates :discount_percentage, numericality: { greater_than_or_equal_to: 0, less_than: 100 }, allow_nil: true
+
+  attr_accessor :discount_percentage
+
+  before_save :apply_discount, if: -> { discount_percentage.present? }
 
   # Filter by partial title match.
   scope :search_by_title, ->(title) {
@@ -52,4 +57,11 @@ class Product < ApplicationRecord
     else order(created_at: :desc)
     end
   }
+
+  private
+  def apply_discount
+    percentage = discount_percentage.to_f / 100
+    self.price = (original_price * (1 - percentage)).round(2)
+    self.sale = true
+  end
 end
