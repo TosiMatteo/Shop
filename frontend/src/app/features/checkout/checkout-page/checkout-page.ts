@@ -75,8 +75,6 @@ export class CheckoutPage {
           // Navigate to orders after a short success feedback delay.
           setTimeout(() => this.router.navigate(['/orders']), 2000);
         },
-        error: () => {
-        },
       });
   }
 
