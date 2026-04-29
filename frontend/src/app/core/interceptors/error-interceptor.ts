@@ -37,7 +37,18 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         case 401: {
           // Keep login failures available to the caller (e.g. login form) instead of redirecting.
           const isAuthCall = req.url.includes('/sign_in');
+          let message = '';
+          if(err.error?.error?.message){
+            message = err.error.error.message;
+          }else if(typeof err.error?.error === 'string') {
+            message = err.error.error;
+          }
+          else{
+            message = 'bad credentials'
+          }
+
           if (isAuthCall) {
+            errorService.setError({ statusCode: 401, message, details });
             return throwError(() => err);
           }
 
