@@ -3,8 +3,9 @@ import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {AuthService} from '../../../core/services/auth/auth-service';
 import {Router} from '@angular/router';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
-import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
-import {MatButton} from '@angular/material/button';
+import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
+import {MatButton, MatIconButton} from '@angular/material/button';
+import {MatIcon} from '@angular/material/icon';
 
 @Component({
   selector: 'app-admin-login',
@@ -18,7 +19,10 @@ import {MatButton} from '@angular/material/button';
     MatFormField,
     MatError,
     MatInput,
-    MatButton
+    MatButton,
+    MatIcon,
+    MatIconButton,
+    MatSuffix,
   ],
   templateUrl: './admin-login.html',
   styleUrl: './admin-login.scss',
@@ -27,6 +31,7 @@ export class AdminLogin {
   loginForm: FormGroup;
   errorMessage = '';
   loading = false;
+  hidePassword = true;
 
   constructor(
     private fb: FormBuilder,
