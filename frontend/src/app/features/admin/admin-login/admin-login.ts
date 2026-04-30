@@ -6,6 +6,7 @@ import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/mat
 import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
+import {finalize} from 'rxjs';
 
 @Component({
   selector: 'app-admin-login',
@@ -51,13 +52,10 @@ export class AdminLogin {
     this.errorMessage = '';
 
     // Uses the dedicated admin auth endpoint.
-    this.authService.loginAdmin(this.loginForm.value).subscribe({
+    this.authService.loginAdmin(this.loginForm.value).pipe(
+      finalize(() => this.loading = false)
+    ).subscribe({
       next: () => this.router.navigate(['/admin/admin-page']),
-      error: () => {
-        // Keep user on page and show validation feedback for failed login.
-        this.errorMessage = 'Credenziali non valide';
-        this.loading = false;
-      },
     });
   }
 }

@@ -63,7 +63,6 @@ export class LoginPage {
     // Login success creates a session; redirect to the authenticated landing page.
     this.authService.login(this.loginForm.value).subscribe({
       next: () => this.router.navigate(['/dashboard']),
-      error: (err) => console.error('Login fallito', err),
     });
   }
 
