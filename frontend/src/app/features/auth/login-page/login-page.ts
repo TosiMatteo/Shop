@@ -49,8 +49,8 @@ export class LoginPage {
     });
 
     this.registerForm = this.fb.group({
-      first_name: ['', Validators.required],
-      last_name: ['', Validators.required],
+      first_name: ['', [Validators.required, Validators.pattern(/^.*\S.*$/)]],
+      last_name: ['', [Validators.required, Validators.pattern(/^.*\S.*$/)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       password_confirmation: ['', Validators.required],
@@ -69,8 +69,24 @@ export class LoginPage {
   onRegister(): void {
     if (this.registerForm.invalid) return;
 
+    // Sanitize first_name, last_name and email fields.
+    const raw = this.registerForm.value;
+    const payload = {
+      first_name: raw.first_name.trim(),
+      last_name: raw.last_name.trim(),
+      email: raw.email.trim(),
+      password: raw.password,
+      password_confirmation: raw.password_confirmation,
+    };
+
+    //Check after sanitize
+    if (!payload.first_name || !payload.last_name || !payload.email) {
+      console.error('I campi nome, cognome ed email non possono contenere solo spazi');
+      return;
+    }
+
     // Registration endpoint also authenticates user on success.
-    this.authService.register(this.registerForm.value).subscribe({
+    this.authService.register(payload).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => console.error('Registrazione fallita', err),
     });
