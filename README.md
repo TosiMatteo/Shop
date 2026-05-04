@@ -310,6 +310,7 @@ Sezione riservata per creare, modificare ed eliminare prodotti e tag. La protezi
 **Backend**
 
 `Admins::SessionsController` e `Admins::PasswordsController` gestiscono autenticazione e reset password su endpoint separati da quelli del customer (`/api/admins/sign_in`, `/api/admins/password`). Il token JWT emesso al login identifica il ruolo admin e viene validato dal `before_action :authenticate_admin!` presente in `ProductsController` e `TagsController` sulle sole action di scrittura (`create`, `update`, `destroy`). Le action di lettura (`index`, `show`) rimangono pubbliche.
+Gli admin non vengono creati tramite api pubblica, ma devono essere creati manualmente da console.
 
 ```ruby
 # products_controller.rb
