@@ -84,6 +84,7 @@ export class CartService {
     return this.http.get<Cart | null>('/api/carts').pipe(
       // Backend can return null when no cart exists yet.
       switchMap(cart => (cart ? of(cart) : this.createServerCart())),
+      map(cart => ({ ...cart, items: cart.items ?? [] })),
       tap(cart => {
         this.cartSubject.next(cart);
         this.loadingSubject.next(false);
