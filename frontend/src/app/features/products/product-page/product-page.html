@@ -5,8 +5,8 @@
   <form class="filters" (submit)="$event.preventDefault()">
     <div class="filters-row filters-row-top">
 
-      <mat-form-field appearance="outline">
-        <mat-label>Tags</mat-label>
+      <mat-form-field appearance="outline" class="tag-field">
+        <mat-label>Tag</mat-label>
         <mat-select #tagSelect (selectionChange)="updateTags($event.value)">
           <mat-option [value]="null">
             -- Tutti --
@@ -20,15 +20,15 @@
         @if (tagSelect.value) {
           <button mat-icon-button matSuffix
                   (click)="resetTag($event, tagSelect)"
-                  aria-label="Clear">
+                  aria-label="Rimuovi filtro">
             <mat-icon>close</mat-icon>
           </button>
         }
       </mat-form-field>
 
       <mat-form-field>
-        <mat-label>Titolo</mat-label>
-        <input matInput type="search" name="title" placeholder="Cerca per titolo"
+        <mat-label>Cerca prodotto</mat-label>
+        <input matInput type="search" name="title" placeholder="Cerca prodotto"
                (input)="updateTitle($any($event.target).value)"/>
       </mat-form-field>
 
@@ -44,14 +44,14 @@
 
     <div class="filters-row filters-row-bottom">
       <div class="price-range">
-        <mat-form-field>
-          <mat-label>Price Min</mat-label>
-          <input matInput type="number" min="0" name="priceMin" placeholder="Prezzo minimo"
+        <mat-form-field class="price-field">
+          <mat-label>Prezzo minimo</mat-label>
+          <input matInput type="number" min="0" name="priceMin" placeholder="Minimo"
                  (input)="updatePriceMin($any($event.target).value)"/>
         </mat-form-field>
-        <mat-form-field>
-          <mat-label>Price Max</mat-label>
-          <input matInput type="number" min="0" name="priceMax" placeholder="Prezzo massimo"
+        <mat-form-field class="price-field">
+          <mat-label>Prezzo massimo</mat-label>
+          <input matInput type="number" min="0" name="priceMax" placeholder="Massimo"
                  (input)="updatePriceMax($any($event.target).value)"/>
         </mat-form-field>
       </div>
@@ -77,7 +77,7 @@
       [pageSizeOptions]="[12, 24, 36]"
       [pageIndex]="pagy.page - 1"
       (page)="onPage($event)"
-      aria-label="Select page">
+      aria-label="Seleziona pagina">
     </mat-paginator>
 
   }

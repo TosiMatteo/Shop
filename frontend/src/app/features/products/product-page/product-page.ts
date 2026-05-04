@@ -16,13 +16,29 @@ import {
 } from 'rxjs';
 import {MatOption} from '@angular/material/core';
 import {MatSelect} from '@angular/material/select';
-import {MatPaginatorModule, PageEvent} from '@angular/material/paginator';
+import {MatPaginatorIntl, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import {TagService } from '../../../core/services/product/tag-service';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {MatIcon} from '@angular/material/icon';
 import {MatIconButton} from '@angular/material/button';
 
 type Sort = 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc';
+
+function italianPaginatorIntl(): MatPaginatorIntl {
+  const intl = new MatPaginatorIntl();
+  intl.itemsPerPageLabel = 'Prodotti per pagina:';
+  intl.nextPageLabel = 'Pagina successiva';
+  intl.previousPageLabel = 'Pagina precedente';
+  intl.firstPageLabel = 'Prima pagina';
+  intl.lastPageLabel = 'Ultima pagina';
+  intl.getRangeLabel = (page, pageSize, length) => {
+    if (length === 0) return 'Nessun risultato';
+    const start = page * pageSize + 1;
+    const end = Math.min((page + 1) * pageSize, length);
+    return `${start} – ${end} di ${length}`;
+  };
+  return intl;
+}
 
 @Component({
   selector: 'app-product-page',
@@ -35,11 +51,13 @@ type Sort = 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc';
     AsyncPipe,
     MatSelect,
     MatOption,
-    MatOption,
     MatPaginatorModule,
     MatSlideToggle,
     MatIcon,
     MatIconButton
+  ],
+  providers: [
+    { provide: MatPaginatorIntl, useFactory: italianPaginatorIntl }
   ],
   templateUrl: './product-page.html',
   styleUrl: './product-page.scss',

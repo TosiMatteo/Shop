@@ -33,6 +33,11 @@
   flex: 1 1 200px;
 }
 
+// Tag field ridotto di 1/3 rispetto agli altri input (flex-grow 0.67 vs 1)
+.tag-field {
+  flex: 0.67 1 130px;
+}
+
 .price-range {
   display: flex;
   gap: 1rem;
@@ -45,7 +50,7 @@
 }
 
 .sort-field {
-  flex: 1 1 200px;
+  flex: 0 1 140px;
 }
 
 .filter-switch {
@@ -54,9 +59,14 @@
   padding-bottom: 1.25rem;
 }
 
+// Paginator allineato a sinistra
 .paginator {
   width: 100%;
   margin-bottom: 0.5rem;
+
+  ::ng-deep .mat-mdc-paginator-container {
+    justify-content: flex-start;
+  }
 }
 
 .products-grid {
@@ -75,4 +85,5 @@
 @media (max-width: 600px) {
   .container { padding: 1rem; }
   .products-grid { grid-template-columns: 1fr; }
+  .price-field { max-width: 100%; }
 }
