@@ -29,8 +29,12 @@ class Customers::RegistrationsController < Devise::RegistrationsController
       end
     else
       clean_up_passwords resource
-      respond_with_error(resource)
+      render_error(
+        status: :unprocessable_entity,
+        message: resource.errors.full_messages
+      )
     end
+    puts resource.errors.full_messages
   end
 
   private

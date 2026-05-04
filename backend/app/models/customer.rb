@@ -10,7 +10,7 @@ class Customer < ApplicationRecord
   # Basic profile and credential validations.
   validates :first_name, presence: true
   validates :last_name, presence: true
-  validates :password, length: { minimum: 8 }, if: :password_required?
+  validates :password, length: { minimum: 6 }, if: :password_required?
   validates :email, presence: true, uniqueness: true
 
   # Normalize email and ensure JWT identifier exists.
