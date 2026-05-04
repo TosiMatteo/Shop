@@ -30,6 +30,7 @@ Il progetto segue un'architettura client-server con separazione netta tra backen
 | **Infrastruttura** | Docker + Kamal | `docker-compose.yml` per sviluppo locale |
 
 In sviluppo il proxy Angular (`proxy.conf.json`) redirige `/api/*` verso `localhost:3000`, eliminando problemi CORS senza configurazioni aggiuntive.
+Mail inviate con devise-jwt si possono aprire accedendo alla cartella `tmp/mail` del progetto.
 
 ---
 
@@ -140,7 +141,6 @@ Configurabili nel `docker-compose.yml` o in un file `.env` nella cartella `backe
 | `brakeman` | development, test | Analisi statica del codice Rails per individuare vulnerabilità (SQL injection, XSS, mass assignment) senza eseguire l'applicazione. |
 | `rubocop-rails-omakase` | development, test | Linter di stile con configurazione Omakase di Rails (Basecamp). Garantisce coerenza stilistica e individua pattern non idiomatici. |
 | `faker` | development, test | Generazione di dati fittizi realistici per seed e fixtures. |
-| `letter_opener` | development | Intercetta le email in uscita e le apre nel browser. Utile per testare i flussi email di Devise senza un server SMTP reale. |
 | `simplecov` | test | Misura la percentuale di righe coperte dalla suite di test. Genera un report HTML in `coverage/`. |
 
 </details>
