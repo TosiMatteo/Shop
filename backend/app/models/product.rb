@@ -21,7 +21,7 @@ class Product < ApplicationRecord
   # Filter by partial title match.
   scope :search_by_title, ->(title) {
     scope = where(nil)
-    scope = scope.where("title LIKE ?", "%#{title}%") if title.present?
+    scope = scope.where("title ILIKE ?", "%#{sanitize_sql_like(title)}%") if title.present?
     scope
   }
 
