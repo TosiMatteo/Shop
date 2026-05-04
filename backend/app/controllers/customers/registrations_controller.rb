@@ -20,7 +20,6 @@ class Customers::RegistrationsController < Devise::RegistrationsController
 
     if resource.persisted?
       if resource.active_for_authentication?
-        # Token JWT già generato da devise-jwt
         sign_up(resource_name, resource)
         respond_with_success(resource)
       else

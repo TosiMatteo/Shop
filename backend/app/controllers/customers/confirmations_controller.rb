@@ -4,7 +4,6 @@ class Customers::ConfirmationsController < Devise::ConfirmationsController
 
   # POST /api/customers/confirmation
   # Body: { customer: { email: "user@example.com" } }
-  # Reinvia email di conferma
   def create
     self.resource = resource_class.send_confirmation_instructions(resource_params)
     yield resource if block_given?
@@ -21,14 +20,12 @@ class Customers::ConfirmationsController < Devise::ConfirmationsController
   end
 
   # GET /api/customers/confirmation?confirmation_token=abc123
-  # Conferma l'account (chiamato dal link nell'email)
+  # Conferma l'account
   def show
     self.resource = resource_class.confirm_by_token(params[:confirmation_token])
     yield resource if block_given?
 
     if resource.errors.empty?
-      # In una SPA Angular, potresti voler fare redirect al frontend
-      # redirect_to "http://localhost:4200/confirmation-success"
 
       render json: {
         message: 'Account confermato con successo. Ora puoi effettuare il login.',
