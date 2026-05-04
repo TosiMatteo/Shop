@@ -12,8 +12,8 @@ import { CartService } from '../core/services/cart/cart-service';
   standalone: true,
   imports: [AsyncPipe, RouterLink, MatIconModule, MatButtonModule, MatBadgeModule],
   template: `
-    <button
-      mat-icon-button
+    <a
+      mat-button
       routerLink="/cart"
       aria-label="Vai al carrello"
     >
@@ -25,7 +25,8 @@ import { CartService } from '../core/services/cart/cart-service';
       >
         shopping_cart
       </mat-icon>
-    </button>
+      Vai al carrello
+    </a>
   `,
 })
 export class CartIconComponent {
