@@ -22,10 +22,7 @@ class ProductsController < ApplicationController
 
     render json: {
       pagy: @pagy.data_hash,
-      products: @products.map { |p|
-        thumbnail_url = p.thumbnail.attached? ? rails_representation_path(p.thumbnail.variant(resize_to_limit: [300, 300])) : nil
-        p.as_json(include: :tags).merge({ thumbnail_url: thumbnail_url })
-      }
+      products: @products.map { |p| serialize_product(p) }
     }
   end
 
@@ -38,13 +35,13 @@ class ProductsController < ApplicationController
   def create
     @product = Product.new(product_params)
     @product.save!
-    render json: @product, status: :created, location: @product
+    render json: serialize_product(@product), status: :created
   end
 
   # PATCH/PUT /products/1
   def update
     @product.update!(product_params)
-    render json: @product
+    render json: serialize_product(@product)
   end
 
   # DELETE /products/1
@@ -60,5 +57,12 @@ class ProductsController < ApplicationController
 
   def product_params
     params.expect(product: [ :title, :description, :price, :original_price, :sale, :discount_percentage,:thumbnail, { tag_ids: [] } ])
+  end
+
+  def serialize_product(product)
+    thumbnail_url = product.thumbnail.attached? \
+                      ? rails_representation_path(product.thumbnail.variant(resize_to_limit: [300, 300])) \
+                      : nil
+    product.as_json(include: :tags).merge({ thumbnail_url: thumbnail_url })
   end
 end
