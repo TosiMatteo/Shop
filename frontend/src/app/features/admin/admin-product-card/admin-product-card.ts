@@ -4,6 +4,7 @@ import {MatCard, MatCardContent} from '@angular/material/card';
 import {CurrencyPipe, DecimalPipe, NgOptimizedImage} from '@angular/common';
 import {MatIcon} from '@angular/material/icon';
 import {MatIconButton} from '@angular/material/button';
+import {DiscountPercentagePipe} from '../../../core/pipes/discount-percentage.pipe';
 
 @Component({
   selector: 'app-admin-product-card',
@@ -14,7 +15,8 @@ import {MatIconButton} from '@angular/material/button';
     MatIcon,
     CurrencyPipe,
     MatIconButton,
-    DecimalPipe
+    DecimalPipe,
+    DiscountPercentagePipe
   ],
   templateUrl: './admin-product-card.html',
   styleUrl: './admin-product-card.scss',

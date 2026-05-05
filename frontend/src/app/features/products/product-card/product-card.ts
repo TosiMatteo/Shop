@@ -6,11 +6,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CartService } from '../../../core/services/cart/cart-service';
 import { MatChip} from '@angular/material/chips';
+import {DiscountPercentagePipe} from '../../../core/pipes/discount-percentage.pipe';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CurrencyPipe, MatCardModule, MatButtonModule, MatIconModule, NgOptimizedImage, MatChip],
+  imports: [CurrencyPipe, MatCardModule, MatButtonModule, MatIconModule, NgOptimizedImage, MatChip, DiscountPercentagePipe],
   templateUrl: './product-card.html',
   styleUrl: './product-card.scss',
 })

@@ -49,10 +49,10 @@ mat-card {
   gap: 1px;
 }
 
-.price {
-  font-size: 13px;
-  font-weight: 700;
-  color: #555;
+.original-price-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .original-price {
@@ -69,9 +69,7 @@ mat-card {
   background: #ffebee;
   padding: 2px 6px;
   border-radius: 4px;
-  width: fit-content;
 }
-
 .card-actions {
   flex-shrink: 0;
   display: flex;

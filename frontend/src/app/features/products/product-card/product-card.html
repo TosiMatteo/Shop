@@ -30,7 +30,12 @@
     <div class="action-box">
       <div class="prices">
         @if (product.sale) {
-          <span class="original-price">{{ product.original_price | currency:'EUR' }}</span>
+          <div class="original-price-row">
+            <span class="original-price">{{ product.original_price | currency:'EUR' }}</span>
+            <span class="sale-badge">
+          -{{ product.original_price | discountPercentage:product.price }}%
+        </span>
+          </div>
         }
         <span class="price">{{ product.price | currency:'EUR' }}</span>
       </div>
