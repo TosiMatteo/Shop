@@ -33,7 +33,6 @@ class Customers::RegistrationsController < Devise::RegistrationsController
         message: resource.errors.full_messages
       )
     end
-    puts resource.errors.full_messages
   end
 
   private
@@ -68,9 +67,4 @@ class Customers::RegistrationsController < Devise::RegistrationsController
     }, status: :created
   end
 
-  def respond_with_error(resource)
-    render json: {
-      errors: resource.errors.full_messages
-    }, status: :unprocessable_entity
-  end
 end

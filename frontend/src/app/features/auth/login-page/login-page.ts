@@ -1,6 +1,14 @@
 import { Component } from '@angular/core';
 import {MatButton, MatIconButton} from '@angular/material/button';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
 import {AuthService} from '../../../core/services/auth/auth-service';
 import {Router, RouterLink} from '@angular/router';
@@ -35,8 +43,28 @@ export class LoginPage {
   loginForm: FormGroup;
   registerForm: FormGroup;
 
+
   hideLoginPassword = true;
   hideRegisterPassword = true;
+  registrationPending = false;
+  registrationMessage = '';
+
+  private passwordMatchValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+    const password = group.get('password')?.value;
+    const confirmControl = group.get('password_confirmation');
+    const confirmation = confirmControl?.value;
+
+    if (password !== confirmation) {
+      confirmControl?.setErrors({ ...confirmControl.errors, passwordMismatch: true });
+      return { passwordMismatch: true };
+    } else {
+      if (confirmControl?.hasError('passwordMismatch')) {
+        const { passwordMismatch, ...rest } = confirmControl.errors ?? {};
+        confirmControl.setErrors(Object.keys(rest).length ? rest : null);
+      }
+      return null;
+    }
+  };
 
   constructor(
     private fb: FormBuilder,
@@ -54,7 +82,7 @@ export class LoginPage {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       password_confirmation: ['', Validators.required],
-    });
+    }, {validators: this.passwordMatchValidator});
   }
 
   onLogin(): void {
@@ -79,16 +107,12 @@ export class LoginPage {
       password_confirmation: raw.password_confirmation,
     };
 
-    //Check after sanitize
-    if (!payload.first_name || !payload.last_name || !payload.email) {
-      console.error('I campi nome, cognome ed email non possono contenere solo spazi');
-      return;
-    }
-
-    // Registration endpoint also authenticates user on success.
     this.authService.register(payload).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
-      error: (err) => console.error('Registrazione fallita', err),
+      next: (response) => {
+        this.registrationPending = true;
+        this.registrationMessage = response.body?.message;
+        this.registerForm.reset();
+      },
     });
   }
 }

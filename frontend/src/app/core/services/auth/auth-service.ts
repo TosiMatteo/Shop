@@ -81,20 +81,11 @@ export class AuthService {
   }
 
   register(credentials: RegisterCredentials): Observable<HttpResponse<any>> {
-    return this.http.post(`${this.CUSTOMER_URL}`, { customer: credentials }, { observe: 'response' })
-      .pipe(
-        tap((response: HttpResponse<any>) => {
-          const authHeader = response.headers.get('Authorization');
-          if (authHeader) {
-            // Registration also creates a valid authenticated session.
-            localStorage.setItem(this.TOKEN, authHeader);
-            localStorage.setItem(this.USER_TYPE, 'Customer');
-            const memberSince = response.body?.user?.member_since;
-            if (memberSince) localStorage.setItem(this.MEMBER_SINCE, memberSince.toString());
-            this.loginEventSubject.next();
-          }
-        })
-      );
+    return this.http.post(
+      `${this.CUSTOMER_URL}`,
+      { customer: credentials },
+      { observe: 'response' }
+    );
   }
 
   getMemberSince(): number | null {
