@@ -1,6 +1,8 @@
 # db/seeds.rb
 require 'open-uri'
 
+SEED_PRODUCTS_COUNT = 30
+
 puts "Inizio Pulizia Totale..."
 
 # 1. Cancella i record dal DB (Prodotti e Tag)
@@ -88,7 +90,7 @@ created_tags = tag_names.map { |name| Tag.create!(name: name) }
 
 created_products = []
 
-30.times do |i|
+SEED_PRODUCTS_COUNT.times do |i|
   # Generiamo dati casuali
   title = Faker::Commerce.product_name
   description = Faker::Lorem.paragraph(sentence_count: 5)

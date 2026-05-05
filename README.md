@@ -47,6 +47,7 @@ docker compose up --build
 ```
 
 Al primo avvio, in un secondo terminale, esegui migrazioni e seed:
+Il seeding è impostato a 30 prodotti per agevolare macchine più datate, se si vuole aumentare il numero dei prodotti bisogna accedere al file `backend/db/seeds.rb` e andare a modificare la costante `SEED_PRODUCTS_COUNT` con il numero desiderato.
 
 ```bash
 docker compose exec backend rails db:create db:migrate db:seed
