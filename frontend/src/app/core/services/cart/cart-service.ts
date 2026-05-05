@@ -1,11 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import {BehaviorSubject, catchError, forkJoin, map, Observable, of, switchMap, tap, throwError} from 'rxjs';
+import {BehaviorSubject, catchError, EMPTY, forkJoin, map, Observable, of, switchMap, tap} from 'rxjs';
 import { AuthService } from '../auth/auth-service';
 import { Cart } from '../../models/cart';
 import { CartItem } from '../../models/cart-item';
 import { Product } from '../../models/product';
 import { CheckoutResponse, ShippingParams } from '../../models/checkout';
+import {ErrorService} from '../error-service';
 
 
 interface GuestItem {
@@ -32,7 +33,9 @@ export class CartService {
   private loadingSubject = new BehaviorSubject<boolean>(this.auth.isAuthenticated());
   readonly isLoading$ = this.loadingSubject.asObservable();
 
-  constructor() {
+  constructor(
+    private errorService: ErrorService
+  ) {
     // Initialize cart source based on current auth state.
     if (this.auth.isAuthenticated()) {
       this.loadServerCart().subscribe();
@@ -171,7 +174,10 @@ export class CartService {
 
   checkout(shipping: ShippingParams): Observable<CheckoutResponse> {
     const cartId = this.cartSubject.value?.id;
-    if (!cartId) return throwError(() => new Error('Nessun carrello attivo'));
+    if (!cartId) {
+      this.errorService.setError({ statusCode: 0, message: 'Nessun carrello attivo' });
+      return EMPTY;
+    }
     return this.http
       .post<CheckoutResponse>(`/api/carts/${cartId}/checkout`, { shipping })
       .pipe(
