@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {Observable} from 'rxjs';
+import {map, Observable} from 'rxjs';
 import {Product, ProductsResponse} from '../../models/product';
 import {HttpClient, HttpParams} from '@angular/common/http';
 
@@ -34,7 +34,16 @@ export class ProductApi {
     if (filters.limit)       params = params.set('limit', filters.limit.toString());
 
     // Returns paginated/filtered products.
-    return this.http.get<ProductsResponse>(this.url, { params });
+    return this.http.get<ProductsResponse>(this.url, { params }).pipe(
+      map(response => ({
+        ...response,
+        products: response.products.map(p => ({
+          ...p,
+          price: Number(p.price),
+          original_price: Number(p.original_price),
+        }))
+      }))
+    );
   }
 
   // Create a product (multipart/form-data supports image upload).
