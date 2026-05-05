@@ -13,7 +13,12 @@
 
     <div class="card-info">
       <span class="card-title">{{ product.title }}</span>
-      <span class="card-price">{{ product.price | currency:'EUR' }}</span>
+      <div class="prices">
+        @if (product.sale) {
+          <span class="original-price">{{ product.original_price | currency:'EUR' }}</span>
+        }
+        <span class="price">{{ product.price | currency:'EUR' }}</span>
+      </div>
       @if (product.sale) {
         <span class="sale-badge">
       -{{ ((product.original_price - product.price) / product.original_price * 100) | number:'1.0-0' }}%
