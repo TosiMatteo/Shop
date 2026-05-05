@@ -281,8 +281,6 @@ Il sistema adotta un contratto HTTP/JSON condiviso tra backend e frontend: ogni 
 { "error": { "message": "...", "details": ["..."] } }
 ```
 
-`details` è presente solo per gli errori di validazione (422).
-
 **Frontend (`errorInterceptor`)** — Interceptor HTTP funzionale che aggancia ogni risposta in errore, legge il payload e delega allo `ErrorService` (signal globale). I componenti non gestiscono gli errori localmente: l'Observable viene terminato con `EMPTY` e lo stato reattivo aggiornato viene letto dall'`ErrorBanner`, visibile in ogni layout.
 
 L'errore viene azzerato automaticamente a ogni navigazione tramite `NavigationStart`.
