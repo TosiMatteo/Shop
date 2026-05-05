@@ -30,6 +30,7 @@ Il progetto segue un'architettura client-server con separazione netta tra backen
 | **Infrastruttura** | Docker + Kamal | `docker-compose.yml` per sviluppo locale |
 
 In sviluppo il proxy Angular (`proxy.conf.json`) redirige `/api/*` verso `localhost:3000`, eliminando problemi CORS senza configurazioni aggiuntive.
+Mail inviate con devise-jwt si possono aprire accedendo alla cartella `tmp/mail` del progetto.
 
 ---
 
@@ -140,7 +141,6 @@ Configurabili nel `docker-compose.yml` o in un file `.env` nella cartella `backe
 | `brakeman` | development, test | Analisi statica del codice Rails per individuare vulnerabilità (SQL injection, XSS, mass assignment) senza eseguire l'applicazione. |
 | `rubocop-rails-omakase` | development, test | Linter di stile con configurazione Omakase di Rails (Basecamp). Garantisce coerenza stilistica e individua pattern non idiomatici. |
 | `faker` | development, test | Generazione di dati fittizi realistici per seed e fixtures. |
-| `letter_opener` | development | Intercetta le email in uscita e le apre nel browser. Utile per testare i flussi email di Devise senza un server SMTP reale. |
 | `simplecov` | test | Misura la percentuale di righe coperte dalla suite di test. Genera un report HTML in `coverage/`. |
 
 </details>
@@ -281,8 +281,6 @@ Il sistema adotta un contratto HTTP/JSON condiviso tra backend e frontend: ogni 
 { "error": { "message": "...", "details": ["..."] } }
 ```
 
-`details` è presente solo per gli errori di validazione (422).
-
 **Frontend (`errorInterceptor`)** — Interceptor HTTP funzionale che aggancia ogni risposta in errore, legge il payload e delega allo `ErrorService` (signal globale). I componenti non gestiscono gli errori localmente: l'Observable viene terminato con `EMPTY` e lo stato reattivo aggiornato viene letto dall'`ErrorBanner`, visibile in ogni layout.
 
 L'errore viene azzerato automaticamente a ogni navigazione tramite `NavigationStart`.
@@ -310,6 +308,7 @@ Sezione riservata per creare, modificare ed eliminare prodotti e tag. La protezi
 **Backend**
 
 `Admins::SessionsController` e `Admins::PasswordsController` gestiscono autenticazione e reset password su endpoint separati da quelli del customer (`/api/admins/sign_in`, `/api/admins/password`). Il token JWT emesso al login identifica il ruolo admin e viene validato dal `before_action :authenticate_admin!` presente in `ProductsController` e `TagsController` sulle sole action di scrittura (`create`, `update`, `destroy`). Le action di lettura (`index`, `show`) rimangono pubbliche.
+Gli admin non vengono creati tramite api pubblica, ma devono essere creati manualmente da console.
 
 ```ruby
 # products_controller.rb

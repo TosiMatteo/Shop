@@ -11,6 +11,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
   return next(req).pipe(retry({
+    // Retry failed requests up to 3 times with a 2-second delay between retries for no HTTP response received.
       count: 3,
       delay: (err: HttpErrorResponse, retryCount) => {
         if (err.status === 0 && req.method == 'GET') {

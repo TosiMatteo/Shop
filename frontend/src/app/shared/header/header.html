@@ -5,33 +5,32 @@
   <mat-menu #menu="matMenu">
     <button mat-menu-item routerLink="/products">
       <mat-icon>store</mat-icon>
-      <span>Products</span>
+      <span>Prodotti</span>
     </button>
     <button mat-menu-item routerLink="/checkout">
       <mat-icon>shopping_cart</mat-icon>
-      <span>Checkout</span>
+      <span>Cassa</span>
     </button>
     @if (isAuthenticated) {
       <button mat-menu-item (click)="orders()">
-          <mat-icon>receipt</mat-icon>
-          <span>Orders</span>
+        <mat-icon>receipt</mat-icon>
+        <span>Ordini</span>
       </button>
     }
 
     @if (isAuthenticated) {
       <button mat-menu-item (click)="manageSession()">
         <mat-icon>logout</mat-icon>
-        <span>Logout</span>
+        <span>Esci</span>
       </button>
     } @else {
       <button mat-menu-item (click)="manageSession()">
         <mat-icon>login</mat-icon>
-        <span>Login</span>
+        <span>Accedi</span>
       </button>
     }
-
-
   </mat-menu>
+
   <span>Rails-Angular Shop</span>
   <img class="app-logo" ngSrc="/assets/angularlogo.jpg" alt="Logo" width="32" height="32" priority>
   <span class="example-spacer"></span>

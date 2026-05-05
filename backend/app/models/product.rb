@@ -28,7 +28,7 @@ class Product < ApplicationRecord
   # Filter by associated tag name.
   scope :search_by_tag, ->(tag) {
     scope = where(nil)
-    scope = scope.joins(:tags).where("tags.name LIKE ?", "%#{tag}%") if tag.present?
+    scope = scope.joins(:tags).where("tags.name LIKE ?", "%#{sanitize_sql_like(tag)}%") if tag.present?
     scope
   }
 

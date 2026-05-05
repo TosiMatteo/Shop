@@ -20,7 +20,6 @@ class Customers::RegistrationsController < Devise::RegistrationsController
 
     if resource.persisted?
       if resource.active_for_authentication?
-        # Token JWT già generato da devise-jwt
         sign_up(resource_name, resource)
         respond_with_success(resource)
       else
@@ -29,7 +28,10 @@ class Customers::RegistrationsController < Devise::RegistrationsController
       end
     else
       clean_up_passwords resource
-      respond_with_error(resource)
+      render_error(
+        status: :unprocessable_entity,
+        message: resource.errors.full_messages
+      )
     end
   end
 
@@ -65,9 +67,4 @@ class Customers::RegistrationsController < Devise::RegistrationsController
     }, status: :created
   end
 
-  def respond_with_error(resource)
-    render json: {
-      errors: resource.errors.full_messages
-    }, status: :unprocessable_entity
-  end
 end

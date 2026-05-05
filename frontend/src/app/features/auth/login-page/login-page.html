@@ -45,54 +45,75 @@
 
         <!-- TAB REGISTRAZIONE -->
         <mat-tab label="Registrati">
-          <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form">
 
-            <mat-form-field appearance="outline">
-              <mat-label>Nome</mat-label>
-              <input matInput formControlName="first_name" />
-            </mat-form-field>
+          @if (registrationPending) {
+            <div class="confirmation-notice">
+              <mat-icon>mark_email_unread</mat-icon>
+              {{ registrationMessage }}
+            </div>
+          } @else {
+            <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form">
 
-            <mat-form-field appearance="outline">
-              <mat-label>Cognome</mat-label>
-              <input matInput formControlName="last_name" />
-            </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Nome</mat-label>
+                <input matInput formControlName="first_name" />
+                @if (registerForm.get('first_name')?.hasError('required')) {
+                  <mat-error>Nome obbligatorio</mat-error>
+                }
+              </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Email</mat-label>
-              <input matInput formControlName="email" type="email" />
-              @if (registerForm.get('email')?.hasError('email')) {
-                <mat-error>Email non valida</mat-error>
-              }
-            </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Cognome</mat-label>
+                <input matInput formControlName="last_name" />
+                @if (registerForm.get('last_name')?.hasError('required')) {
+                  <mat-error>Cognome obbligatorio</mat-error>
+                }
+              </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Password</mat-label>
-              <input matInput formControlName="password" [type]="hideRegisterPassword ? 'password' : 'text'" />
-              <button mat-icon-button matSuffix type="button"
-                      (click)="hideRegisterPassword = !hideRegisterPassword"
-                      [attr.aria-label]="hideRegisterPassword ? 'Mostra password' : 'Nascondi password'">
-                <mat-icon>{{ hideRegisterPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              <mat-form-field appearance="outline">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" type="email" />
+                @if (registerForm.get('email')?.hasError('email')) {
+                  <mat-error>Email non valida</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Password</mat-label>
+                <input matInput formControlName="password"
+                       [type]="hideRegisterPassword ? 'password' : 'text'" />
+                <button mat-icon-button matSuffix type="button"
+                        (click)="hideRegisterPassword = !hideRegisterPassword"
+                        [attr.aria-label]="hideRegisterPassword ? 'Mostra password' : 'Nascondi password'">
+                  <mat-icon>{{ hideRegisterPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (registerForm.get('password')?.hasError('minlength')) {
+                  <mat-error>Minimo 6 caratteri</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Conferma Password</mat-label>
+                <input matInput formControlName="password_confirmation"
+                       [type]="hideRegisterPassword ? 'password' : 'text'" />
+                <button mat-icon-button matSuffix type="button"
+                        (click)="hideRegisterPassword = !hideRegisterPassword"
+                        [attr.aria-label]="hideRegisterPassword ? 'Mostra password' : 'Nascondi password'">
+                  <mat-icon>{{ hideRegisterPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (registerForm.get('password_confirmation')?.hasError('passwordMismatch') &&
+                registerForm.get('password_confirmation')?.touched) {
+                  <mat-error>Le password non coincidono</mat-error>
+                }
+              </mat-form-field>
+
+              <button mat-raised-button color="accent" type="submit">
+                Registrati
               </button>
-              @if (registerForm.get('password')?.hasError('minlength')) {
-                <mat-error>Minimo 6 caratteri</mat-error>
-              }
-            </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Conferma Password</mat-label>
-              <input matInput formControlName="password_confirmation" [type]="hideRegisterPassword ? 'password' : 'text'" />
-              <button mat-icon-button matSuffix type="button"
-                      (click)="hideRegisterPassword = !hideRegisterPassword"
-                      [attr.aria-label]="hideRegisterPassword ? 'Mostra password' : 'Nascondi password'">
-                <mat-icon>{{ hideRegisterPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-              </button>
-            </mat-form-field>
+            </form>
+          }
 
-            <button mat-raised-button color="accent" type="submit">
-              Registrati
-            </button>
-
-          </form>
         </mat-tab>
 
       </mat-tab-group>
