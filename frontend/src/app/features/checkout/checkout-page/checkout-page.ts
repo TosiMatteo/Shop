@@ -35,7 +35,7 @@ export class CheckoutPage {
     lastName:  ['', [Validators.required, Validators.minLength(2)]],
     street:    ['', Validators.required],
     city:      ['', Validators.required],
-    zip:       ['', Validators.required],
+    zip:       ['', [Validators.required, Validators.pattern(/^\d{5}$/)]],
     privacy:   [false, Validators.requiredTrue],
   });
 
