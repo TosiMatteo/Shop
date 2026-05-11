@@ -1,73 +1,82 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t backend .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name backend backend
+# Questo Dockerfile è pensato per la produzione, non per lo sviluppo.
+# Utilizzo con Kamal oppure manualmente:
+#   docker build -t backend .
+#   docker run -d -p 80:80 -e RAILS_MASTER_KEY=<valore da config/master.key> --name backend backend
 
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
+# Per un ambiente di sviluppo containerizzato, vedi Dev Containers:
+# https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
-# Make sure RUBY_VERSION matches the Ruby version in .ruby-version
+# Assicurarsi che RUBY_VERSION corrisponda alla versione in .ruby-version
 ARG RUBY_VERSION=3.4.6
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
-# Rails app lives here
+# Cartella di lavoro dell'applicazione Rails
 WORKDIR /rails
 
-# Install base packages
+# Installazione dei pacchetti base necessari a runtime:
+# - postgresql-client: strumenti CLI per connettersi al database PostgreSQL
+# - libjemalloc2:      allocatore di memoria alternativo per ridurre latenza e consumo RAM
+# - libvips:           libreria per l'elaborazione di immagini (Active Storage)
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl default-mysql-client libjemalloc2 libvips && \
+    apt-get install --no-install-recommends -y curl postgresql-client libjemalloc2 libvips && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Set production environment variables and enable jemalloc for reduced memory usage and latency.
+# Variabili d'ambiente per la produzione.
+# jemalloc viene abilitato tramite LD_PRELOAD per ridurre l'uso di memoria e la latenza.
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
 
-# Throw-away build stage to reduce size of final image
+# Stage intermedio di build (verrà scartato) per mantenere l'immagine finale leggera
 FROM base AS build
 
-# Install packages needed to build gems
+# Pacchetti necessari solo in fase di compilazione delle gem:
+# - build-essential: compilatori C/C++ per le gem con estensioni native
+# - libpq-dev:       header e librerie per compilare la gem 'pg' (driver PostgreSQL)
+# - git:             necessario per gem installate da sorgente Git
+# - libyaml-dev:     header per la gem Psych (parser YAML)
+# - pkg-config:      utility per individuare le librerie di sistema durante la build
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential default-libmysqlclient-dev git libyaml-dev pkg-config && \
+    apt-get install --no-install-recommends -y build-essential libpq-dev git libyaml-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Install application gems
+# Installazione delle gem dell'applicazione
 COPY Gemfile Gemfile.lock vendor ./
 
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
-    # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495 \
     bundle exec bootsnap precompile -j 1 --gemfile
 
-# Copy application code
+# Copia del codice sorgente dell'applicazione
 COPY . .
 
-# Precompile bootsnap code for faster boot times.
-# -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
+# Pre-compilazione di bootsnap per velocizzare i tempi di avvio.
+# -j 1 disabilita la compilazione parallela per evitare un bug di QEMU:
+# https://github.com/rails/bootsnap/issues/495
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
 
-
-
-# Final stage for app image
+# Stage finale: immagine di produzione
 FROM base
 
-# Run and own only the runtime files as a non-root user for security
+# Esecuzione come utente non-root per motivi di sicurezza
 RUN groupadd --system --gid 1000 rails && \
     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash
 USER 1000:1000
 
-# Copy built artifacts: gems, application
+# Copia degli artefatti compilati dallo stage di build: gem e codice applicazione
 COPY --chown=rails:rails --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --chown=rails:rails --from=build /rails /rails
 
-# Entrypoint prepares the database.
+# L'entrypoint si occupa della preparazione del database
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start server via Thruster by default, this can be overwritten at runtime
+# Avvio del server tramite Thruster (può essere sovrascritto a runtime)
 EXPOSE 80
 CMD ["./bin/thrust", "./bin/rails", "server"]

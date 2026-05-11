@@ -1,13 +1,24 @@
+# Immagine base Ruby completa (non slim) per includere tutti gli strumenti di sviluppo
 FROM ruby:3.4.6
 
+# Installazione delle dipendenze di sistema:
+# - build-essential: compilatori e strumenti necessari per le gem native
+# - libpq-dev:       header e librerie per il driver PostgreSQL (gem 'pg')
+# - git:             necessario per gem installate da sorgente Git
+# - libvips:         libreria per l'elaborazione di immagini (Active Storage)
 RUN apt-get update -qq && apt-get install -y build-essential libpq-dev git libvips
 
+# Cartella di lavoro dell'applicazione Rails
 WORKDIR /rails
 
+# Copia dei soli file necessari per bundle install, sfruttando la cache di Docker:
 COPY Gemfile Gemfile.lock ./
 
+# Installazione delle dipendenze Ruby
 RUN bundle install
 
+# Porta esposta dal server Rails in sviluppo
 EXPOSE 3000
 
+# Comando di avvio del server (verrà sovrascritto dal docker-compose in sviluppo)
 CMD ["rails", "server", "-b", "0.0.0.0"]

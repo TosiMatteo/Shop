@@ -1,4 +1,5 @@
 services:
+  # ─── Database PostgreSQL ───────────────────────────────────────────────────
   db:
     image: postgres:16
     restart: always
@@ -9,15 +10,21 @@ services:
     ports:
       - "5432:5432"
     volumes:
+      # Volume named per la persistenza dei dati tra i riavvii del container
       - postgres_data:/var/lib/postgresql/data
 
+  # ─── Backend Rails ─────────────────────────────────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
+    # Rimozione del file PID residuo prima di avviare il server,
+    # per evitare errori in caso di riavvio non pulito
     command: /bin/sh -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0'"
     volumes:
+      # Montaggio del codice sorgente per il live reload in sviluppo
       - ./backend:/rails
+      # Volume named per la cache delle gem, evita di reinstallarle a ogni rebuild
       - bundle_cache:/usr/local/bundle
     ports:
       - "3000:3000"
@@ -29,18 +36,24 @@ services:
       DATABASE_PASSWORD: password
       DATABASE_NAME: rails_development
 
+  # ─── Frontend Angular ──────────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     volumes:
+      # Montaggio del codice sorgente per il live reload in sviluppo
       - ./frontend:/app
+      # Impedisce che node_modules dell'host sovrascriva quello del container
       - /app/node_modules
     ports:
       - "4200:4200"
     depends_on:
       - backend
 
+# ─── Volumi named ─────────────────────────────────────────────────────────────
 volumes:
+  # Dati del database PostgreSQL
   postgres_data:
+  # Cache delle gem Ruby per velocizzare i rebuild
   bundle_cache:
