@@ -15,7 +15,6 @@ import {DiscountPercentagePipe} from '../../../core/pipes/discount-percentage.pi
     MatIcon,
     CurrencyPipe,
     MatIconButton,
-    DecimalPipe,
     DiscountPercentagePipe
   ],
   templateUrl: './admin-product-card.html',
