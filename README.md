@@ -151,11 +151,12 @@ Configurabili nel `docker-compose.yml` o in un file `.env` nella cartella `backe
 
 <br>
 
-| Pacchetto | Scopo |
-|---|---|
-| `@angular/core 20.x` | Framework SPA |
-| `rxjs` | Gestione flussi asincroni |
-| SCSS | Stile componenti |
+| Pacchetto            | Scopo                       |
+|----------------------|-----------------------------|
+| `@angular/core 20.x` | Framework SPA               |
+| `rxjs`               | Gestione flussi asincroni   |
+| SCSS                 | Stile componenti            |
+| Chromium             | Browser default per testing |
 
 </details>
 
