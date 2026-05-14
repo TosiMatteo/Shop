@@ -15,6 +15,7 @@ Thumbs.db
 .project
 .settings/
 .codex
+qodana.yaml
 
 # --- Environment Variables ---
 .env
