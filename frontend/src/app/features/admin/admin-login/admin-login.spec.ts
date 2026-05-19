@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { AdminLogin } from './admin-login';
+import {provideRouter} from '@angular/router';
+import {provideHttpClient} from '@angular/common/http';
 
 describe('AdminLogin', () => {
   let component: AdminLogin;
@@ -8,7 +9,11 @@ describe('AdminLogin', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdminLogin]
+      imports: [AdminLogin],
+      providers:[
+        provideRouter([]),
+        provideHttpClient(),
+      ]
     })
     .compileComponents();
 

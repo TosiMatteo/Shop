@@ -72,21 +72,11 @@ describe('OrderPage', () => {
       expect((component as any).availableYears.length).toBe(5);
     });
 
-    it('should use getMemberSince() to determine the oldest year in the list', async () => {
-      // Reconfigure with a specific member since year to verify the list length.
+    it('should use getMemberSince() to determine the oldest year in the list', () => {
       const currentYear = new Date().getFullYear();
       authServiceMock.getMemberSince.and.returnValue(currentYear - 2);
 
-      await TestBed.configureTestingModule({
-        imports: [OrderPage],
-        providers: [
-          provideRouter([]),
-          { provide: OrderService, useValue: orderServiceMock },
-          { provide: AuthService, useValue: authServiceMock },
-        ],
-      }).compileComponents();
-
-      const localFixture  = TestBed.createComponent(OrderPage);
+      const localFixture = TestBed.createComponent(OrderPage);
       const localComponent = localFixture.componentInstance;
       localFixture.detectChanges();
 

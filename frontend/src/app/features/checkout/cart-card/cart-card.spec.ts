@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { CartCardComponent } from './cart-card';
+import {provideRouter} from '@angular/router';
+import {provideHttpClient} from '@angular/common/http';
 
 describe('CartCard', () => {
   let component: CartCardComponent;
@@ -8,7 +9,11 @@ describe('CartCard', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CartCardComponent]
+      imports: [CartCardComponent],
+      providers:[
+        provideRouter([]),
+        provideHttpClient(),
+      ]
     })
     .compileComponents();
 
