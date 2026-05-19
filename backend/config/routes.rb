@@ -37,4 +37,8 @@ Rails.application.routes.draw do
         resources :cart_items,shallow: true, only: [:create, :destroy, :update]
       end
   end
+
+  if Rails.env.development?
+    get '/test/reset', to: 'test_helpers#reset'
+  end
 end
