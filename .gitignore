@@ -26,3 +26,4 @@ qodana.yaml
 node_modules/
 *.gem
 /.bundle/
+/e2e/test-results/
