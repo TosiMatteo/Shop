@@ -9,6 +9,7 @@ puts "Inizio Pulizia Totale..."
 ProductTag.destroy_all
 OrderItem.destroy_all
 Order.destroy_all
+Cart.destroy_all
 Product.delete_all
 Tag.delete_all
 
