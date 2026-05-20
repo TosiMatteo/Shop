@@ -19,7 +19,6 @@
       <span>{{ order.shipping_street }}, {{ order.shipping_zip }} {{ order.shipping_city }}</span>
     </div>
 
-    <!-- Sezione items: visibile solo quando expanded, animata via CSS max-height -->
     <div class="order-card__items" [class.order-card__items--open]="expanded">
       <mat-divider class="order-card__divider" />
       <p class="order-card__items-title">Prodotti ordinati</p>

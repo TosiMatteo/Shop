@@ -387,16 +387,34 @@ Lo status è visualizzato con un `MatChip` a colore contestuale:
 
 ## Testing
 
-La suite usa **Rails Integration Tests** (`ActionDispatch::IntegrationTest`) con `Devise::Test::IntegrationHelpers` per simulare sessioni autenticate. I model test usano `ActiveSupport::TestCase` direttamente, senza stack HTTP.
+Il progetto è coperto da test su tre livelli:
 
-**SimpleCov** genera un report HTML in `coverage/index.html` al termine di ogni run. La percentuale indica le righe attraversate, non la correttezza logica.
+- **Backend Rails** – model e integration test
+- **Frontend Angular** – unit test di componenti, servizi e guardie
+- **End‑to‑end** – scenari utente completi con Playwright
 
 ---
 
+### Backend (Rails)
+
+La suite usa **Rails Integration Tests** (`ActionDispatch::IntegrationTest`) con `Devise::Test::IntegrationHelpers` per simulare sessioni autenticate. I model test usano `ActiveSupport::TestCase` direttamente, senza stack HTTP.
+
+**SimpleCov** genera un report HTML in `coverage/index.html` al termine di ogni run.
+
+**Comandi principali**
+
+Per eseguire tutti i test:
+```
+rails test
+```
+
+Per eseguire un test specifico:
+```
+rails test test/models/product_test.rb
+```
+
 <details>
 <summary><strong>ProductTest — model test</strong></summary>
-
-<br>
 
 | Test | Cosa verifica |
 |---|---|
@@ -416,7 +434,6 @@ Gli scope vengono testati con asserzioni simmetriche (caso positivo + negativo n
 <details>
 <summary><strong>CartItemsControllerTest</strong></summary>
 
-<br>
 
 | Test | Cosa verifica |
 |---|---|
@@ -431,7 +448,6 @@ Il `setup` riassegna il carrello fixture al customer autenticato per evitare che
 <details>
 <summary><strong>CartsControllerTest</strong></summary>
 
-<br>
 
 | Test | Cosa verifica |
 |---|---|
@@ -450,8 +466,6 @@ Il test di checkout usa `assert_difference` annidati per verificare simultaneame
 <details>
 <summary><strong>OrdersControllerTest</strong></summary>
 
-<br>
-
 | Test | Cosa verifica |
 |---|---|
 | `should get index with pagy metadata` | La risposta contiene le chiavi `pagy` e `orders` |
@@ -469,8 +483,6 @@ Il test del filtro per anno usa date fisse (`created_at` esplicito) per essere d
 <details>
 <summary><strong>ProductsControllerTest</strong></summary>
 
-<br>
-
 | Test | Cosa verifica |
 |---|---|
 | `should get index` | `GET /products` → 200 |
@@ -483,5 +495,229 @@ Il test del filtro per anno usa date fisse (`created_at` esplicito) per essere d
 | `should destroy product` | `DELETE /products/:id` → 204 |
 
 I test autenticano un `Admin` (non un `Customer`) per riflettere la separazione dei ruoli: le action di scrittura sui prodotti rigetterebbero richieste da un customer.
+
+</details>
+
+---
+
+### Frontend (Angular)
+
+I test Angular utilizzano **Karma** e **Jasmine**. Vengono eseguiti all'interno del container Docker con un browser Chromium headless.
+
+I test coprono:
+- Componenti standalone (con input, routing, form)
+- Servizi (`ProductApi`, `OrderService`, `CartService`, `AuthService`)
+- Guardie (`authGuard`, `adminGuard`)
+- Interfacce e comportamenti (es. validazione form, trim dei campi, navigazione)
+
+**Comandi principali**
+
+Compila e esegui i test:
+```
+ng test --watch=false
+```
+
+Aggiungere -code--coverage per generare un report HTML in `coverage/angular/index.html`
+
+Eseguire un test specifico:
+```
+ng test --watch=false --include="**/"nome_file_test".spec.ts"
+```
+
+<details>
+<summary><strong>product-service — servizio Angular</strong></summary>
+
+| Test | Cosa verifica |
+|---|---|
+| `should be created` | Il servizio viene iniettato correttamente |
+| `should GET products without filters` | `list({})` chiama `GET /api/products` senza parametri, restituisce paginazione e prodotti |
+| `should pass all active filters as query params` | I filtri attivi (tag, title, min, max, sale, sort, page, limit) vengono serializzati correttamente nella query string |
+| `should exclude null/empty filters` | I filtri `null` o vuoti non compaiono nella query string (es. solo `min=10&page=1`) |
+| `should convert price and original_price to numbers` | I prezzi ricevuti come stringhe dal backend vengono convertiti in `number` |
+| `should POST with FormData` | `create()` invia una richiesta `POST /api/products` con il corpo `FormData` |
+| `should PATCH product by id with FormData` | `update()` invia una richiesta `PATCH /api/products/:id` con il corpo `FormData` e restituisce il prodotto aggiornato |
+| `should DELETE product by id` | `delete()` invia una richiesta `DELETE /api/products/:id` |
+
+I test usano `HttpTestingController` per mockare le richieste HTTP, verificando metodo, URL, parametri e corpo senza chiamare il server reale.
+
+</details>
+
+<details>
+<summary><strong>tag-service — servizio Angular</strong></summary>
+
+| Test | Cosa verifica |
+|---|---|
+| `should be created` | Il servizio viene iniettato correttamente |
+| `should GET all tags` | `list()` chiama `GET /api/tags` e restituisce l'array di tag |
+| `should POST a new tag` | `create()` invia `POST /api/tags` con il corpo `{ tag: { name } }` e restituisce il tag creato |
+| `should PATCH an existing tag` | `update()` invia `PATCH /api/tags/:id` con il nuovo nome e restituisce il tag aggiornato |
+| `should DELETE a tag by id` | `delete()` invia `DELETE /api/tags/:id` |
+
+I test usano `HttpTestingController` per mockare le richieste HTTP, verificando metodo, URL e corpo.
+
+</details>
+
+<details>
+<summary><strong>auth-guard — guardia Angular</strong></summary>
+
+| Test | Cosa verifica |
+|---|---|
+| `should be created` | La funzione `authGuard` è definita e può essere eseguita |
+| `should return true when user is authenticated` | Se `AuthService.isAuthenticated()` restituisce `true`, la navigazione viene consentita |
+| `should redirect to /login when user is not authenticated` | Se `AuthService.isAuthenticated()` restituisce `false`, la guardia reindirizza all'URL `/login` |
+
+La guardia usa `TestBed.runInInjectionContext` per eseguire la funzione nel contesto di iniezione Angular, consentendo di testare il comportamento senza montare un componente.
+
+</details>
+
+<details>
+<summary><strong>admin-guard — guardia Angular</strong></summary>
+
+| Test | Cosa verifica |
+|---|---|
+| `should be created` | La funzione `adminGuard` è definita e può essere eseguita |
+| `should return true when user is authenticated and is admin` | Se l'utente è autenticato **e** ha ruolo admin, la navigazione viene consentita |
+| `should redirect to /admin/login when user is not authenticated` | Se l'utente non è autenticato, viene reindirizzato alla pagina di login admin (`/admin/login`) |
+| `should redirect to /forbidden when user is authenticated but not admin` | Se l'utente è autenticato ma non ha ruolo admin, viene reindirizzato alla pagina di accesso negato (`/forbidden`) |
+
+La guardia distingue tre casi: accesso consentito, login mancante e privilegi insufficienti, verificando sia l'autenticazione che il ruolo.
+
+</details>
+
+<details>
+<summary><strong>login-page — componente Angular</strong></summary>
+
+| Test | Cosa verifica |
+|---|---|
+| `should create` | Il componente viene creato correttamente |
+| **loginForm** | |
+| `should be invalid when empty` | Il form di login è invalido se vuoto (campi required) |
+| `should be invalid with a malformed email` | Il campo email respinge valori non validi (es. `not-an-email`) |
+| `should be valid with correct email and password` | Il form è valido con email e password corretti |
+| **onLogin()** | |
+| `should not call authService.login() when form is invalid` | Se il form non è valido, non viene chiamato il servizio di login |
+| `should call authService.login() and navigate to /dashboard on success` | Con form valido, chiama `AuthService.login` e naviga a `/dashboard` |
+| **passwordMatchValidator** | |
+| `should set passwordMismatch error when passwords do not match` | Il validatore cross‑field imposta l'errore quando le password differiscono |
+| `should clear passwordMismatch error when passwords match` | Il validatore rimuove l'errore quando le password coincidono |
+| **registerForm** | |
+| `should be invalid when empty` | Il form di registrazione è invalido se vuoto |
+| `should be invalid when first_name contains only whitespace` | Il campo nome respinge stringhe composte solo da spazi (pattern `\S`) |
+| **onRegister()** | |
+| `should not call authService.register() when form is invalid` | Se il form non è valido, non viene chiamato il servizio di registrazione |
+| `should call authService.register() with trimmed payload on valid submit` | I campi `first_name`, `last_name`, `email` vengono trimmati prima dell'invio; la chiamata include il payload pulito |
+| `should set registrationPending and registrationMessage on success` | Dopo registrazione riuscita, il componente mostra il messaggio di conferma (`registrationPending = true`) |
+| `should reset the form after successful registration` | Il form viene resettato (pristine) dopo una registrazione riuscita |
+
+Il test mocka `AuthService` e verifica sia la logica di validazione che l'integrazione con il servizio.
+</details>
+
+<details>
+<summary><strong>product-page — componente Angular</strong></summary>
+
+| Test | Cosa verifica |
+|---|---|
+| `should create` | Il componente viene creato correttamente |
+| **filters$ initial state** | |
+| `should initialise with correct default values` | Il BehaviorSubject `filters$` parte con i valori predefiniti (title vuoto, sort `dateDesc`, filtri prezzo/null, tag null, page 1, limit 12) |
+| **updateTitle()** | |
+| `should update title and reset page to 1` | Chiamando `updateTitle` il filtro `title` si aggiorna e la pagina torna a 1 |
+| `should call ProductApi.list() with updated title after debounce` | Dopo il debounce (300ms), il servizio `ProductApi.list` viene chiamato con il nuovo titolo |
+| **updateSort()** | |
+| `should update sort and reset page to 1` | Cambiando ordinamento (`priceAsc`) si aggiorna il filtro e si resetta la pagina |
+| **updatePriceMin()** | |
+| `should set min price from a valid number` | Imposta correttamente il filtro `min` con un numero valido |
+| `should set min price to null for empty string` | Se la stringa è vuota, `min` diventa `null` |
+| `should set min price to null for a non-numeric string` | Se il valore non è un numero, `min` diventa `null` |
+| `should reset page to 1 when min price changes` | La modifica del prezzo minimo resetta la pagina a 1 |
+| **updatePriceMax()** | |
+| `should set max price from a valid number` | Imposta correttamente il filtro `max` con un numero valido |
+| `should set max price to null for empty string` | Se la stringa è vuota, `max` diventa `null` |
+| `should not overwrite min when max changes` | Cambiando `max` non si modifica il valore di `min` già impostato |
+| **updateSale()** | |
+| `should set saleFilter to true and reset page to 1` | Attivando il filtro "in offerta" si aggiorna il flag e si resetta la pagina |
+| `should set saleFilter back to false` | È possibile disattivare il filtro sale |
+| **updateTags()** | |
+| `should set tag and reset page to 1` | Selezionando un tag si aggiorna il filtro e si resetta la pagina |
+| `should set tag to null when called with null` | Passando `null` si resetta il filtro tag |
+| **onPage()** | |
+| `should convert 0-based pageIndex to 1-based backend page` | L'evento paginatore converte l'indice 0‑based in pagina 1‑based |
+| `should update limit from pageSize` | Il `pageSize` del paginatore aggiorna il filtro `limit` |
+
+I test mockano `ProductApi` e `TagService` e utilizzano `fakeAsync` per controllare i debounce.
+</details>
+
+<details>
+<summary><strong>order-page — componente Angular</strong></summary>
+
+| Test | Cosa verifica |
+|---|---|
+| `should create` | Il componente viene creato correttamente |
+| **filters$ initial state** | |
+| `should initialise with correct default values` | Il BehaviorSubject `filters$` parte con i valori predefiniti (totalFilter con min/max null, sort `dateDesc`, status null, year null, page 1, limit 10) |
+| **availableYears** | |
+| `should start from the current year` | Il primo elemento dell'array `availableYears` è l'anno corrente |
+| `should fall back to 5 years when getMemberSince() returns null` | Se `getMemberSince` restituisce `null`, vengono mostrati gli ultimi 5 anni |
+| `should use getMemberSince() to determine the oldest year in the list` | Se l'utente è membro da un anno specifico, la lista parte da quell'anno (es. 3 anni totali) |
+| **updateSort()** | |
+| `should update sort and reset page to 1` | Cambiando ordinamento (`dateAsc`) si aggiorna il filtro e si resetta la pagina |
+| **updateStatus()** | |
+| `should update status and reset page to 1` | Selezionando uno stato (`completed`) si aggiorna il filtro e si resetta la pagina |
+| `should set status to null when cleared` | Passando `null` si resetta il filtro stato |
+| **updateYear()** | |
+| `should update year and reset page to 1` | Selezionando un anno si aggiorna il filtro e si resetta la pagina |
+| `should set year to null when cleared` | Passando `null` si resetta il filtro anno |
+| **onPage()** | |
+| `should convert 0-based pageIndex to 1-based backend page` | L'evento paginatore converte l'indice 0‑based in pagina 1‑based |
+| `should update limit from pageSize` | Il `pageSize` del paginatore aggiorna il filtro `limit` |
+| **updateMinTotal()** | |
+| `should update totalFilter.min after debounce and reset page to 1` | Dopo il debounce (400ms), il filtro `min` viene aggiornato e la pagina resettata |
+| `should set min to null when input is empty after debounce` | Se l'input è vuoto, dopo il debounce `min` diventa `null` |
+| **updateMaxTotal()** | |
+| `should update totalFilter.max after debounce and reset page to 1` | Dopo il debounce, il filtro `max` viene aggiornato e la pagina resettata |
+| `should not overwrite min when max changes` | Cambiando `max` non si modifica il valore di `min` già impostato |
+
+I test mockano `OrderService` e `AuthService` e utilizzano `fakeAsync` per controllare i debounce dei filtri totali.
+</details>
+
+
+
+---
+
+### E2E (Playwright)
+
+I test E2E sono scritti con **Playwright** e simulano flussi utente completi.
+Vengono eseguiti in un container separato (profilo `e2e`) che comunica con il backend e il frontend attraverso la rete Docker.
+
+Prima di ogni run, il `globalSetup` esegue automaticamente due operazioni:
+
+- Attende che il frontend Angular (`http://frontend:4200`) sia raggiungibile
+- Resetta il database tramite `GET /test/reset` per garantire uno stato deterministico, utilizza il file testseed
+
+**Comandi principali**
+
+Eseguire i test:
+```
+docker compose --profile e2e run --rm playwright
+```
+
+Eseguire i test in modalità ui visitando localhost:8080
+```
+docker compose --profile e2e run --rm -p 8080:8080 playwright npx playwright test --ui --ui-host=0.0.0.0 --ui-port=8080
+```
+
+I report di screenshot e video vengono salvati in `test-results/` solo in caso di fallimento (`screenshot: 'only-on-failure'`, `video: 'retain-on-failure'`).
+
+<details>
+<summary><strong>login-order — flussi di autenticazione e acquisto</strong></summary>
+
+| Test | Cosa verifica |
+|---|---|
+| `utente autenticato vede la lista prodotti` | Esegue il login e verifica che la route `/products` carichi almeno un `app-product-card` visibile |
+| `login → aggiungi al carrello → checkout → ordine confermato` | Flusso completo: login → aggiunta del primo prodotto al carrello → navigazione a `/cart` → checkout → compilazione form di spedizione → conferma ordine → verifica del banner "Ordine confermato!" |
+
+Il test di checkout compila i campi `firstName`, `lastName`, `street`, `city`, `zip` tramite `formControlName` e accetta i termini cliccando il testo del `mat-checkbox`, poiché il componente Material non espone un `<label>` standard.
+
+L'helper `login()` condiviso tra i test aspetta che `mat-tab-group` sia visibile (timeout 30s) prima di interagire, per gestire il bootstrap lento di Angular in ambiente Docker.
 
 </details>

@@ -15,6 +15,7 @@ Thumbs.db
 .project
 .settings/
 .codex
+qodana.yaml
 
 # --- Environment Variables ---
 .env
@@ -25,3 +26,4 @@ Thumbs.db
 node_modules/
 *.gem
 /.bundle/
+/e2e/test-results/

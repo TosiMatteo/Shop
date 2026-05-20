@@ -2,6 +2,8 @@ services:
   # ─── Database PostgreSQL ───────────────────────────────────────────────────
   db:
     image: postgres:16
+    networks:
+      - shop_network
     restart: always
     environment:
       POSTGRES_PASSWORD: password
@@ -18,6 +20,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
+    networks:
+      - shop_network
     # Rimozione del file PID residuo prima di avviare il server,
     # per evitare errori in caso di riavvio non pulito
     command: /bin/sh -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0'"
@@ -35,12 +39,15 @@ services:
       DATABASE_USER: rails
       DATABASE_PASSWORD: password
       DATABASE_NAME: rails_development
+      ENABLE_TEST_HELPERS: "true"
 
   # ─── Frontend Angular ──────────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    networks:
+      - shop_network
     volumes:
       # Montaggio del codice sorgente per il live reload in sviluppo
       - ./frontend:/app
@@ -50,6 +57,31 @@ services:
       - "4200:4200"
     depends_on:
       - backend
+    command: >
+      ng serve --host 0.0.0.0
+               --poll 2000
+               --proxy-config proxy.conf.json
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.60.0-noble
+    working_dir: /e2e
+    networks:
+      - shop_network
+    volumes:
+      - ./e2e:/e2e
+    ports:
+      - "8080:8080"
+    depends_on:
+      - frontend
+      - backend
+    command: >
+      sh -c "npm install && npx playwright test"
+    profiles:
+      - e2e
+
+networks:
+  shop_network:
+    driver: bridge
 
 # ─── Volumi named ─────────────────────────────────────────────────────────────
 volumes:

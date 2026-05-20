@@ -1,7 +1,7 @@
 # db/seeds.rb
 require 'open-uri'
 
-SEED_PRODUCTS_COUNT = 30
+SEED_PRODUCTS_COUNT = 5
 
 puts "Inizio Pulizia Totale..."
 
@@ -57,30 +57,6 @@ puts "✓ Customer creato: #{customer1.email}"
 puts "  Confermato: #{customer1.confirmed?}"
 puts "  Nome completo: #{customer1.first_name} #{customer1.last_name}"
 
-# Customer 2 - Già confermato
-customer2 = Customer.create!(
-  email: 'giulia.bianchi@example.com',
-  password: 'Password123!',
-  password_confirmation: 'Password123!',
-  first_name: 'Giulia',
-  last_name: 'Bianchi',
-  confirmed_at: Time.current
-)
-puts "✓ Customer creato: #{customer2.email}"
-puts "  Confermato: #{customer2.confirmed?}"
-
-# Customer 3 - Non confermato (per testare conferma email)
-customer3 = Customer.create!(
-  email: 'test.unconfirmed@example.com',
-  password: 'Password123!',
-  password_confirmation: 'Password123!',
-  first_name: 'Test',
-  last_name: 'Unconfirmed'
-)
-puts "✓ Customer creato (NON confermato): #{customer3.email}"
-puts "  Confermato: #{customer3.confirmed?}"
-puts "  Token conferma: #{customer3.confirmation_token}"
-
 
 puts "\n=== Creazione Prodotti e Tags ==="
 
@@ -109,19 +85,6 @@ SEED_PRODUCTS_COUNT.times do |i|
 
   product.tags << created_tags.sample(rand(1..3))
 
-  # Scarichiamo un'immagine casuale (200x300 px)
-  begin
-    image_url = "https://picsum.photos/300/300"
-    downloaded_image = URI.open(image_url)
-    product.thumbnail.attach(
-      io: downloaded_image,
-      filename: "product_#{i}.jpg",
-      content_type: 'image/jpeg'
-    )
-  rescue OpenURI::HTTPError => e
-    puts "⚠ Impossibile scaricare immagine per prodotto #{i}: #{e.message}"
-  end
-
   if product.save
     created_products << product
     puts "Creato: #{product.title}"
@@ -141,11 +104,6 @@ MARIO_ADDRESSES = [
   { shipping_name: "Mario Rossi", shipping_street: "Piazza Duomo 3",  shipping_city: "Firenze", shipping_zip: "50100" }
 ]
 
-GIULIA_ADDRESSES = [
-  { shipping_name: "Giulia Bianchi", shipping_street: "Corso Italia 42", shipping_city: "Roma",   shipping_zip: "00100" },
-  { shipping_name: "Giulia Bianchi", shipping_street: "Viale Venezia 3", shipping_city: "Napoli", shipping_zip: "80100" },
-  { shipping_name: "Giulia Bianchi", shipping_street: "Via Manzoni 10",  shipping_city: "Milano", shipping_zip: "20121" }
-]
 
 STATUSES = Order.statuses.keys # ["processing", "completed", "cancelled"]
 
@@ -189,7 +147,6 @@ def create_orders_for(customer, products, addresses:, count:)
 end
 
 create_orders_for(customer1, created_products, addresses: MARIO_ADDRESSES, count: 6)
-create_orders_for(customer2, created_products, addresses: GIULIA_ADDRESSES, count: 5)
 
 puts "\n✅ Creati #{Order.count} ordini con #{OrderItem.count} order items."
 
@@ -201,8 +158,3 @@ puts "  Password: AdminPassword123!"
 puts "\nCustomer (confermato):"
 puts "  Email: mario.rossi@example.com"
 puts "  Password: Password123!"
-puts "\nCustomer (NON confermato):"
-puts "  Email: test.unconfirmed@example.com"
-puts "  Password: Password123!"
-puts "  Conferma token: #{customer3.confirmation_token}"
-puts "\n=== NOTE ==="
