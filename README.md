@@ -401,6 +401,18 @@ La suite usa **Rails Integration Tests** (`ActionDispatch::IntegrationTest`) con
 
 **SimpleCov** genera un report HTML in `coverage/index.html` al termine di ogni run.
 
+**Comandi principali**
+
+Per eseguire tutti i test:
+```
+rails test
+```
+
+Per eseguire un test specifico:
+```
+rails test test/models/product_test.rb
+```
+
 <details>
 <summary><strong>ProductTest — model test</strong></summary>
 
@@ -500,15 +512,17 @@ I test coprono:
 
 **Comandi principali**
 
-Compila e esegui i test: 
-
+Compila e esegui i test:
+```
 ng test --watch=false
+```
 
 Aggiungere -code--coverage per generare un report HTML in `coverage/angular/index.html`
 
 Eseguire un test specifico:
-
+```
 ng test --watch=false --include="**/"nome_file_test".spec.ts"
+```
 
 <details>
 <summary><strong>product-service — servizio Angular</strong></summary>
@@ -672,5 +686,38 @@ I test mockano `OrderService` e `AuthService` e utilizzano `fakeAsync` per contr
 
 ### E2E (Playwright)
 
-I test E2E sono scritti con Playwright e simulano flussi utente completi.
-Vengono eseguiti in un container separato (profilo e2e) che comunica con il backend e il frontend attraverso la rete Docker.
+I test E2E sono scritti con **Playwright** e simulano flussi utente completi.
+Vengono eseguiti in un container separato (profilo `e2e`) che comunica con il backend e il frontend attraverso la rete Docker.
+
+Prima di ogni run, il `globalSetup` esegue automaticamente due operazioni:
+
+- Attende che il frontend Angular (`http://frontend:4200`) sia raggiungibile
+- Resetta il database tramite `GET /test/reset` per garantire uno stato deterministico, utilizza il file testseed
+
+**Comandi principali**
+
+Eseguire i test:
+```
+docker compose --profile e2e run --rm playwright
+```
+
+Eseguire i test in modalità ui visitando localhost:8080
+```
+docker compose --profile e2e run --rm -p 8080:8080 playwright npx playwright test --ui --ui-host=0.0.0.0 --ui-port=8080
+```
+
+I report di screenshot e video vengono salvati in `test-results/` solo in caso di fallimento (`screenshot: 'only-on-failure'`, `video: 'retain-on-failure'`).
+
+<details>
+<summary><strong>login-order — flussi di autenticazione e acquisto</strong></summary>
+
+| Test | Cosa verifica |
+|---|---|
+| `utente autenticato vede la lista prodotti` | Esegue il login e verifica che la route `/products` carichi almeno un `app-product-card` visibile |
+| `login → aggiungi al carrello → checkout → ordine confermato` | Flusso completo: login → aggiunta del primo prodotto al carrello → navigazione a `/cart` → checkout → compilazione form di spedizione → conferma ordine → verifica del banner "Ordine confermato!" |
+
+Il test di checkout compila i campi `firstName`, `lastName`, `street`, `city`, `zip` tramite `formControlName` e accetta i termini cliccando il testo del `mat-checkbox`, poiché il componente Material non espone un `<label>` standard.
+
+L'helper `login()` condiviso tra i test aspetta che `mat-tab-group` sia visibile (timeout 30s) prima di interagire, per gestire il bootstrap lento di Angular in ambiente Docker.
+
+</details>
