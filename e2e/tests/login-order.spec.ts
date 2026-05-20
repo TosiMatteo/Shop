@@ -2,18 +2,6 @@ import { test, expect } from '@playwright/test';
 
 const USER = { email: 'mario.rossi@example.com', password: 'Password123!' };
 
-test('debug: cosa vede playwright su /login', async ({ page }) => {
-    const response = await page.goto('/login');
-    console.log('Status:', response?.status());
-    console.log('URL:', page.url());
-
-    // Salva il contenuto HTML della pagina
-    const html = await page.content();
-    console.log('HTML (primi 500 chars):', html.substring(0, 500));
-
-    await page.screenshot({ path: 'debug-login.png', fullPage: true });
-});
-
 // ─── Helper: login ─────────────────────────────────────────────────────────────
 async function login(page: any) {
     await page.goto('/login');
@@ -47,15 +35,20 @@ test('login → aggiungi al carrello → checkout → ordine confermato', async 
     // 1. Login
     await login(page);
 
-    // 2. Aggiungi il primo prodotto al carrello.
+    // 2. Aggiungi il primo prodotto al carrello e aspetta la risposta del backend.
     await page.waitForSelector('app-product-card', { state: 'visible', timeout: 20_000 });
+
+    const addToCartResponse = page.waitForResponse(
+        res => res.url().includes('/api/cart') && res.request().method() === 'POST',
+        { timeout: 10_000 }
+    );
     await page.locator('app-product-card').first()
         .getByRole('button', { name: 'Aggiungi' }).click();
+    await addToCartResponse;
 
     // 3. Vai al carrello e verifica che l'articolo sia presente.
     await page.goto('/cart');
-    await page.waitForSelector('mat-list', { state: 'visible', timeout: 10_000 });
-    await expect(page.locator('mat-list-item').first()).toBeVisible();
+    await expect(page.locator('mat-list-item').first()).toBeVisible({ timeout: 10_000 });
 
     // 4. Procedi al checkout (bottone abilitato: utente autenticato + carrello non vuoto).
     await page.getByRole('button', { name: 'Procedi al checkout' }).click();
