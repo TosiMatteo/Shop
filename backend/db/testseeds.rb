@@ -85,19 +85,6 @@ SEED_PRODUCTS_COUNT.times do |i|
 
   product.tags << created_tags.sample(rand(1..3))
 
-  # Scarichiamo un'immagine casuale (200x300 px)
-  begin
-    image_url = "https://picsum.photos/300/300"
-    downloaded_image = URI.open(image_url)
-    product.thumbnail.attach(
-      io: downloaded_image,
-      filename: "product_#{i}.jpg",
-      content_type: 'image/jpeg'
-    )
-  rescue OpenURI::HTTPError => e
-    puts "⚠ Impossibile scaricare immagine per prodotto #{i}: #{e.message}"
-  end
-
   if product.save
     created_products << product
     puts "Creato: #{product.title}"
