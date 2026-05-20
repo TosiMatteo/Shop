@@ -68,6 +68,8 @@ services:
       - shop_network
     volumes:
       - ./e2e:/e2e
+    ports:
+      - "8080:8080"
     depends_on:
       - frontend
       - backend
