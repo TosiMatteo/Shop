@@ -399,7 +399,7 @@ Il progetto è coperto da test su tre livelli:
 
 La suite usa **Rails Integration Tests** (`ActionDispatch::IntegrationTest`) con `Devise::Test::IntegrationHelpers` per simulare sessioni autenticate. I model test usano `ActiveSupport::TestCase` direttamente, senza stack HTTP.
 
-**SimpleCov** genera un report HTML in `coverage/index.html` al termine di ogni run. La percentuale indica le righe attraversate, non la correttezza logica.
+**SimpleCov** genera un report HTML in `coverage/index.html` al termine di ogni run.
 
 <details>
 <summary><strong>ProductTest — model test</strong></summary>
@@ -500,9 +500,18 @@ I test coprono:
 
 **Comandi principali**
 
+Compila e esegui i test: 
+
+ng test --watch=false
+
+Aggiungere -code--coverage per generare un report HTML in `coverage/angular/index.html`
+
+Eseguire un test specifico:
+
+ng test --watch=false --include="**/"nome_file_test".spec.ts"
 
 <details>
-<summary><strong>ProductApi — servizio Angular</strong></summary>
+<summary><strong>product-service — servizio Angular</strong></summary>
 
 | Test | Cosa verifica |
 |---|---|
@@ -520,7 +529,7 @@ I test usano `HttpTestingController` per mockare le richieste HTTP, verificando 
 </details>
 
 <details>
-<summary><strong>TagService — servizio Angular</strong></summary>
+<summary><strong>tag-service — servizio Angular</strong></summary>
 
 | Test | Cosa verifica |
 |---|---|
@@ -535,7 +544,7 @@ I test usano `HttpTestingController` per mockare le richieste HTTP, verificando 
 </details>
 
 <details>
-<summary><strong>authGuard — guardia Angular</strong></summary>
+<summary><strong>auth-guard — guardia Angular</strong></summary>
 
 | Test | Cosa verifica |
 |---|---|
@@ -548,7 +557,7 @@ La guardia usa `TestBed.runInInjectionContext` per eseguire la funzione nel cont
 </details>
 
 <details>
-<summary><strong>adminGuard — guardia Angular</strong></summary>
+<summary><strong>admin-guard — guardia Angular</strong></summary>
 
 | Test | Cosa verifica |
 |---|---|
@@ -562,7 +571,7 @@ La guardia distingue tre casi: accesso consentito, login mancante e privilegi in
 </details>
 
 <details>
-<summary><strong>LoginPage — componente Angular</strong></summary>
+<summary><strong>login-page — componente Angular</strong></summary>
 
 | Test | Cosa verifica |
 |---|---|
@@ -590,7 +599,7 @@ Il test mocka `AuthService` e verifica sia la logica di validazione che l'integr
 </details>
 
 <details>
-<summary><strong>ProductPage — componente Angular</strong></summary>
+<summary><strong>product-page — componente Angular</strong></summary>
 
 | Test | Cosa verifica |
 |---|---|
@@ -625,7 +634,7 @@ I test mockano `ProductApi` e `TagService` e utilizzano `fakeAsync` per controll
 </details>
 
 <details>
-<summary><strong>OrderPage — componente Angular</strong></summary>
+<summary><strong>order-page — componente Angular</strong></summary>
 
 | Test | Cosa verifica |
 |---|---|
