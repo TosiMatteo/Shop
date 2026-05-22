@@ -183,6 +183,10 @@ Configurabili nel `docker-compose.yml` o in un file `.env` nella cartella `backe
 │   │   │   └── models/
 │   │   └── ...
 │   └── angular.json
+├── e2e/
+│   ├── tests/
+│   ├── test-results/
+│   └── ...
 ├── docker-compose.yml
 └── README.md
 ```

@@ -15,13 +15,14 @@ import { CartService } from '../core/services/cart/cart-service';
     <a
       mat-button
       routerLink="/cart"
-      aria-label="Vai al carrello"
+      [attr.aria-label]="'Carrello, ' + (count$ | async) + ' articoli'"
     >
       <mat-icon
         [matBadge]="count$ | async"
         [matBadgeHidden]="(count$ | async) === 0"
         matBadgeColor="warn"
         matBadgeSize="medium"
+        aria-hidden="false"
       >
         shopping_cart
       </mat-icon>
