@@ -28,7 +28,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       switch(err.status){
         case 0:
           // Network/server unreachable (no HTTP response received).
-          errorService.setError({statusCode: 0, message: 'server not available'});
+          errorService.setError({statusCode: 0, message: 'server non disponible'});
           break;
 
         case 400:
@@ -45,7 +45,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             message = err.error.error;
           }
           else{
-            message = 'bad credentials'
+            message = 'Credenziali errate'
           }
 
           if (isAuthCall) {
