@@ -22,7 +22,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     })
     ,catchError((err: HttpErrorResponse) => {
       // Normalize backend payload shape and keep a safe fallback message.
-      const message = err.error?.error?.message ?? 'An unexpected error occurred';
+      const message = err.error?.error?.message ?? 'Si è verificato un errore imprevisto' ;
       const details = err.error?.error?.details ?? [];
 
       switch(err.status){

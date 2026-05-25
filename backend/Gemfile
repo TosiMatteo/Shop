@@ -15,6 +15,7 @@ gem "puma", ">= 5.0"
 gem "pagy"
 gem "devise"
 gem "devise-jwt"
+gem "rails-i18n"
 gem "rack-attack"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

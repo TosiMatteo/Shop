@@ -31,5 +31,7 @@ module Backend
     config.api_only = true
 
     config.middleware.use Rack::Attack
+
+    config.i18n.default_locale = :it
   end
 end

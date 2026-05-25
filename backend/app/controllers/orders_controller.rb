@@ -5,7 +5,7 @@ class OrdersController < ApplicationController
   # GET /api/orders
   def index
     if params[:min].present? && params[:max].present? && params[:min].to_f > params[:max].to_f
-      return render_error(status: :bad_request, message: 'Min must be less than max')
+      return render_error(status: :bad_request, message: 'Prezzo minimo deve essere minore del prezzo massimo')
     end
 
     filtered = current_customer.orders
