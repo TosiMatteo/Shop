@@ -115,30 +115,27 @@ export class AdminPage implements OnInit {
     this.productForm.get('tag_ids')?.setValue(updated);
   }
 
+  // Fetch fresh product data before populating the edit form
   onEdit(product: Product): void {
-    this.formMode = 'edit';
-    this.editingProduct = product;
+    this.productApi.show(product.id).subscribe(full => {
+      this.formMode = 'edit';
+      this.editingProduct = full;
 
-    // Map product tag names to ids expected by the form controls.
-    const tagIds = this.tags
-      .filter(t => (product.tags ?? []).includes(t.name))
-      .map(t => t.id);
+      const tagIds = this.tags
+        .filter(t => (full.tags ?? []).some((ft: any) => ft.id === t.id || ft === t.name))
+        .map(t => t.id);
 
-    const discountPercentage = this.computeDiscountPercentage(
-      product.original_price,
-      product.price
-    );
+      this.productForm.patchValue({
+        title: full.title,
+        description: full.description,
+        original_price: full.original_price,
+        discount_percentage: this.computeDiscountPercentage(full.original_price, full.price),
+        tag_ids: tagIds,
+      });
 
-    this.productForm.patchValue({
-      title: product.title,
-      description: product.description,
-      original_price: product.original_price,
-      discount_percentage: discountPercentage,
-      tag_ids: tagIds,
+      this.productPanel.open();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-
-    this.productPanel.open();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   onDelete(product: Product): void {

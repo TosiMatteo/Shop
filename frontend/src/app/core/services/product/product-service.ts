@@ -60,4 +60,15 @@ export class ProductApi {
   delete(id: string): Observable<any> {
     return this.http.delete(`${this.url}/${id}`);
   }
+
+  // Fetch a single product by id, normalising price fields to numbers.
+  show(id: string): Observable<Product> {
+    return this.http.get<Product>(`${this.url}/${id}`).pipe(
+      map(p => ({
+        ...p,
+        price: Number(p.price),
+        original_price: Number(p.original_price),
+      }))
+    );
+  }
 }
