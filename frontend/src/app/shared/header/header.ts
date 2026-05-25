@@ -42,7 +42,7 @@ export class Header {
     if (this.isAuthenticated) {
       // End session server-side, then route to public entry point.
       this.authService.logout().subscribe({
-        next: () => this.router.navigate(['/api/products']),
+        next: () => this.router.navigate(['/products']),
         error: () => this.router.navigate(['/login']),
       })
     } else {
