@@ -46,6 +46,8 @@ export class CartService {
     this.auth.loginEvent$.pipe(
       switchMap(() => this.syncGuestCart())
     ).subscribe();
+
+    this.auth.logoutEvent$.subscribe(() => this.resetCart());
   }
 
   // ─── Guest cart helpers ──────────────────────────────────────────────────────
@@ -209,4 +211,9 @@ export class CartService {
       tap(() => localStorage.removeItem(GUEST_CART_KEY)),
     );
   }
+
+  private resetCart(): void {
+    this.cartSubject.next(null); // o next({ items: [], total: '0' }) a seconda del tipo
+  }
+
 }

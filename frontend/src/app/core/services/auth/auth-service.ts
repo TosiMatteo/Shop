@@ -42,6 +42,9 @@ export class AuthService {
   private loginEventSubject = new Subject<void>();
   readonly loginEvent$ = this.loginEventSubject.asObservable();
 
+  private logoutEventSubject = new Subject<void>();
+  readonly logoutEvent$ = this.logoutEventSubject.asObservable();
+
   login(credentials: AuthCredentials) {
     return this.http
       .post<Customer>(`${this.CUSTOMER_URL}/sign_in`, { customer: credentials }, { observe: 'response' })
@@ -114,6 +117,7 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN);
     localStorage.removeItem(this.USER_TYPE);
     localStorage.removeItem(this.MEMBER_SINCE);
+    this.logoutEventSubject.next(); // unico punto di emissione
   }
 
   // Starts password reset flow by requesting a reset email.
