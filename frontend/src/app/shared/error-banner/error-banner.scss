@@ -50,12 +50,22 @@
     color: #888;
     width: 32px;
     height: 32px;
-    line-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
 
     mat-icon {
       font-size: 18px;
       width: 18px;
       height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     &:hover {
