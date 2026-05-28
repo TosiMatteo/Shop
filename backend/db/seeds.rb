@@ -118,7 +118,7 @@ SEED_PRODUCTS_COUNT.times do |i|
       filename: "product_#{i}.jpg",
       content_type: 'image/jpeg'
     )
-  rescue OpenURI::HTTPError => e
+  rescue => e
     puts "⚠ Impossibile scaricare immagine per prodotto #{i}: #{e.message}"
   end
 
