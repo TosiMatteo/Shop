@@ -33,6 +33,9 @@
 
   <span>Rails-Angular Shop</span>
   <img class="app-logo" ngSrc="/assets/angularlogo.jpg" alt="Logo" width="32" height="32" priority>
+  @if (customerName) {
+    <span class="welcome-message">Benvenuto {{ customerName }}</span>
+  }
   <span class="example-spacer"></span>
   @if (!isAdmin) {
     <app-cart-icon/>
