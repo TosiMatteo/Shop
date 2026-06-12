@@ -8,6 +8,7 @@ class CreateOrders < ActiveRecord::Migration[8.1]
       t.string :shipping_street
       t.string :shipping_city
       t.string :shipping_zip
+      t.string :shipping_name
 
       t.timestamps
     end
