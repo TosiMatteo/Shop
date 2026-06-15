@@ -12,6 +12,7 @@ class Customers::RegistrationsController < Devise::RegistrationsController
   #     last_name: "Rossi"
   #   } 
   # }
+  # app/controllers/customers/registrations_controller.rb
   def create
     build_resource(sign_up_params)
 
@@ -30,7 +31,8 @@ class Customers::RegistrationsController < Devise::RegistrationsController
       clean_up_passwords resource
       render_error(
         status: :unprocessable_entity,
-        message: resource.errors.full_messages
+        message: "Validation failed",
+        details: resource.errors.full_messages
       )
     end
   end
