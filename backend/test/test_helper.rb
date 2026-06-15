@@ -17,6 +17,7 @@ SimpleCov.start 'rails' do
   add_filter '/app/mailers/'
   add_filter '/app/jobs/'
   add_filter '/lib/'
+  add_filter '/app/controllers/test_helpers_controller.rb'
 
   add_group 'Controllers', 'app/controllers'
   add_group 'Models', 'app/models'

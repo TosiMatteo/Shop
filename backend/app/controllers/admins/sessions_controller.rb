@@ -26,8 +26,8 @@ class Admins::SessionsController < Devise::SessionsController
     }, status: :ok
   end
 
-  def respond_to_on_destroy
-    if current_admin
+  def respond_to_on_destroy(_resource = nil)
+    if @admin_signing_out
       render json: {
         message: 'Logout effettuato con successo'
       }, status: :ok
