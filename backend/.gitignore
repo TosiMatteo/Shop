@@ -32,3 +32,6 @@
 /config/*.key
 
 /coverage
+
+/.codex
+/.agents

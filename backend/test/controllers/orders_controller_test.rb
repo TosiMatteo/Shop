@@ -65,7 +65,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
       updated_at: Time.zone.parse("2026-02-10 12:00:00")
     )
 
-    get "/api/orders", params: { year: 2025 }, headers: { "ACCEPT" => "application/json" }
+    get "/api/orders", params: { year: 2025, sort:"dateAsc" }, headers: { "ACCEPT" => "application/json" }
     assert_response :success
 
     ids = response.parsed_body.fetch("orders", []).map { |o| o["id"] }
