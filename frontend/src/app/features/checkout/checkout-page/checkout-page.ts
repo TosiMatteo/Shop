@@ -19,7 +19,7 @@ import { finalize } from 'rxjs';
     MatInputModule,
     MatCheckboxModule,
     MatButtonModule,
-    MatIconModule,       // aggiunto per le icone nel template
+    MatIconModule,
     CartCardComponent,
   ],
   templateUrl: './checkout-page.html',
