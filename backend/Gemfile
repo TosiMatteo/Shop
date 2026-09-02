@@ -58,4 +58,8 @@ group :development, :test do
 
   gem 'simplecov', require: false, group: :test
 
+  # Property based testing: genera automaticamente gli input e riduce il
+  # controesempio minimo quando una proprieta' fallisce (test/models/properties_test.rb)
+  gem 'rantly', require: false, group: :test
+
 end
