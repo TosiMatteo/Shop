@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { CartService } from './cart-service';
 import { AuthService } from '../auth/auth-service';
 import { ErrorService } from '../error-service';
@@ -14,6 +14,10 @@ describe('CartService', () => {
   let httpMock: HttpTestingController;
   let authServiceMock: jasmine.SpyObj<AuthService>;
   let errorServiceMock: jasmine.SpyObj<ErrorService>;
+  let loginEvent: Subject<void>;
+  let logoutEvent: Subject<void>;
+
+  const GUEST_CART_KEY = 'guest_cart';
 
   const product: Product = {
     id: '101',
@@ -40,19 +44,19 @@ describe('CartService', () => {
     total_price: 9.99
   };
 
-  beforeEach(() => {
-    authServiceMock = jasmine.createSpyObj<AuthService>('AuthService', [
-      'isAuthenticated', 'getCurrentUser'
-    ]);
-    errorServiceMock = jasmine.createSpyObj<ErrorService>('ErrorService', ['setError']);
+  /** Legge il valore corrente del BehaviorSubject senza restare sottoscritti. */
+  function currentCart(): Cart | null {
+    let value: Cart | null = null;
+    service.cart$.subscribe(cart => (value = cart)).unsubscribe();
+    return value;
+  }
 
-    // Di default, utente NON autenticato
-    authServiceMock.isAuthenticated.and.returnValue(false);
+  /** Legge il carrello ospite serializzato in localStorage. */
+  function guestItems(): Array<{ productId: number; quantity: number; product: Product }> {
+    return JSON.parse(localStorage.getItem(GUEST_CART_KEY) ?? '[]');
+  }
 
-    // Assegnazione forzata per le proprietà readonly
-    (authServiceMock as any).loginEvent$ = of();
-    (authServiceMock as any).logoutEvent$ = of();
-
+  function configureTestBed(): void {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -64,6 +68,25 @@ describe('CartService', () => {
     });
 
     httpMock = TestBed.inject(HttpTestingController);
+  }
+
+  beforeEach(() => {
+    authServiceMock = jasmine.createSpyObj<AuthService>('AuthService', [
+      'isAuthenticated', 'getCurrentUser'
+    ]);
+    errorServiceMock = jasmine.createSpyObj<ErrorService>('ErrorService', ['setError']);
+
+    // Di default, utente NON autenticato
+    authServiceMock.isAuthenticated.and.returnValue(false);
+
+    // Assegnazione forzata per le proprietà readonly. Sono Subject e non `of()`
+    // così i test possono emettere login/logout a comando.
+    loginEvent = new Subject<void>();
+    logoutEvent = new Subject<void>();
+    (authServiceMock as any).loginEvent$ = loginEvent.asObservable();
+    (authServiceMock as any).logoutEvent$ = logoutEvent.asObservable();
+
+    configureTestBed();
     service = TestBed.inject(CartService);
   });
 
@@ -149,6 +172,218 @@ describe('CartService', () => {
         statusCode: 0,
         message: 'Nessun carrello attivo'
       });
+    });
+
+    // ─── Guardia contro i click ripetuti ──────────────────────────────────────
+    it('ignora una seconda aggiunta mentre la prima è ancora in volo', () => {
+      service.addItem(product, 1);
+      service.addItem(product, 1);
+
+      const posts = httpMock.match(`/api/carts/${mockCart.id}/cart_items`);
+      expect(posts.length).toBe(1);
+      posts[0].flush(cartItem);
+
+      httpMock.expectOne('/api/carts').flush(mockCart);
+    });
+
+    it('accetta una nuova aggiunta dopo il completamento della precedente', () => {
+      service.addItem(product, 1);
+      httpMock.expectOne(`/api/carts/${mockCart.id}/cart_items`).flush(cartItem);
+      httpMock.expectOne('/api/carts').flush(mockCart);
+
+      service.addItem(product, 2);
+
+      const secondPost = httpMock.expectOne(`/api/carts/${mockCart.id}/cart_items`);
+      expect(secondPost.request.body).toEqual({ cart_item: { product_id: '101', quantity: 2 } });
+      secondPost.flush(cartItem);
+
+      httpMock.expectOne('/api/carts').flush(mockCart);
+    });
+
+    it('carica il carrello dal server se non ne conosce ancora l id', () => {
+      (service as any).cartSubject.next(null);
+
+      service.addItem(product, 1);
+
+      // Prima il carrello viene caricato, poi si aggiunge la riga.
+      const load = httpMock.expectOne('/api/carts');
+      expect(load.request.method).toBe('GET');
+      load.flush(mockCart);
+
+      const post = httpMock.expectOne(`/api/carts/${mockCart.id}/cart_items`);
+      expect(post.request.method).toBe('POST');
+      post.flush(cartItem);
+
+      httpMock.expectOne('/api/carts').flush(mockCart);
+    });
+
+    it('azzera il carrello quando l utente esce', () => {
+      logoutEvent.next();
+
+      expect(currentCart()).toBeNull();
+    });
+  });
+
+  // ─── Carrello ospite: nessuna chiamata HTTP, tutto su localStorage ──────────
+  describe('guest user', () => {
+    it('aggiunge un prodotto al carrello locale', () => {
+      service.addItem(product, 1);
+
+      expect(guestItems()).toEqual([{ productId: 101, quantity: 1, product }]);
+      expect(currentCart()?.items.length).toBe(1);
+      expect(currentCart()?.total_price).toBeCloseTo(9.99, 2);
+    });
+
+    it('somma le quantità invece di duplicare la riga', () => {
+      service.addItem(product, 1);
+      service.addItem(product, 2);
+
+      expect(guestItems().length).toBe(1);
+      expect(guestItems()[0].quantity).toBe(3);
+      expect(currentCart()?.total_price).toBeCloseTo(29.97, 2);
+    });
+
+    it('aggiorna la quantità di una riga locale', () => {
+      service.addItem(product, 1);
+
+      service.updateItem(101, 5);
+
+      expect(guestItems()[0].quantity).toBe(5);
+      expect(currentCart()?.total_price).toBeCloseTo(49.95, 2);
+    });
+
+    it('rimuove una riga locale', () => {
+      service.addItem(product, 1);
+
+      service.removeItem(101);
+
+      expect(guestItems()).toEqual([]);
+      expect(currentCart()?.items.length).toBe(0);
+    });
+
+    it('rimuove la riga anche passando da updateItem con quantità nulla', () => {
+      service.addItem(product, 1);
+
+      service.updateItem(101, 0);
+
+      expect(guestItems()).toEqual([]);
+    });
+
+    it('ignora un carrello ospite corrotto in localStorage', () => {
+      localStorage.setItem(GUEST_CART_KEY, 'non-è-json');
+
+      service.addItem(product, 1);
+
+      expect(guestItems()).toEqual([{ productId: 101, quantity: 1, product }]);
+    });
+
+    it('espone un carrello vuoto quando localStorage non contiene nulla', () => {
+      expect(currentCart()?.items).toEqual([]);
+      expect(currentCart()?.total_price).toBe(0);
+    });
+  });
+
+  // ─── Fusione del carrello ospite al login ──────────────────────────────────
+  describe('syncGuestCart', () => {
+    it('invia ogni articolo ospite e poi svuota localStorage', () => {
+      localStorage.setItem(GUEST_CART_KEY, JSON.stringify([{ productId: 101, quantity: 2, product }]));
+
+      service.syncGuestCart().subscribe();
+
+      httpMock.expectOne('/api/carts').flush(mockCart);
+
+      const postReq = httpMock.expectOne(`/api/carts/${mockCart.id}/cart_items`);
+      expect(postReq.request.body).toEqual({ cart_item: { product_id: 101, quantity: 2 } });
+      postReq.flush(cartItem);
+
+      httpMock.expectOne('/api/carts').flush(mockCart);
+
+      expect(localStorage.getItem(GUEST_CART_KEY)).toBeNull();
+    });
+
+    it('non invia nulla se il carrello ospite è vuoto', () => {
+      service.syncGuestCart().subscribe();
+
+      // Solo il caricamento del carrello server: nessuna POST.
+      httpMock.expectOne('/api/carts').flush(mockCart);
+
+      expect(localStorage.getItem(GUEST_CART_KEY)).toBeNull();
+    });
+
+    it('completa la fusione anche se un articolo viene rifiutato dal server', () => {
+      const second = { ...product, id: '102' };
+      localStorage.setItem(GUEST_CART_KEY, JSON.stringify([
+        { productId: 101, quantity: 1, product },
+        { productId: 102, quantity: 1, product: second }
+      ]));
+
+      let completed = false;
+      service.syncGuestCart().subscribe({ complete: () => (completed = true) });
+
+      httpMock.expectOne('/api/carts').flush(mockCart);
+
+      const posts = httpMock.match(`/api/carts/${mockCart.id}/cart_items`);
+      expect(posts.length).toBe(2);
+      posts[0].flush(null, { status: 422, statusText: 'Unprocessable Content' });
+      posts[1].flush(cartItem);
+
+      httpMock.expectOne('/api/carts').flush(mockCart);
+
+      expect(completed).toBeTrue();
+      expect(localStorage.getItem(GUEST_CART_KEY)).toBeNull();
+    });
+
+    it('si attiva da sé quando AuthService segnala un login', () => {
+      localStorage.setItem(GUEST_CART_KEY, JSON.stringify([{ productId: 101, quantity: 1, product }]));
+
+      loginEvent.next();
+
+      httpMock.expectOne('/api/carts').flush(mockCart);
+      httpMock.expectOne(`/api/carts/${mockCart.id}/cart_items`).flush(cartItem);
+      httpMock.expectOne('/api/carts').flush(mockCart);
+
+      expect(localStorage.getItem(GUEST_CART_KEY)).toBeNull();
+    });
+  });
+
+  // ─── Avvio con utente già autenticato ──────────────────────────────────────
+  // Il carrello viene caricato nel costruttore, quindi il servizio va creato
+  // dopo aver dichiarato l'utente autenticato: da qui il reset del TestBed.
+  describe('avvio con utente autenticato', () => {
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      authServiceMock.isAuthenticated.and.returnValue(true);
+      configureTestBed();
+      service = TestBed.inject(CartService);
+    });
+
+    it('carica il carrello esistente e esce dallo stato di caricamento', () => {
+      let loading = true;
+      service.isLoading$.subscribe(value => (loading = value));
+
+      httpMock.expectOne('/api/carts').flush(mockCart);
+
+      expect(currentCart()?.id).toBe(mockCart.id);
+      expect(loading).toBeFalse();
+    });
+
+    it('normalizza a lista vuota un carrello senza items', () => {
+      httpMock.expectOne('/api/carts').flush({ id: 1, customerId: 10, total_price: 0 });
+
+      expect(currentCart()?.items).toEqual([]);
+    });
+
+    it('crea un carrello lato server quando il backend non ne ha uno', () => {
+      authServiceMock.getCurrentUser.and.returnValue(of({ user: { id: 10 } }));
+
+      httpMock.expectOne('/api/carts').flush(null);
+
+      const postReq = httpMock.expectOne('/api/carts');
+      expect(postReq.request.method).toBe('POST');
+      expect(postReq.request.body).toEqual({ cart: { customer_id: 10 } });
+      postReq.flush(mockCart);
+
+      expect(currentCart()?.id).toBe(mockCart.id);
     });
   });
 });
