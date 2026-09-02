@@ -21,6 +21,12 @@ SimpleCov.start 'rails' do
 
   add_group 'Controllers', 'app/controllers'
   add_group 'Models', 'app/models'
+
+  # Soglia minima di copertura. In locale è disattivata (default 0) per non
+  # bloccare lo sviluppo; la pipeline CI imposta MINIMUM_COVERAGE e fa fallire
+  # il job se la copertura scende sotto quel valore.
+  minimum_coverage_threshold = ENV.fetch("MINIMUM_COVERAGE", "0").to_i
+  minimum_coverage minimum_coverage_threshold if minimum_coverage_threshold.positive?
 end
 
 require_relative "../config/environment"
