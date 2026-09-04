@@ -1,6 +1,6 @@
 class TagsController < ApplicationController
-  before_action :authenticate_admin!, only: [:create, :update, :destroy]
-  before_action :set_tag, only: [:update, :destroy]
+  before_action :authenticate_admin!, only: [ :create, :update, :destroy ]
+  before_action :set_tag, only: [ :update, :destroy ]
   def index
     render json: Tag.all
   end
@@ -30,6 +30,6 @@ class TagsController < ApplicationController
   end
 
   def tag_params
-    params.expect(tag: [:name])
+    params.expect(tag: [ :name ])
   end
 end

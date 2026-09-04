@@ -16,7 +16,7 @@ class Admin < ApplicationRecord
 
   # Extend JWT payload with admin role marker.
   def jwt_payload
-    super.merge('user_type' => 'Admin')
+    super.merge("user_type" => "Admin")
   end
 
   # Future domain relationships.

@@ -11,16 +11,16 @@ class CustomAuthFailure < Devise::FailureApp
 
   def json_error_response
     self.status = 401
-    self.content_type = 'application/json'
+    self.content_type = "application/json"
     self.response_body = {
       error: i18n_message,
-      message: 'Non autorizzato'
+      message: "Non autorizzato"
     }.to_json
   end
 
   private
 
   def api_request?
-    request.path.start_with?('/api/')
+    request.path.start_with?("/api/")
   end
 end

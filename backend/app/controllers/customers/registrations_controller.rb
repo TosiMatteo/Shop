@@ -3,14 +3,14 @@ class Customers::RegistrationsController < Devise::RegistrationsController
   respond_to :json
 
   # POST /api/customers
-  # Body: { 
-  #   customer: { 
-  #     email: "user@example.com", 
+  # Body: {
+  #   customer: {
+  #     email: "user@example.com",
   #     password: "password123",
   #     password_confirmation: "password123",
   #     first_name: "Mario",
   #     last_name: "Rossi"
-  #   } 
+  #   }
   # }
   # app/controllers/customers/registrations_controller.rb
   def create
@@ -45,13 +45,13 @@ class Customers::RegistrationsController < Devise::RegistrationsController
 
   def respond_with_success(resource)
     render json: {
-      message: 'Registrazione completata con successo',
+      message: "Registrazione completata con successo",
       user: {
         id: resource.id,
         email: resource.email,
         first_name: resource.first_name,
         last_name: resource.last_name,
-        user_type: 'Customer',
+        user_type: "Customer",
         confirmed: resource.confirmed?
       }
     }, status: :created
@@ -59,14 +59,13 @@ class Customers::RegistrationsController < Devise::RegistrationsController
 
   def respond_with_pending_confirmation(resource)
     render json: {
-      message: 'Registrazione completata. Controlla la tua email per confermare l\'account.',
+      message: "Registrazione completata. Controlla la tua email per confermare l'account.",
       user: {
         id: resource.id,
         email: resource.email,
-        user_type: 'Customer',
+        user_type: "Customer",
         confirmed: false
       }
     }, status: :created
   end
-
 end

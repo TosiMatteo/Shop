@@ -36,6 +36,6 @@ class CartItemsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def cart_item_params
-      params.expect(cart_item: [:product_id, :quantity])
+      params.expect(cart_item: [ :product_id, :quantity ])
     end
 end

@@ -9,7 +9,7 @@ class Customers::PasswordsController < Devise::PasswordsController
 
     if successfully_sent?(resource)
       render json: {
-        message: 'Email inviata con successo. Controlla la tua casella di posta.'
+        message: "Email inviata con successo. Controlla la tua casella di posta."
       }, status: :ok
     else
       render_error(status: :unprocessable_entity, message: "Validation failed", details: resource.errors.full_messages)
@@ -25,7 +25,7 @@ class Customers::PasswordsController < Devise::PasswordsController
       resource.unlock_access! if unlockable?(resource)
 
       render json: {
-        message: 'Password cambiata con successo'
+        message: "Password cambiata con successo"
       }, status: :ok
     else
       render_error(status: :unprocessable_entity, message: "Validation failed", details: resource.errors.full_messages)

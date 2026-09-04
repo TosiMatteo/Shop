@@ -37,7 +37,7 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
 
   # Preview emails: http://localhost:3000/rails/mailers
-  config.action_mailer.preview_paths = ["#{Rails.root}/test/mailers/previews"]
+  config.action_mailer.preview_paths = [ "#{Rails.root}/test/mailers/previews" ]
 
   # Set localhost to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }

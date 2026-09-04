@@ -10,7 +10,7 @@ class Customers::ConfirmationsController < Devise::ConfirmationsController
 
     if successfully_sent?(resource)
       render json: {
-        message: 'Email di conferma inviata con successo'
+        message: "Email di conferma inviata con successo"
       }, status: :ok
     else
       render json: {
@@ -28,7 +28,7 @@ class Customers::ConfirmationsController < Devise::ConfirmationsController
     if resource.errors.empty?
 
       render json: {
-        message: 'Account confermato con successo. Ora puoi effettuare il login.',
+        message: "Account confermato con successo. Ora puoi effettuare il login.",
         user: {
           id: resource.id,
           email: resource.email,

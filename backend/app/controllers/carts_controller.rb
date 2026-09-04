@@ -38,7 +38,7 @@ class CartsController < ApplicationController
 
   # POST /api/carts/1/checkout
   def checkout
-    shipping_params = params.expect(shipping: [:name, :street, :city, :zip])
+    shipping_params = params.expect(shipping: [ :name, :street, :city, :zip ])
     order = @cart.checkout(shipping_params)
     render json: {
       id: order.id,
@@ -67,7 +67,7 @@ class CartsController < ApplicationController
         items: cart.cart_items.includes(product: { thumbnail_attachment: :blob }).map do |ci|
           ci.as_json.merge(
             product: ci.product.as_json.merge(
-              thumbnail_url: ci.product.thumbnail.attached? ? rails_representation_path(ci.product.thumbnail.variant(resize_to_limit: [300, 300])) : nil
+              thumbnail_url: ci.product.thumbnail.attached? ? rails_representation_path(ci.product.thumbnail.variant(resize_to_limit: [ 300, 300 ])) : nil
             )
           )
         end,

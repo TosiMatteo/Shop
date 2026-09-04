@@ -1,14 +1,13 @@
 class ProductsController < ApplicationController
-
   # Actions solo per admin
-  before_action :authenticate_admin!, only: [:create, :update, :destroy]
+  before_action :authenticate_admin!, only: [ :create, :update, :destroy ]
 
   before_action :set_product, only: %i[ update destroy show]
 
   # GET /products
   def index
     if params[:min].present? && params[:max].present? && params[:min].to_f > params[:max].to_f
-      return render_error(status: :bad_request, message: 'Prezzo minimo deve essere minore del prezzo massimo')
+      return render_error(status: :bad_request, message: "Prezzo minimo deve essere minore del prezzo massimo")
     end
     filtered = Product
                  .includes(:tags, thumbnail_attachment: { blob: :variant_records })
@@ -56,12 +55,12 @@ class ProductsController < ApplicationController
   end
 
   def product_params
-    params.expect(product: [ :title, :description, :price, :original_price, :sale, :discount_percentage,:thumbnail, { tag_ids: [] } ])
+    params.expect(product: [ :title, :description, :price, :original_price, :sale, :discount_percentage, :thumbnail, { tag_ids: [] } ])
   end
 
   def serialize_product(product)
     thumbnail_url = product.thumbnail.attached? \
-                      ? rails_representation_path(product.thumbnail.variant(resize_to_limit: [300, 300])) \
+                      ? rails_representation_path(product.thumbnail.variant(resize_to_limit: [ 300, 300 ])) \
                       : nil
     product.as_json(include: :tags).merge({ thumbnail_url: thumbnail_url })
   end

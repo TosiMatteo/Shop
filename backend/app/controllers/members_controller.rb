@@ -12,7 +12,7 @@ class MembersController < ApplicationController
           email: current_customer.email,
           first_name: current_customer.first_name,
           last_name: current_customer.last_name,
-          user_type: 'Customer',
+          user_type: "Customer",
           confirmed: current_customer.confirmed?,
           sign_in_count: current_customer.sign_in_count
         }
@@ -23,7 +23,7 @@ class MembersController < ApplicationController
         user: {
           id: current_admin.id,
           email: current_admin.email,
-          user_type: 'Admin',
+          user_type: "Admin",
           sign_in_count: current_admin.sign_in_count
         }
       }, status: :ok

@@ -6,7 +6,7 @@ class Cart < ApplicationRecord
 
   # Calculates the current total by summing item quantities * product prices.
   def total_price
-    cart_items.joins(:product).sum('cart_items.quantity * products.price')
+    cart_items.joins(:product).sum("cart_items.quantity * products.price")
   end
 
   # Creates an order from the cart, then clears the cart in a transaction.

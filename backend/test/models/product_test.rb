@@ -37,12 +37,12 @@ class ProductTest < ActiveSupport::TestCase
   end
 
   test "search_by_title should return products with matching title" do
-    assert_equal Product.search_by_title("Notebook"), [@product]
+    assert_equal Product.search_by_title("Notebook"), [ @product ]
     assert_equal Product.search_by_title("mac"), []
   end
 
   test "search_by_tag should return products with matching tag" do
-    assert_equal Product.search_by_tag("Informatica"), [@product]
+    assert_equal Product.search_by_tag("Informatica"), [ @product ]
     assert_equal Product.search_by_tag("Smartphone"), []
   end
 
@@ -54,7 +54,7 @@ class ProductTest < ActiveSupport::TestCase
   end
 
   test "search_by_min_max_price should return products with matching price range" do
-    assert_equal Product.search_by_min_max_price(900, 1100), [@product]
+    assert_equal Product.search_by_min_max_price(900, 1100), [ @product ]
     assert_equal Product.search_by_min_max_price(100, 200), []
   end
 
@@ -73,5 +73,4 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal 75.0, product.price
     assert product.sale
   end
-
 end

@@ -62,7 +62,7 @@ puts "\n=== Creazione Prodotti e Tags ==="
 
 Faker::Config.locale = "it"
 
-tag_names = ["Elettronica", "Casa", "Abbigliamento", "Libri", "Sport", "Nuovi Arrivi"]
+tag_names = [ "Elettronica", "Casa", "Abbigliamento", "Libri", "Sport", "Nuovi Arrivi" ]
 created_tags = tag_names.map { |name| Tag.create!(name: name) }
 
 created_products = []

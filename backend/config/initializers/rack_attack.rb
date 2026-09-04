@@ -1,5 +1,4 @@
 class Rack::Attack
-
   ### SAFELIST ###
   if Rails.env.development?
     safelist("allow-localhost") do |req|
@@ -52,8 +51,7 @@ class Rack::Attack
         "Content-Type" => "application/json",
         "Retry-After" => retry_after.to_s
       },
-      [{ error: "Troppe richieste. Riprova più tardi." }.to_json]
+      [ { error: "Troppe richieste. Riprova più tardi." }.to_json ]
     ]
   end
 end
-

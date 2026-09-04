@@ -6,13 +6,13 @@ class Customers::SessionsController < Devise::SessionsController
   def respond_with(resource, _opts = {})
     if resource.active_for_authentication?
       render json: {
-        message: 'Login effettuato con successo',
+        message: "Login effettuato con successo",
         user: {
           id: resource.id,
           email: resource.email,
           first_name: resource.first_name,
           last_name: resource.last_name,
-          user_type: 'Customer',
+          user_type: "Customer",
           confirmed: resource.confirmed?,
           member_since: resource.created_at.year
         }
@@ -27,7 +27,7 @@ class Customers::SessionsController < Devise::SessionsController
   # Override response per logout
   def respond_to_on_destroy(_resorce = nil)
       render json: {
-        message: 'Logout effettuato con successo'
+        message: "Logout effettuato con successo"
       }, status: :ok
   end
 end

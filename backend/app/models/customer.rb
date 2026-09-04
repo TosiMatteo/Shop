@@ -20,9 +20,9 @@ class Customer < ApplicationRecord
   # Extend JWT payload with customer metadata.
   def jwt_payload
     super.merge(
-      'user_type' => 'Customer',
-      'first_name' => first_name,
-      'last_name' => last_name
+      "user_type" => "Customer",
+      "first_name" => first_name,
+      "last_name" => last_name
     )
   end
 

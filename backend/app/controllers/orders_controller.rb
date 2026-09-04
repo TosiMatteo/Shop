@@ -5,7 +5,7 @@ class OrdersController < ApplicationController
   # GET /api/orders
   def index
     if params[:min].present? && params[:max].present? && params[:min].to_f > params[:max].to_f
-      return render_error(status: :bad_request, message: 'Prezzo minimo deve essere minore del prezzo massimo')
+      return render_error(status: :bad_request, message: "Prezzo minimo deve essere minore del prezzo massimo")
     end
 
     filtered = current_customer.orders
@@ -23,8 +23,8 @@ class OrdersController < ApplicationController
         o.as_json.merge(
           order_items: o.order_items.map { |item|
             item.as_json.merge(
-              product: item.product.as_json(only: [:id, :title]).merge(
-                thumbnail_url: item.product.thumbnail.attached? ? rails_representation_path(item.product.thumbnail.variant(resize_to_limit: [300, 300])) : nil
+              product: item.product.as_json(only: [ :id, :title ]).merge(
+                thumbnail_url: item.product.thumbnail.attached? ? rails_representation_path(item.product.thumbnail.variant(resize_to_limit: [ 300, 300 ])) : nil
               )
             )
           }
@@ -39,8 +39,8 @@ class OrdersController < ApplicationController
     render json: @order.as_json.merge(
       order_items: @order.order_items.includes(product: { thumbnail_attachment: { blob: :variant_records } }).map { |item|
         item.as_json.merge(
-          product: item.product.as_json(only: [:id, :title]).merge(
-            thumbnail_url: item.product.thumbnail.attached? ? rails_representation_path(item.product.thumbnail.variant(resize_to_limit: [300, 300])) : nil
+          product: item.product.as_json(only: [ :id, :title ]).merge(
+            thumbnail_url: item.product.thumbnail.attached? ? rails_representation_path(item.product.thumbnail.variant(resize_to_limit: [ 300, 300 ])) : nil
           )
         )
       }

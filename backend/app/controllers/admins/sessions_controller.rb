@@ -16,11 +16,11 @@ class Admins::SessionsController < Devise::SessionsController
 
   def respond_with(resource, _opts = {})
     render json: {
-      message: 'Login admin effettuato con successo',
+      message: "Login admin effettuato con successo",
       user: {
         id: resource.id,
         email: resource.email,
-        user_type: 'Admin',
+        user_type: "Admin",
         sign_in_count: resource.sign_in_count
       }
     }, status: :ok
@@ -29,11 +29,11 @@ class Admins::SessionsController < Devise::SessionsController
   def respond_to_on_destroy(_resource = nil)
     if @admin_signing_out
       render json: {
-        message: 'Logout effettuato con successo'
+        message: "Logout effettuato con successo"
       }, status: :ok
     else
       render json: {
-        error: 'Utente non autenticato'
+        error: "Utente non autenticato"
       }, status: :unauthorized
     end
   end

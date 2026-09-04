@@ -5,40 +5,40 @@ Rails.application.routes.draw do
   # Raggruppiamo tutto sotto /api
   scope :api, defaults: { format: :json } do
       # --- AUTH: Endpoint Profilo Utente ---
-      get '/me', to: 'members#show'
+      get "/me", to: "members#show"
 
       # --- AUTH: Customer ---
       devise_for :customers,
-                 path: 'customers',
+                 path: "customers",
                  controllers: {
-                   sessions: 'customers/sessions',
-                   registrations: 'customers/registrations',
-                   passwords: 'customers/passwords',
-                   confirmations: 'customers/confirmations'
+                   sessions: "customers/sessions",
+                   registrations: "customers/registrations",
+                   passwords: "customers/passwords",
+                   confirmations: "customers/confirmations"
                  }
 
       # --- AUTH: Admin ---
       devise_for :admins,
-                 path: 'admins',
+                 path: "admins",
                  controllers: {
-                   sessions: 'admins/sessions',
-                   passwords: 'admins/passwords'
+                   sessions: "admins/sessions",
+                   passwords: "admins/passwords"
                  },
-                 skip: [:registrations] # Gli admin non si registrano da soli
+                 skip: [ :registrations ] # Gli admin non si registrano da soli
 
       # --- RISORSE
       resources :products
-      resources :tags, only: [:index, :update, :create, :destroy]
-      resources :orders, only: [:index, :show, :create, :update, :destroy]
-      resources :carts, only: [:index, :show, :create, :destroy, :update] do
+      resources :tags, only: [ :index, :update, :create, :destroy ]
+      resources :orders, only: [ :index, :show, :create, :update, :destroy ]
+      resources :carts, only: [ :index, :show, :create, :destroy, :update ] do
         member do
-          post :checkout #POST /api/carts/:id/checkout
+          post :checkout # POST /api/carts/:id/checkout
         end
-        resources :cart_items,shallow: true, only: [:create, :destroy, :update]
+        resources :cart_items, shallow: true, only: [ :create, :destroy, :update ]
       end
   end
 
   if Rails.env.development?
-    get '/test/reset', to: 'test_helpers#reset'
+    get "/test/reset", to: "test_helpers#reset"
   end
 end
