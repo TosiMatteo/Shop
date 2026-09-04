@@ -12,9 +12,8 @@ require "pagy"
   #
   Pagy::OPTIONS[:limit] = 12               # Limit the items per page
   Pagy::OPTIONS[:limit_extra] = true
-  Pagy::OPTIONS[:limit_max] = 36
-  Pagy::OPTIONS[:max_limit] = 100          # The client can request a limit up to 100
-  # Pagy::OPTIONS[:jsonapi] = true           # Use JSON:API compliant URLs
+  Pagy::OPTIONS[:max_limit] = 36          # The client can request a limit up to 100
+# Pagy::OPTIONS[:jsonapi] = true           # Use JSON:API compliant URLs
 
 ############ JavaScript ####################################################################
 # See https://ddnexus.github.io/pagy/resources/javascript/ for details.
