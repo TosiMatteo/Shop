@@ -11,6 +11,7 @@ class Product < ApplicationRecord
   validates :title, presence: true, length: { minimum: 2, maximum: 50 }
   validates :description, presence: true, length: { minimum: 5, maximum: 1000 }
   validates :original_price, presence: true
+  validates :price, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :sale, inclusion: { in: [ true, false ] }
   validates :discount_percentage, numericality: { greater_than_or_equal_to: 0, less_than: 100 }, allow_nil: true
 
