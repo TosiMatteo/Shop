@@ -32,11 +32,20 @@ jobs:
         run: npm ci
         working-directory: frontend
 
-      - name: Unit tests (ChromeHeadless)
-        run: npm run test -- --watch=false --browsers=ChromeHeadless --no-progress
+      - name: Unit tests + coverage (ChromeHeadless)
+        run: npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage --no-progress
         working-directory: frontend
         env:
           CHROME_BIN: google-chrome
+
+      - name: Upload coverage frontend
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-frontend-${{ github.run_id }}
+          path: frontend/coverage/
+          retention-days: 7
+          if-no-files-found: warn
 
   # ──────────────────────────────────────────────────────────────────────────
   # JOB 2 – Test Rails (Minitest)
@@ -79,6 +88,7 @@ jobs:
           DATABASE_USER: rails
           DATABASE_PASSWORD: password
           DATABASE_NAME: rails_test
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
 
       - name: Run Minitest
         run: bundle exec rails test
@@ -89,6 +99,17 @@ jobs:
           DATABASE_USER: rails
           DATABASE_PASSWORD: password
           DATABASE_NAME: rails_test
+          MINIMUM_COVERAGE: "85"
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+
+      - name: Upload coverage backend
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-backend-${{ github.run_id }}
+          path: backend/coverage/
+          retention-days: 7
+          if-no-files-found: warn
 
   # ──────────────────────────────────────────────────────────────────────────
   # JOB 3 – Qualità e sicurezza backend
@@ -127,7 +148,9 @@ jobs:
   # Strategia: avviamo db + backend + frontend via Docker Compose (senza
   # il profilo "e2e"), poi eseguiamo Playwright DIRETTAMENTE sull'agente.
   # Questo evita problemi di networking tra il container playwright e il
-  # runner, e ci permette di usare localhost:4200 come BASE_URL.
+  # runner: i nomi di servizio della rete Docker (frontend, backend) non
+  # sono risolvibili dall'agente, quindi si usano le porte pubblicate su
+  # localhost passandole con BASE_URL e API_URL.
   # ──────────────────────────────────────────────────────────────────────────
   e2e:
     name: "Playwright E2E"
@@ -138,8 +161,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Ripristina la master key per i container
+        run: printf '%s' '${{ secrets.RAILS_MASTER_KEY }}' > backend/config/master.key
+
       - name: Avvia db, backend e frontend
         run: docker compose up -d db backend frontend
+
+      - name: Attendi PostgreSQL
+        run: |
+          timeout 120 bash -c \
+            'until docker compose exec -T db pg_isready -U rails > /dev/null 2>&1; do sleep 3; done'
+
+      # I container di sviluppo eseguono solo "rails s": senza questo passo il
+      # database non esiste e /test/reset del globalSetup fallirebbe.
+      - name: Crea e migra il database dei container
+        run: docker compose exec -T backend bin/rails db:prepare
 
       - name: Attendi che il frontend sia raggiungibile
         run: |
@@ -168,14 +204,22 @@ jobs:
         working-directory: e2e
         env:
           BASE_URL: http://localhost:4200
+          API_URL: http://localhost:3000
 
       - name: Upload report (solo su fallimento)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ github.run_id }}
-          path: e2e/playwright-report/
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
           retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Log dei container (solo su fallimento)
+        if: failure()
+        run: docker compose logs --no-color --tail 200
 
       - name: Teardown Docker Compose
         if: always()
@@ -184,12 +228,11 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   # JOB 5 – Build & Push su Docker Hub
   # Eseguito SOLO su push a main e SOLO dopo che tutti gli E2E passano.
-  # Frontend → usa ./frontend/Dockerfile
-  # Backend  → usa ./backend/Dockerfile.dev (l'unico Dockerfile presente)
   #
-  # LIMITAZIONE: entrambi i Dockerfile sono immagini di sviluppo (ng serve
-  # e rails s). Per la produzione andrebbero sostituiti con immagini
-  # multi-stage (build Angular + nginx, e rails in production mode).
+  # LIMITAZIONE: entrambi i Dockerfile usati qui sono immagini di sviluppo
+  # (ng serve e rails s). Per la produzione andrebbero sostituiti con immagini
+  # multi-stage (build Angular + nginx, e rails in production mode usando
+  # backend/Dockerfile, già presente nel repository).
   # ──────────────────────────────────────────────────────────────────────────
   build-and-push:
     name: "Docker Build & Push"
@@ -224,7 +267,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
-          dockerfile: ./frontend/Dockerfile
+          file: ./frontend/Dockerfile
           push: true
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
@@ -245,8 +288,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./backend
-          # Il backend NON ha un Dockerfile plain: usa Dockerfile.dev
-          dockerfile: ./backend/Dockerfile.dev
+          file: ./backend/Dockerfile.dev
           push: true
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
