@@ -21,10 +21,30 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
 
   test "should create order" do
     assert_difference("Order.count") do
-      post orders_url, params: { order: { customer_id: @order.customer_id, shipping_city: @order.shipping_city, shipping_name: @order.shipping_name, shipping_street: @order.shipping_street, shipping_zip: @order.shipping_zip } }, as: :json
+      post orders_url, params: { order: { shipping_city: @order.shipping_city, shipping_name: @order.shipping_name, shipping_street: @order.shipping_street, shipping_zip: @order.shipping_zip } }, as: :json
     end
 
     assert_response :created
+  end
+
+  # L'ordine appartiene al cliente autenticato anche se la richiesta prova a
+  # intestarlo a un altro: customer_id non è fra i parametri accettati.
+  test "should ignore the customer_id sent in the request" do
+    other = customers(:Customer_NoAuth)
+
+    assert_no_difference("other.orders.count") do
+      post orders_url, params: { order: {
+        customer_id: other.id,
+        shipping_city: "Bologna",
+        shipping_name: "Mario Rossi",
+        shipping_street: "Via Roma 1",
+        shipping_zip: "40121"
+      } }, as: :json
+    end
+
+    assert_response :created
+    created = Order.find(response.parsed_body["id"])
+    assert_equal @customer, created.customer
   end
 
   test "should show order" do

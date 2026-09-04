@@ -49,7 +49,7 @@ class OrdersController < ApplicationController
 
   # POST /api/orders
   def create
-    @order = Order.new(order_params)
+    @order = current_customer.orders.build(order_params)
     @order.save!
     render json: @order, status: :created, location: @order
   end
@@ -73,8 +73,9 @@ class OrdersController < ApplicationController
     @order = current_customer.orders.find(params.expect(:id))
   end
 
+  # customer_id volutamente assente: viene dalla sessione, non dalla richiesta.
   def order_params
-    params.expect(order: [ :customer_id, :shipping_name, :shipping_street, :shipping_city, :shipping_zip ])
+    params.expect(order: [ :shipping_name, :shipping_street, :shipping_city, :shipping_zip ])
   end
 
   def order_update_params
