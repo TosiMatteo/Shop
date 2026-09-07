@@ -21,6 +21,7 @@ qodana.yaml
 .env
 .env.*
 !.env.example
+!.env.e2e
 
 # --- Root Level Node/Ruby ---
 node_modules/
