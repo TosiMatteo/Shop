@@ -15,6 +15,7 @@
 - [Gestione degli errori](#gestione-degli-errori)
 - [Funzionalità avanzate](#funzionalità-avanzate)
 - [Testing](#testing)
+- [CI/CD](#cicd)
 
 ---
 
@@ -46,14 +47,17 @@ git clone <repo-url> && cd shop-app
 docker compose up --build
 ```
 
-Al primo avvio, in un secondo terminale, esegui migrazioni e seed:
-Il seeding è impostato a 30 prodotti per agevolare macchine più datate, se si vuole aumentare il numero dei prodotti bisogna accedere al file `backend/db/seeds.rb` e andare a modificare la costante `SEED_PRODUCTS_COUNT` con il numero desiderato.
+Il container backend esegue `bin/rails db:prepare` prima di avviare il server, quindi database e migrazioni sono già pronti. Al primo avvio, in un secondo terminale, resta da caricare i dati:
 
 ```bash
-docker compose exec backend rails db:create db:migrate db:seed
+docker compose exec backend rails db:seed
 ```
 
+Il seeding è impostato a 30 prodotti per agevolare macchine più datate; per cambiarne il numero modifica la costante `SEED_PRODUCTS_COUNT` in `backend/db/seeds.rb`.
+
 > Il seed scarica immagini da `https://picsum.photos`: è richiesta connessione Internet. Un eventuale errore su una singola immagine non blocca il seed.
+
+> **Il seed va eseguito una volta sola.** I test E2E girano su un database dedicato (`backend_e2e`) e non toccano più i dati di sviluppo — vedi [E2E (Playwright)](#e2e-playwright).
 
 | Servizio | URL |
 |---|---|
@@ -72,7 +76,7 @@ docker compose exec backend rails db:create db:migrate db:seed
 cd backend
 bundle install
 DATABASE_HOST=localhost DATABASE_USER=rails DATABASE_PASSWORD=password \
-  bin/rails db:create db:migrate db:seed
+  bin/rails db:prepare db:seed
 DATABASE_HOST=localhost DATABASE_USER=rails DATABASE_PASSWORD=password \
   bin/rails s -b 0.0.0.0
 ```
@@ -99,7 +103,11 @@ Configurabili nel `docker-compose.yml` o in un file `.env` nella cartella `backe
 | `DATABASE_HOST` | Host PostgreSQL | `db` |
 | `DATABASE_USER` | Utente PostgreSQL | `rails` |
 | `DATABASE_PASSWORD` | Password PostgreSQL | `password` |
-| `DATABASE_NAME` | Nome del database | `rails_development` |
+| `DATABASE_NAME` | Nome del database | `backend_development` |
+| `STORAGE_ROOT` | Cartella dei file Active Storage, relativa a `backend/` | `storage` |
+| `ENABLE_TEST_HELPERS` | Abilita `GET /test/reset` (reset distruttivo del database) | `false` |
+
+Le ultime tre sono sovrascritte da `.env.e2e` durante i test end-to-end, per isolare database e file dall'ambiente di sviluppo.
 
 ---
 
@@ -173,7 +181,8 @@ Configurabili nel `docker-compose.yml` o in un file `.env` nella cartella `backe
 │   │   └── ...
 │   ├── db/
 │   │   ├── migrate/
-│   │   └── seeds.rb
+│   │   ├── seeds.rb          # dataset di sviluppo (30 prodotti)
+│   │   └── testseeds.rb      # dataset E2E, ridotto e deterministico
 │   └── Gemfile
 ├── frontend/                 # Angular SPA
 │   ├── src/
@@ -186,7 +195,9 @@ Configurabili nel `docker-compose.yml` o in un file `.env` nella cartella `backe
 ├── e2e/
 │   ├── tests/
 │   ├── test-results/
+│   ├── global-setup.ts       # attesa servizi + reset del database
 │   └── ...
+├── .env.e2e                  # variabili per lo stack E2E isolato
 ├── docker-compose.yml
 └── README.md
 ```
@@ -693,22 +704,56 @@ I test mockano `OrderService` e `AuthService` e utilizzano `fakeAsync` per contr
 I test E2E sono scritti con **Playwright** e simulano flussi utente completi.
 Vengono eseguiti in un container separato (profilo `e2e`) che comunica con il backend e il frontend attraverso la rete Docker.
 
-Prima di ogni run, il `globalSetup` esegue automaticamente due operazioni:
+#### Database isolato
 
-- Attende che il frontend Angular (`http://frontend:4200`) sia raggiungibile
-- Resetta il database tramite `GET /test/reset` per garantire uno stato deterministico, utilizza il file testseed
+Il `globalSetup` azzera il database prima di ogni run: se lo stack puntasse su `backend_development`, ogni esecuzione distruggerebbe i dati di sviluppo, costringendo a rilanciare `db:seed` ogni volta.
+
+Per questo lo stack E2E va avviato con il file **`.env.e2e`**, che ridefinisce tre variabili:
+
+| Variabile | Valore E2E | Effetto |
+|---|---|---|
+| `DATABASE_NAME` | `backend_e2e` | Database separato sullo stesso container PostgreSQL |
+| `STORAGE_ROOT` | `tmp/storage_e2e` | Gli allegati Active Storage cancellati dai seed di test non sono quelli di sviluppo |
+| `ENABLE_TEST_HELPERS` | `true` | Abilita l'endpoint di reset, disattivato in sviluppo |
+
+Il database `backend_e2e` viene creato e migrato in automatico: il container backend esegue `bin/rails db:prepare` prima di `rails s`. Non serve alcun passo manuale.
 
 **Comandi principali**
 
 Eseguire i test:
-```
-docker compose --profile e2e run --rm playwright
+```bash
+docker compose --env-file .env.e2e --profile e2e run --rm playwright
 ```
 
-Eseguire i test in modalità ui visitando localhost:8080
+Eseguire i test in modalità UI, visitando `localhost:8080`:
+```bash
+docker compose --env-file .env.e2e --profile e2e run --rm -p 8080:8080 \
+  playwright npx playwright test --ui --ui-host=0.0.0.0 --ui-port=8080
 ```
-docker compose --profile e2e run --rm -p 8080:8080 playwright npx playwright test --ui --ui-host=0.0.0.0 --ui-port=8080
-```
+
+> Se lo stack di sviluppo è già in esecuzione, va prima fermato (`docker compose down`): backend e frontend sono servizi singoli e vanno riavviati con le variabili di `.env.e2e`. Al termine, `docker compose up` li riporta sui dati di sviluppo, rimasti intatti.
+
+#### Cosa fa il `globalSetup`
+
+Prima di ogni run, `e2e/global-setup.ts` esegue tre operazioni:
+
+- Attende che il backend Rails (`http://backend:3000`) risponda — all'avvio con un database nuovo deve prima completare `db:prepare`
+- Attende che il frontend Angular (`http://frontend:4200`) sia raggiungibile, perché `ng serve` è lento
+- Resetta il database tramite `GET /test/reset`, che ricarica `backend/db/testseeds.rb` (5 prodotti, dataset ridotto e deterministico)
+
+#### Protezione dell'endpoint di reset
+
+`GET /test/reset` è distruttivo: cancella l'intero database e i file allegati. È protetto da tre condizioni indipendenti, che devono valere tutte insieme.
+
+| # | Condizione | Dove | Se non è soddisfatta |
+|---|---|---|---|
+| 1 | Ambiente `development` | `backend/config/routes.rb` | La rotta non viene nemmeno dichiarata |
+| 2 | `ENABLE_TEST_HELPERS=true` | `TestHelpersController` | `404` con un hint diagnostico |
+| 3 | Database con suffisso `_e2e` | `TestHelpersController` | `403` con il nome del database rifiutato |
+
+La terza è la garanzia decisiva: il controller legge il nome del database dalla connessione attiva e si rifiuta di procedere se non è quello E2E. Anche una configurazione sbagliata non può quindi cancellare `backend_development`.
+
+I messaggi d'errore sono espliciti invece che opachi, perché la rotta esiste solo in `development` e non è raggiungibile in produzione: se dimentichi `--env-file .env.e2e`, il `globalSetup` stampa il corpo della risposta e indica subito cosa manca.
 
 I report di screenshot e video vengono salvati in `test-results/` solo in caso di fallimento (`screenshot: 'only-on-failure'`, `video: 'retain-on-failure'`).
 
@@ -725,3 +770,33 @@ Il test di checkout compila i campi `firstName`, `lastName`, `street`, `city`, `
 L'helper `login()` condiviso tra i test aspetta che `mat-tab-group` sia visibile (timeout 30s) prima di interagire, per gestire il bootstrap lento di Angular in ambiente Docker.
 
 </details>
+
+---
+
+## CI/CD
+
+La pipeline è definita in `.github/workflows/ci-cd.yml` ed è eseguita su ogni push e ogni pull request verso `main`.
+
+| Job | Cosa fa | Dipende da |
+|---|---|---|
+| `test-frontend` | Unit test Angular su ChromeHeadless con coverage | — |
+| `test-backend` | Minitest su un service container PostgreSQL 16, soglia di coverage `MINIMUM_COVERAGE=85` | — |
+| `quality-backend` | RuboCop, Brakeman e Bundler Audit | — |
+| `e2e` | Test Playwright sullo stack Docker completo | i tre job precedenti |
+| `build-and-push` | Build e push delle immagini su Docker Hub | `e2e` |
+
+I primi tre job girano in parallelo: è inutile eseguire gli E2E se unit test o qualità falliscono. `build-and-push` viene eseguito **solo** sui push a `main`, mai sulle pull request.
+
+**Job E2E** — avvia `db`, `backend` e `frontend` con Docker Compose, ma esegue Playwright direttamente sull'agente: i nomi di servizio della rete Docker non sono risolvibili dal runner, quindi il workflow imposta `BASE_URL` e `API_URL` sulle porte pubblicate su `localhost`. Le variabili di `.env.e2e` sono replicate nell'`env` del job, così anche in CI lo stack usa il database `backend_e2e`. Il database viene creato da `db:prepare` all'avvio del container: non serve alcuno step manuale. In caso di fallimento vengono caricati report Playwright e log dei container.
+
+**Segreti richiesti**
+
+| Segreto | Usato da |
+|---|---|
+| `RAILS_MASTER_KEY` | `test-backend`, `e2e` |
+| `DOCKERHUB_USERNAME` | `build-and-push` |
+| `DOCKERHUB_TOKEN` | `build-and-push` |
+
+Gli artefatti di coverage (frontend e backend) sono conservati 7 giorni.
+
+> **Limitazione nota:** `build-and-push` pubblica immagini di sviluppo (`ng serve` e `rails s`). Per la produzione andrebbero sostituite con build multi-stage — Angular servito da nginx e Rails in modalità production, usando `backend/Dockerfile` già presente nel repository.
