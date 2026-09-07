@@ -157,6 +157,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test-frontend, test-backend, quality-backend]
 
+    # Stesse variabili di .env.e2e: docker compose le interpola dall'ambiente
+    # della shell, quindi lo stack CI usa il database e2e come in locale.
+    env:
+      DATABASE_NAME: backend_e2e
+      STORAGE_ROOT: tmp/storage_e2e
+      ENABLE_TEST_HELPERS: "true"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -171,11 +178,6 @@ jobs:
         run: |
           timeout 120 bash -c \
             'until docker compose exec -T db pg_isready -U rails > /dev/null 2>&1; do sleep 3; done'
-
-      # I container di sviluppo eseguono solo "rails s": senza questo passo il
-      # database non esiste e /test/reset del globalSetup fallirebbe.
-      - name: Crea e migra il database dei container
-        run: docker compose exec -T backend bin/rails db:prepare
 
       - name: Attendi che il frontend sia raggiungibile
         run: |

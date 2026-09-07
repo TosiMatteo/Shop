@@ -23,9 +23,11 @@ ActiveStorage::VariantRecord.delete_all
 ActiveStorage::Blob.delete_all
 
 # 4. Cancella i file fisici dalla cartella storage
-storage_dir = Rails.root.join('storage')
-if Dir.exist?(storage_dir)
-  FileUtils.rm_rf(Dir.glob(storage_dir.join('*')))
+# Si usa la root configurata in storage.yml (non 'storage' hardcoded): con
+# STORAGE_ROOT impostato, i seed di test svuotano solo la propria cartella.
+storage_dir = ActiveStorage::Blob.service.try(:root)
+if storage_dir && Dir.exist?(storage_dir)
+  FileUtils.rm_rf(Dir.glob(File.join(storage_dir, '*')))
   puts "File fisici rimossi."
 end
 

@@ -20,6 +20,11 @@ async function waitForService(url: string, name: string, retries = 5) {
 }
 
 export default async function globalSetup() {
+    // Il backend esegue "db:prepare" prima di "rails s": all'avvio con un
+    // database nuovo (es. backend_e2e) crea e migra lo schema, quindi va
+    // atteso invece di dare per scontato che risponda subito.
+    await waitForService(API_URL, 'Backend', 10);
+
     // Aspetta che il frontend Angular sia pronto (ng serve è lento).
     await waitForService(BASE_URL, 'Frontend');
 

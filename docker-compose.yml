@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_USER: rails
-      POSTGRES_DB: rails_development
+      POSTGRES_DB: backend_development
     ports:
       - "5432:5432"
     volumes:
@@ -24,7 +24,9 @@ services:
       - shop_network
     # Rimozione del file PID residuo prima di avviare il server,
     # per evitare errori in caso di riavvio non pulito
-    command: /bin/sh -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0'"
+    # db:prepare crea e migra il database se non esiste: indispensabile perche'
+    # lo stack puo' puntare su un DB diverso (es. backend_e2e) a ogni avvio.
+    command: /bin/sh -c "rm -f tmp/pids/server.pid && bin/rails db:prepare && bundle exec rails s -b '0.0.0.0'"
     volumes:
       # Montaggio del codice sorgente per il live reload in sviluppo
       - ./backend:/rails
@@ -38,8 +40,13 @@ services:
       DATABASE_HOST: db
       DATABASE_USER: rails
       DATABASE_PASSWORD: password
-      DATABASE_NAME: rails_development
-      ENABLE_TEST_HELPERS: "true"
+      # Default = sviluppo. Il file .env.e2e li sovrascrive con backend_e2e /
+      # tmp/storage_e2e, cosi' i test Playwright non toccano i dati di sviluppo.
+      DATABASE_NAME: ${DATABASE_NAME:-backend_development}
+      STORAGE_ROOT: ${STORAGE_ROOT:-storage}
+      # Opt-in: attivato solo da .env.e2e. In sviluppo resta "false",
+      # cosi' GET /test/reset non e' nemmeno raggiungibile.
+      ENABLE_TEST_HELPERS: ${ENABLE_TEST_HELPERS:-false}
 
   # ─── Frontend Angular ──────────────────────────────────────────────────────
   frontend:

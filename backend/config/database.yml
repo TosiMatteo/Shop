@@ -8,7 +8,9 @@ default: &default
 
 development:
   <<: *default
-  database: backend_development
+  # Selezionabile via env var: permette di puntare lo stesso stack su un
+  # database isolato (es. backend_e2e) senza toccare i dati di sviluppo.
+  database: <%= ENV.fetch("DATABASE_NAME", "backend_development") %>
 
 test:
   <<: *default
