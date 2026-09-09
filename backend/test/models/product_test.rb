@@ -73,4 +73,44 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal 75.0, product.price
     assert product.sale
   end
+
+  test "is invalid when on sale with a price above the original price" do
+    product = Product.new(
+      title: "Sconto finto",
+      description: "prezzo scontato superiore al listino",
+      original_price: 10.0,
+      price: 99.0,
+      sale: true
+    )
+
+    assert_not product.valid?
+    assert_includes product.errors.attribute_names, :price
+  end
+
+  test "accepts a price above the original price when not on sale" do
+    product = Product.new(
+      title: "Rincaro",
+      description: "prezzo aumentato rispetto al listino, senza saldo",
+      original_price: 10.0,
+      price: 99.0,
+      sale: false
+    )
+
+    assert product.valid?
+  end
+
+  test "accepts a price equal to the original price when on sale" do
+    assert build_product(original_price: 10.0, price: 10.0, sale: true).valid?
+  end
+
+  # Crea un prodotto valido, sovrascrivibile attributo per attributo.
+  def build_product(**overrides)
+    Product.new({
+      title: "Prodotto",
+      description: "descrizione del prodotto",
+      original_price: 10.0,
+      price: 10.0,
+      sale: false
+    }.merge(overrides))
+  end
 end

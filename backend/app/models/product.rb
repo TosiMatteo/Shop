@@ -14,6 +14,9 @@ class Product < ApplicationRecord
   validates :price, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :sale, inclusion: { in: [ true, false ] }
   validates :discount_percentage, numericality: { greater_than_or_equal_to: 0, less_than: 100 }, allow_nil: true
+  validates :price, comparison: { less_than_or_equal_to: :original_price,
+                                  message: "non puo' superare il prezzo di listino quando il prodotto e' in saldo" },
+                    if: -> { sale? && price.present? && original_price.present? }
 
   attr_accessor :discount_percentage
 
