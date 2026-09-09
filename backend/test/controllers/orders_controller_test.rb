@@ -63,6 +63,15 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_equal "completed", response.parsed_body["status"]
   end
 
+  test "should reject a status transition leaving a final status" do
+    @order.update!(status: :cancelled)
+
+    patch order_url(@order), params: { order: { status: "completed" } }, as: :json
+
+    assert_response :unprocessable_entity
+    assert_equal "cancelled", @order.reload.status
+  end
+
   test "should destroy order" do
     assert_difference("Order.count", -1) do
       delete order_url(@order), as: :json

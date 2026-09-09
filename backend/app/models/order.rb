@@ -14,9 +14,14 @@ class Order < ApplicationRecord
   validates :shipping_city, presence: true
   validates :shipping_zip, presence: true
   validates :shipping_name, presence: true
+  validate :status_transition_allowed, on: :update
 
   # Allow order items to be created/updated with the order.
   accepts_nested_attributes_for :order_items
+
+  def recalculate_total!
+    update_column(:total, order_items.sum("quantity * unit_price") || 0)
+  end
 
   # Filter orders by minimum/maximum total.
   scope :search_by_min_max_total, ->(min, max) {
@@ -50,4 +55,12 @@ class Order < ApplicationRecord
     else order(created_at: :desc)
     end
   }
+
+  private
+  def status_transition_allowed
+    return unless status_changed?
+    return if status_was == "processing"
+
+    errors.add(:status, "non puo' passare da #{status_was} a #{status}: #{status_was} e' uno stato finale")
+  end
 end

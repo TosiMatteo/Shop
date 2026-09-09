@@ -128,6 +128,62 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal @customer.orders.count, @customer.orders.apply_sort("totalAsc").count
   end
 
+  # ─── TR-1 — regressione D-4 ────────────────────────────────────────────────
+  # completed e cancelled sono stati finali: nessuna transizione uscente.
+  test "allows the transitions leaving processing" do
+    %i[completed cancelled].each do |target|
+      order = build_order.tap(&:save!)
+      assert order.update(status: target), "processing -> #{target} dovrebbe essere ammessa"
+    end
+  end
+
+  test "rejects every transition leaving a final status" do
+    {
+      completed: %i[processing cancelled],
+      cancelled: %i[processing completed]
+    }.each do |from, targets|
+      targets.each do |to|
+        order = build_order(status: from).tap(&:save!)
+
+        assert_not order.update(status: to), "#{from} -> #{to} non dovrebbe essere ammessa"
+        assert_includes order.errors.attribute_names, :status
+        assert_equal from.to_s, order.reload.status
+      end
+    end
+  end
+
+  test "saving a final order without touching the status is allowed" do
+    order = build_order(status: :cancelled).tap(&:save!)
+
+    assert order.update(shipping_city: "Modena")
+  end
+
+  # ─── INV-O3 — regressione D-3 ──────────────────────────────────────────────
+  # total(o) = Σ qty(l) × unit_price(l), preservato anche dalle modifiche.
+  test "the total follows the lines when they are added, changed or removed" do
+    order = build_order(total: 0).tap(&:save!)
+
+    item = OrderItem.create!(order: order, product: products(:pc), quantity: 2, unit_price: 10)
+    assert_equal 20, order.reload.total
+
+    item.update!(quantity: 5)
+    assert_equal 50, order.reload.total
+
+    OrderItem.create!(order: order, product: products(:book), quantity: 1, unit_price: 7)
+    assert_equal 57, order.reload.total
+
+    item.destroy!
+    assert_equal 7, order.reload.total
+  end
+
+  test "recalculate_total! on an order without lines gives zero" do
+    order = build_order(total: 999).tap(&:save!)
+
+    order.recalculate_total!
+
+    assert_equal 0, order.reload.total
+  end
+
   # ─── Cascata ───────────────────────────────────────────────────────────────
   test "destroying an order destroys its lines" do
     assert_difference("OrderItem.count", -@order.order_items.count) do
