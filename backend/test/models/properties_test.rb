@@ -16,9 +16,8 @@ ENV["RANTLY_VERBOSE"] ||= "0" # sopprime i puntini di avanzamento nell'output
 require "rantly"
 require "rantly/property"
 
-class PropertiesTest < ActiveSupport::TestCase
-  SHIPPING = { name: "Mario Rossi", street: "Via Roma 1", city: "Bologna", zip: "40121" }.freeze
-
+# Metodi comuni alle due classi di test di questo file.
+module PropertyHelpers
   # Sostituisce rantly/minitest_extensions.
   def property_of(&block)
     Rantly::Property.new(block)
@@ -37,6 +36,12 @@ class PropertiesTest < ActiveSupport::TestCase
       sale: false
     )
   end
+end
+
+class PropertiesTest < ActiveSupport::TestCase
+  include PropertyHelpers
+
+  SHIPPING = { name: "Mario Rossi", street: "Via Roma 1", city: "Bologna", zip: "40121" }.freeze
 
   def cart_from(rows)
     cart = Cart.create!(customer: customers(:Customer_Auth))
@@ -107,23 +112,31 @@ class PropertiesTest < ActiveSupport::TestCase
     end
   end
 
-  # ─── PBT-4 — OP-3 / INV-C1 ─────────────────────────────────────────────────
-  # ∀ sequenza di aggiunte dello stesso prodotto: resta una sola riga e la
-  # quantità è la somma delle quantità aggiunte.
+end
+
+# ─── PBT-4 — OP-3 / INV-C1 ───────────────────────────────────────────────────
+# ∀ sequenza di aggiunte dello stesso prodotto: resta una sola riga e la
+# quantità è la somma delle quantità aggiunte.
+#
+class CartItemsPropertiesTest < ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
+  include PropertyHelpers
+
+  setup do
+    @customer = customers(:Customer_Auth)
+  end
+
   test "adding the same product repeatedly keeps a single line with the summed quantity" do
     property_of {
       Array.new(range(1, 5)) { range(1, 9) }
     }.check(15) do |quantities|
-      cart = Cart.create!(customer: customers(:Customer_Auth))
+      cart = Cart.create!(customer: @customer)
       product = product_with_price(1_000, "merge-#{quantities.join('-')}")
 
-      quantities.each do |quantity|
-        existing = cart.cart_items.find_by(product_id: product.id)
-        if existing
-          existing.update!(quantity: existing.quantity + quantity)
-        else
-          cart.cart_items.create!(product: product, quantity: quantity)
-        end
+      quantities.each_with_index do |quantity, index|
+       sign_in @customer
+        post cart_cart_items_url(cart), params: { cart_item: { product_id: product.id, quantity: quantity } }, as: :json
+        assert_response index.zero? ? :created : :ok
       end
 
       assert_equal 1, cart.cart_items.reload.size

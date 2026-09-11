@@ -536,7 +536,7 @@ Compila e esegui i test:
 ng test --watch=false
 ```
 
-Aggiungere -code--coverage per generare un report HTML in `coverage/angular/index.html`
+Aggiungere --code-coverage per generare un report HTML in `coverage/angular/index.html`
 
 Eseguire un test specifico:
 ```
@@ -729,15 +729,16 @@ docker compose exec frontend ng test --watch=false --include="**/discount-percen
 ```
 
 <details>
-<summary><strong>PropertiesTest — Rantly</strong></summary>
+<summary><strong>properties_test.rb — Rantly</strong></summary>
 
 | Test | Proprietà verificata | Input generati | Iterazioni |
 |---|---|---|---|
 | `total_price equals the sum of quantity times price for any cart` | Il totale del carrello è la somma di quantità × prezzo di ogni riga | Da 1 a 4 righe, quantità 1–5, prezzo 0,01–2.000,00 € | 15 |
 | `checkout preserves the total and every line of any non empty cart` | Il checkout crea un ordine con lo stesso totale e le stesse righe del carrello (prodotto, quantità, prezzo), in stato `processing`, e cancella il carrello | Come sopra | 10 |
 | `search_by_min_max_total agrees with the ruby oracle on any range` | `search_by_min_max_total(min, max)` restituisce esattamente gli ordini con totale in `[min, max]`: nessuno fuori intervallo, nessuno mancante. Il risultato della query viene confrontato con lo stesso filtro calcolato in Ruby | Coppie di estremi 0–500, su 7 ordini con totali vicini ai confini (0, 15, 99, 100, 101, 250, 500) | 30 |
-| `adding the same product repeatedly keeps a single line with the summed quantity` | Aggiungendo più volte lo stesso prodotto resta una sola riga, con quantità pari alla somma delle aggiunte | Da 1 a 5 aggiunte, quantità 1–9 | 15 |
+| `adding the same product repeatedly keeps a single line with the summed quantity` | Aggiungendo più volte lo stesso prodotto con `POST /carts/:id/cart_items` resta una sola riga, con quantità pari alla somma delle aggiunte. La prima richiesta risponde 201, le successive 200 | Da 1 a 5 aggiunte, quantità 1–9 | 15 |
 
+- I primi tre test sono nella classe `PropertiesTest` (`ActiveSupport::TestCase`) e lavorano sui modelli. Il quarto è nella classe `CartItemsPropertiesTest` (`ActionDispatch::IntegrationTest`): la fusione delle righe è implementata in `CartItemsController#create`, quindi va verificata con richieste HTTP autenticate.
 - I prezzi vengono generati in centesimi e riportati a due decimali: la colonna è `numeric(10,2)`, quindi con float arbitrari un errore di arrotondamento sembrerebbe un errore di logica.
 - Il numero di iterazioni è l'argomento di `.check(n)` nel file: per provare più casi basta alzarlo.
 - L'avanzamento non viene stampato. Per vederlo: `RANTLY_VERBOSE=1 rails test test/models/properties_test.rb`.
