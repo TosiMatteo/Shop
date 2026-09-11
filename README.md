@@ -151,6 +151,7 @@ Le ultime tre sono sovrascritte da `.env.e2e` durante i test end-to-end, per iso
 | `rubocop-rails-omakase` | development, test | Linter di stile con configurazione Omakase di Rails (Basecamp). Garantisce coerenza stilistica e individua pattern non idiomatici. |
 | `faker` | development, test | Generazione di dati fittizi realistici per seed e fixtures. |
 | `simplecov` | test | Misura la percentuale di righe coperte dalla suite di test. Genera un report HTML in `coverage/`. |
+| `rantly` | test | Generazione di input casuali per i test property-based (`test/models/properties_test.rb`). |
 
 </details>
 
@@ -165,6 +166,7 @@ Le ultime tre sono sovrascritte da `.env.e2e` durante i test end-to-end, per iso
 | `rxjs`               | Gestione flussi asincroni   |
 | SCSS                 | Stile componenti            |
 | Chromium             | Browser default per testing |
+| `fast-check`         | Test property-based         |
 
 </details>
 
@@ -407,6 +409,8 @@ Il progetto è coperto da test su tre livelli:
 - **Backend Rails** – model e integration test
 - **Frontend Angular** – unit test di componenti, servizi e guardie
 - **End‑to‑end** – scenari utente completi con Playwright
+
+Ad alcune proprietà del dominio si aggiungono test *property-based*, che le verificano su input generati automaticamente: vedi [Property-based testing](#property-based-testing).
 
 ---
 
@@ -695,7 +699,68 @@ I test mockano `ProductApi` e `TagService` e utilizzano `fakeAsync` per controll
 I test mockano `OrderService` e `AuthService` e utilizzano `fakeAsync` per controllare i debounce dei filtri totali.
 </details>
 
+---
 
+### Property-based testing
+
+Un test a esempio verifica una proprietà su un input scelto a mano. Un test property-based verifica la stessa proprietà su molti input generati automaticamente: se uno di questi la viola, il test fallisce e mostra il controesempio.
+
+| Lato | Libreria | File |
+|---|---|---|
+| Backend | **Rantly** | `backend/test/models/properties_test.rb` |
+| Frontend | **fast-check** | `frontend/src/app/core/pipes/discount-percentage.pipe.spec.ts` |
+
+**Comandi principali**
+
+Backend, dalla cartella `backend/`:
+```
+rails test test/models/properties_test.rb
+```
+
+Frontend, dalla cartella `frontend/`:
+```
+ng test --watch=false --include="**/discount-percentage.pipe.spec.ts"
+```
+
+Con i container avviati, gli stessi comandi si lanciano dalla radice del repository:
+```
+docker compose exec backend bin/rails test test/models/properties_test.rb
+docker compose exec frontend ng test --watch=false --include="**/discount-percentage.pipe.spec.ts"
+```
+
+<details>
+<summary><strong>PropertiesTest — Rantly</strong></summary>
+
+| Test | Proprietà verificata | Input generati | Iterazioni |
+|---|---|---|---|
+| `total_price equals the sum of quantity times price for any cart` | Il totale del carrello è la somma di quantità × prezzo di ogni riga | Da 1 a 4 righe, quantità 1–5, prezzo 0,01–2.000,00 € | 15 |
+| `checkout preserves the total and every line of any non empty cart` | Il checkout crea un ordine con lo stesso totale e le stesse righe del carrello (prodotto, quantità, prezzo), in stato `processing`, e cancella il carrello | Come sopra | 10 |
+| `search_by_min_max_total agrees with the ruby oracle on any range` | `search_by_min_max_total(min, max)` restituisce esattamente gli ordini con totale in `[min, max]`: nessuno fuori intervallo, nessuno mancante. Il risultato della query viene confrontato con lo stesso filtro calcolato in Ruby | Coppie di estremi 0–500, su 7 ordini con totali vicini ai confini (0, 15, 99, 100, 101, 250, 500) | 30 |
+| `adding the same product repeatedly keeps a single line with the summed quantity` | Aggiungendo più volte lo stesso prodotto resta una sola riga, con quantità pari alla somma delle aggiunte | Da 1 a 5 aggiunte, quantità 1–9 | 15 |
+
+- I prezzi vengono generati in centesimi e riportati a due decimali: la colonna è `numeric(10,2)`, quindi con float arbitrari un errore di arrotondamento sembrerebbe un errore di logica.
+- Il numero di iterazioni è l'argomento di `.check(n)` nel file: per provare più casi basta alzarlo.
+- L'avanzamento non viene stampato. Per vederlo: `RANTLY_VERBOSE=1 rails test test/models/properties_test.rb`.
+- Il file non carica `rantly/minitest_extensions`, che richiede `minitest/unit` (rimosso in Minitest 6) e romperebbe l'intera suite. Carica invece `rantly/property` e definisce `property_of` al suo interno.
+
+</details>
+
+<details>
+<summary><strong>discount-percentage.pipe — fast-check</strong></summary>
+
+La pipe calcola la percentuale di sconto a partire dal prezzo originale e dal prezzo di vendita.
+
+| Test | Proprietà verificata | Input generati |
+|---|---|---|
+| `property: always returns a percentage between 0 and 100` | Il risultato è sempre un intero compreso tra 0 e 100 | Prezzo originale 0,01–100.000, prezzo 0–100.000 |
+| `property: never shows a discount when the price is not lower` | Se il prezzo non è inferiore al prezzo originale, lo sconto è 0 | Prezzo originale 0,01–100.000, prezzo = originale + un valore 0–100.000 |
+| `property: the discount never grows when the price grows` | A un prezzo più alto corrisponde uno sconto uguale o minore | Prezzo originale 0,01–100.000, due prezzi 0–100.000 |
+
+- Ogni proprietà gira su 100 input, il valore predefinito di fast-check (`numRuns` non è impostato).
+- Se una proprietà fallisce, fast-check riduce l'input al controesempio più piccolo (*shrinking*) e stampa il `seed` per riprodurre lo stesso caso.
+- Lo stesso file contiene anche 4 test a esempio sui casi notevoli: sconto arrotondato, prezzo non inferiore, prezzo originale non positivo, prezzi ricevuti come stringhe.
+
+</details>
 
 ---
 

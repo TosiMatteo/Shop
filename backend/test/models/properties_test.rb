@@ -4,8 +4,7 @@ require "test_helper"
 #
 # I test di esempio verificano una post-condizione su un input scelto a mano;
 # qui la stessa post-condizione viene verificata su input generati
-# automaticamente da Rantly. Le proprietà sono le formule universalmente
-# quantificate di docs/SPECIFICA.md (§ 7.2).
+# automaticamente da Rantly.
 #
 # NOTA: non si carica "rantly/minitest_extensions" perché quel file fa
 # `require "minitest/unit"`, rimosso a partire da Minitest 6, e romperebbe
