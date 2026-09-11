@@ -111,7 +111,6 @@ class PropertiesTest < ActiveSupport::TestCase
       assert_equal expected, actual
     end
   end
-
 end
 
 # ─── PBT-4 — OP-3 / INV-C1 ───────────────────────────────────────────────────
@@ -134,7 +133,7 @@ class CartItemsPropertiesTest < ActionDispatch::IntegrationTest
       product = product_with_price(1_000, "merge-#{quantities.join('-')}")
 
       quantities.each_with_index do |quantity, index|
-       sign_in @customer
+        sign_in @customer
         post cart_cart_items_url(cart), params: { cart_item: { product_id: product.id, quantity: quantity } }, as: :json
         assert_response index.zero? ? :created : :ok
       end
