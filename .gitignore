@@ -28,3 +28,8 @@ node_modules/
 *.gem
 /.bundle/
 /e2e/test-results/
+
+
+/docs/
+/Claude outputs
+/.mcp.json
