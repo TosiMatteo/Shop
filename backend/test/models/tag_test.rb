@@ -1,7 +1,6 @@
 require "test_helper"
 
-# Vincoli sull'entità Tag e sulla relazione molti-a-molti con Product
-# (docs/SPECIFICA.md, OP-4c).
+# Vincoli sull'entità Tag e sulla relazione molti-a-molti con Product.
 class TagTest < ActiveSupport::TestCase
   test "the fixture tag is valid" do
     assert tags(:Informatica).valid?

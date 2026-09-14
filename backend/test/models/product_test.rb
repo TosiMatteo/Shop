@@ -20,7 +20,7 @@ class ProductTest < ActiveSupport::TestCase
     assert_not @product.valid?
   end
 
-  # INV-P5: senza prezzo la somma SQL del carrello ignorerebbe la riga.
+  # Senza prezzo la somma SQL del carrello ignorerebbe la riga.
   test "should not be valid without a price" do
     @product.price = nil
     assert_not @product.valid?

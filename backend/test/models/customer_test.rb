@@ -1,6 +1,6 @@
 require "test_helper"
 
-# Vincoli di integrità sull'entità Cliente (docs/SPECIFICA.md, § 4: owner(c), owner(o)).
+# Vincoli di integrità sull'entità Cliente e sulla proprietà di carrelli e ordini.
 class CustomerTest < ActiveSupport::TestCase
   def build_customer(**overrides)
     Customer.new({

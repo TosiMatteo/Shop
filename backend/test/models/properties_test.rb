@@ -56,7 +56,7 @@ class PropertiesTest < ActiveSupport::TestCase
     [ cart, expected ]
   end
 
-  # ─── PBT-1 — OP-1 ──────────────────────────────────────────────────────────
+  # ─── PBT-1 — total_price ───────────────────────────────────────────────────
   # ∀ carrello: total_price = Σ qty(i) × price(prod(i))
   test "total_price equals the sum of quantity times price for any cart" do
     property_of {
@@ -68,7 +68,7 @@ class PropertiesTest < ActiveSupport::TestCase
     end
   end
 
-  # ─── PBT-2 — OP-2 ──────────────────────────────────────────────────────────
+  # ─── PBT-2 — checkout ──────────────────────────────────────────────────────
   # ∀ carrello non vuoto, il checkout produce un ordine il cui totale e le cui
   # righe riproducono il carrello, e distrugge il carrello.
   test "checkout preserves the total and every line of any non empty cart" do
@@ -88,7 +88,7 @@ class PropertiesTest < ActiveSupport::TestCase
     end
   end
 
-  # ─── PBT-3 — OP-4a ─────────────────────────────────────────────────────────
+  # ─── PBT-3 — filtro per intervallo di totale ───────────────────────────────
   # Il filtro su intervallo deve essere corretto (nessun risultato fuori
   # intervallo) e completo (nessun ordine in intervallo lasciato fuori): si
   # confronta la query SQL con un oracolo calcolato in Ruby.
@@ -113,7 +113,7 @@ class PropertiesTest < ActiveSupport::TestCase
   end
 end
 
-# ─── PBT-4 — OP-3 / INV-C1 ───────────────────────────────────────────────────
+# ─── PBT-4 — aggiunta ripetuta dello stesso prodotto ─────────────────────────
 # ∀ sequenza di aggiunte dello stesso prodotto: resta una sola riga e la
 # quantità è la somma delle quantità aggiunte.
 #

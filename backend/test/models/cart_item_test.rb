@@ -1,7 +1,7 @@
 require "test_helper"
 
-# Verifica degli invarianti INV-C1 (unicità del prodotto per carrello) e
-# INV-C2 (quantità intera ≥ 1) definiti in docs/SPECIFICA.md.
+# Verifica degli invarianti di unicità del prodotto per carrello e di
+# quantità intera ≥ 1.
 class CartItemTest < ActiveSupport::TestCase
   def setup
     @cart = carts(:one)      # contiene già products(:pc)
@@ -12,7 +12,7 @@ class CartItemTest < ActiveSupport::TestCase
     assert cart_items(:one).valid?
   end
 
-  # ─── INV-C2 ────────────────────────────────────────────────────────────────
+  # ─── Quantità intera ≥ 1 ───────────────────────────────────────────────────
   test "is invalid without a quantity" do
     assert_not CartItem.new(cart: @cart, product: products(:shirt)).valid?
   end
@@ -30,7 +30,7 @@ class CartItemTest < ActiveSupport::TestCase
     assert CartItem.new(cart: @cart, product: products(:shirt), quantity: 1).valid?
   end
 
-  # ─── INV-C1 ────────────────────────────────────────────────────────────────
+  # ─── Unicità del prodotto per carrello ─────────────────────────────────────
   test "rejects the same product twice in the same cart" do
     duplicate = CartItem.new(cart: @cart, product: products(:pc), quantity: 1)
 

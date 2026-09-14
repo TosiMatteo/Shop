@@ -1,7 +1,7 @@
 require "test_helper"
 
-# Verifica dell'invariante INV-O1 e dei contratti OP-4/OP-5 applicati a Order
-# (docs/SPECIFICA.md).
+# Verifica dell'invariante di classe e dei contratti di filtro e ordinamento
+# applicati a Order.
 class OrderTest < ActiveSupport::TestCase
   def setup
     @customer = customers(:Customer_Auth)
@@ -20,7 +20,7 @@ class OrderTest < ActiveSupport::TestCase
     }.merge(overrides))
   end
 
-  # ─── INV-O1 ────────────────────────────────────────────────────────────────
+  # ─── Validità dell'ordine ──────────────────────────────────────────────────
   test "the fixture order satisfies the class invariant" do
     assert @order.valid?
   end
@@ -51,7 +51,7 @@ class OrderTest < ActiveSupport::TestCase
     assert_raises(ArgumentError) { build_order(status: "shipped") }
   end
 
-  # ─── OP-4: filtri, verificati in entrambe le direzioni ─────────────────────
+  # ─── Filtri, verificati in entrambe le direzioni ───────────────────────────
   test "search_by_min_max_total keeps only the orders inside the range" do
     inside = build_order(total: 100).tap(&:save!)
     below  = build_order(total: 10).tap(&:save!)
@@ -102,7 +102,7 @@ class OrderTest < ActiveSupport::TestCase
     assert_not_includes result, recent_order
   end
 
-  # ─── OP-5: ordinamento ─────────────────────────────────────────────────────
+  # ─── Ordinamento ───────────────────────────────────────────────────────────
   test "apply_sort orders by total ascending and descending" do
     build_order(total: 5).save!
     build_order(total: 900).save!
@@ -128,7 +128,7 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal @customer.orders.count, @customer.orders.apply_sort("totalAsc").count
   end
 
-  # ─── TR-1 — regressione D-4 ────────────────────────────────────────────────
+  # ─── Transizioni di stato (regressione) ────────────────────────────────────
   # completed e cancelled sono stati finali: nessuna transizione uscente.
   test "allows the transitions leaving processing" do
     %i[completed cancelled].each do |target|
@@ -158,7 +158,7 @@ class OrderTest < ActiveSupport::TestCase
     assert order.update(shipping_city: "Modena")
   end
 
-  # ─── INV-O3 — regressione D-3 ──────────────────────────────────────────────
+  # ─── Totale dell'ordine (regressione) ──────────────────────────────────────
   # total(o) = Σ qty(l) × unit_price(l), preservato anche dalle modifiche.
   test "the total follows the lines when they are added, changed or removed" do
     order = build_order(total: 0).tap(&:save!)

@@ -1,7 +1,7 @@
 require "test_helper"
 
-# Verifica dell'invariante INV-O2 e della regola di snapshot del prezzo
-# (docs/SPECIFICA.md, OP-2).
+# Verifica dei vincoli su quantità e prezzo unitario e della regola di
+# snapshot del prezzo.
 class OrderItemTest < ActiveSupport::TestCase
   def setup
     @order = orders(:one)
@@ -12,7 +12,7 @@ class OrderItemTest < ActiveSupport::TestCase
     assert order_items(:one).valid?
   end
 
-  # ─── INV-O2 ────────────────────────────────────────────────────────────────
+  # ─── Quantità e prezzo unitario ────────────────────────────────────────────
   test "is invalid with a quantity below one" do
     assert_not OrderItem.new(order: @order, product: @product, quantity: 0, unit_price: 10).valid?
   end

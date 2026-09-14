@@ -2,8 +2,6 @@ import fc from 'fast-check';
 import { DiscountPercentagePipe } from './discount-percentage.pipe';
 
 /**
- * Contratto OP-7 di docs/SPECIFICA.md.
- *
  * I primi test sono a esempio (casi notevoli e di confine); quelli marcati
  * "property" verificano le formule universalmente quantificate Q1, Q2 e Q3 su
  * input generati da fast-check, che in caso di fallimento riduce il

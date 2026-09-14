@@ -8,12 +8,12 @@ class CartTest < ActiveSupport::TestCase
     @cart = carts(:one)
   end
 
-  # ─── INV-C3 ────────────────────────────────────────────────────────────────
+  # ─── Associazioni obbligatorie ─────────────────────────────────────────────
   test "is invalid without a customer" do
     assert_not Cart.new.valid?
   end
 
-  # ─── OP-1: total_price = Σ qty(i) × price(prod(i)) ─────────────────────────
+  # ─── total_price = Σ qty(i) × price(prod(i)) ───────────────────────────────
   test "total_price sums quantity times price over every item" do
     # 999.99 x 1 (pc) + 10.00 x 3 (shirt) = 1029.99
     @cart.cart_items.create!(product: products(:shirt), quantity: 3)
@@ -33,7 +33,7 @@ class CartTest < ActiveSupport::TestCase
     end
   end
 
-  # ─── OP-2: checkout, caso nominale ─────────────────────────────────────────
+  # ─── Checkout, caso nominale ───────────────────────────────────────────────
   test "checkout creates one order carrying the cart total and destroys the cart" do
     @cart.cart_items.create!(product: products(:shirt), quantity: 2)
     expected_total = @cart.total_price
@@ -66,7 +66,7 @@ class CartTest < ActiveSupport::TestCase
     assert_equal products(:shirt).price, shirt_line.unit_price
   end
 
-  # INV-O3: il totale dell'ordine coincide con la somma delle sue righe.
+  # Il totale dell'ordine coincide con la somma delle sue righe.
   test "the order total equals the sum of its own lines" do
     @cart.cart_items.create!(product: products(:shirt), quantity: 2)
 
@@ -75,7 +75,7 @@ class CartTest < ActiveSupport::TestCase
     assert_equal order.order_items.sum { |l| l.quantity * l.unit_price }, order.total
   end
 
-  # Immutabilità dello snapshot di prezzo (OP-2).
+  # Immutabilità dello snapshot di prezzo.
   test "an order line keeps its price after the product price changes" do
     order = @cart.checkout(SHIPPING)
     line = order.order_items.first
@@ -87,7 +87,7 @@ class CartTest < ActiveSupport::TestCase
     assert_not_equal line.product.reload.price, line.unit_price
   end
 
-  # ─── OP-2b: carrello vuoto ─────────────────────────────────────────────────
+  # ─── Checkout, carrello vuoto ──────────────────────────────────────────────
   test "checkout of an empty cart fails and leaves the state untouched" do
     empty = carts(:two)
     empty.cart_items.destroy_all
@@ -99,7 +99,7 @@ class CartTest < ActiveSupport::TestCase
     assert Cart.exists?(empty.id), "il carrello non deve essere distrutto se il checkout fallisce"
   end
 
-  # ─── OP-2c: spedizione incompleta, atomicità della transazione ─────────────
+  # ─── Checkout, spedizione incompleta, atomicità della transazione ──────────
   test "checkout without a shipping name rolls back completely" do
     incomplete = SHIPPING.except(:name)
 
