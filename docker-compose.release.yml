@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: rails
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: backend_development
+    networks: [shop_network]
+    volumes:
+      - release_pgdata:/var/lib/postgresql/data
+
+  backend:
+    image: teo0401/shop-backend:latest
+    command: bundle exec rails s -b 0.0.0.0
+    environment:
+      DATABASE_HOST: db
+      DATABASE_USER: rails
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: backend_development
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+    ports: ["3000:3000"]
+    depends_on: [db]
+    networks: [shop_network]
+    # Active Storage in configurazione locale scrive i file dentro /rails/storage:
+    # senza volume le immagini caricate dal seed vivono solo nel container che le
+    # ha scritte, e il server ne trova i blob nel database ma non i file.
+    volumes:
+      - release_storage:/rails/storage
+
+  frontend:
+    image: teo0401/shop-frontend:latest
+    ports: ["4200:4200"]
+    depends_on: [backend]
+    networks: [shop_network]
+
+networks:
+  shop_network:
+    driver: bridge
+
+volumes:
+  release_pgdata:
+  release_storage:
