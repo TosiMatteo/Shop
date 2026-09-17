@@ -460,7 +460,7 @@ Gli scope vengono testati con asserzioni simmetriche (caso positivo + negativo n
 | `should update cart_item` | `PATCH /cart_items/:id` aggiorna la quantità → 200 |
 | `should destroy cart_item` | `DELETE /cart_items/:id` rimuove il record → 204 |
 
-Il `setup` riassegna il carrello fixture al customer autenticato per evitare che l'autorizzazione lato server rigetti la richiesta.
+Il `setup` usa il carrello fixture `carts(:one)`, che appartiene già al customer autenticato.
 
 </details>
 
@@ -478,7 +478,7 @@ Il `setup` riassegna il carrello fixture al customer autenticato per evitare che
 | `should reject checkout of empty cart` | Checkout con carrello vuoto → 422 |
 | `should checkout successfully` | Verifica la transazione completa: +1 `Order`, +N `OrderItem`, -1 `Cart`, totale corretto, status `processing`, shipping name nella risposta |
 
-Il test di checkout usa `assert_difference` annidati per verificare simultaneamente i tre delta sul database, rispecchiando la logica transazionale del controller.
+Il test di checkout usa un solo `assert_difference` con tre contatori per verificare simultaneamente i tre delta sul database, rispecchiando la logica transazionale del controller.
 
 </details>
 
@@ -615,7 +615,7 @@ La guardia distingue tre casi: accesso consentito, login mancante e privilegi in
 | `should be valid with correct email and password` | Il form è valido con email e password corretti |
 | **onLogin()** | |
 | `should not call authService.login() when form is invalid` | Se il form non è valido, non viene chiamato il servizio di login |
-| `should call authService.login() and navigate to /dashboard on success` | Con form valido, chiama `AuthService.login` e naviga a `/dashboard` |
+| `should call authService.login() and navigate to /products on success` | Con form valido, chiama `AuthService.login` e naviga al catalogo `/products` |
 | **passwordMatchValidator** | |
 | `should set passwordMismatch error when passwords do not match` | Il validatore cross‑field imposta l'errore quando le password differiscono |
 | `should clear passwordMismatch error when passwords match` | Il validatore rimuove l'errore quando le password coincidono |
