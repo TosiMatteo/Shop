@@ -5,7 +5,7 @@ import { AuthService } from '../services/auth/auth-service';
 
 describe('authGuard', () => {
   const executeGuard: CanActivateFn = (...guardParameters) =>
-      TestBed.runInInjectionContext(() => authGuard(...guardParameters));
+    TestBed.runInInjectionContext(() => authGuard(...guardParameters));
 
   let authServiceMock: jasmine.SpyObj<AuthService>;
 

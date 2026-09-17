@@ -11,18 +11,18 @@ import { AuthService } from '../services/auth/auth-service';
 describe('AuthInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
-  let authService: jasmine.SpyObj<AuthService>;
+  let authServiceMock: jasmine.SpyObj<AuthService>;
 
   const URL = '/api/products';
 
   beforeEach(() => {
-    authService = jasmine.createSpyObj<AuthService>('AuthService', ['getToken']);
+    authServiceMock = jasmine.createSpyObj<AuthService>('AuthService', ['getToken']);
 
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([AuthInterceptor])),
         provideHttpClientTesting(),
-        { provide: AuthService, useValue: authService },
+        { provide: AuthService, useValue: authServiceMock },
       ],
     });
 
@@ -32,8 +32,8 @@ describe('AuthInterceptor', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('allega il token nell header Authorization quando esiste', () => {
-    authService.getToken.and.returnValue('Bearer token-di-prova');
+  it('should attach the token in the Authorization header when it exists', () => {
+    authServiceMock.getToken.and.returnValue('Bearer token-di-prova');
 
     http.get(URL).subscribe();
 
@@ -42,8 +42,8 @@ describe('AuthInterceptor', () => {
     req.flush([]);
   });
 
-  it('non aggiunge alcun header quando il token non esiste', () => {
-    authService.getToken.and.returnValue(null);
+  it('should not add any header when there is no token', () => {
+    authServiceMock.getToken.and.returnValue(null);
 
     http.get(URL).subscribe();
 
@@ -52,8 +52,8 @@ describe('AuthInterceptor', () => {
     req.flush([]);
   });
 
-  it('non altera il resto della richiesta', () => {
-    authService.getToken.and.returnValue('Bearer token-di-prova');
+  it('should leave the rest of the request unchanged', () => {
+    authServiceMock.getToken.and.returnValue('Bearer token-di-prova');
     const body = { cart_item: { product_id: 1, quantity: 2 } };
 
     http.post(URL, body).subscribe();
