@@ -57,6 +57,10 @@ services:
       # Opt-in: attivato solo da .env.e2e. In sviluppo resta "false",
       # cosi' GET /test/reset non e' nemmeno raggiungibile.
       ENABLE_TEST_HELPERS: ${ENABLE_TEST_HELPERS:-false}
+      # Segreto di firma dei JWT. Il default vale SOLO per lo stack di sviluppo,
+      # che gira in locale con dati finti. In un deployment reale la variabile
+      # va fornita dall'esterno e non deve avere un default.
+      DEVISE_JWT_SECRET_KEY: ${DEVISE_JWT_SECRET_KEY:-sviluppo-locale-segreto-non-usare-in-produzione}
 
   # ─── Frontend Angular ──────────────────────────────────────────────────────
   frontend:

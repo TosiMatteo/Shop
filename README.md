@@ -90,6 +90,8 @@ npm start
 ```
 </details>
 
+> Il repository non contiene `config/master.key`: i segreti cifrati in `credentials.yml.enc` non sono leggibili da chi clona, ed è voluto. L'unico segreto che serve davvero è la chiave di firma dei JWT, che `docker-compose.yml` fornisce con un valore di sviluppo — `git clone` + `docker compose up` funziona senza nessuna configurazione aggiuntiva.
+
 Le chiamate API vengono proxate verso `http://localhost:3000` tramite `proxy.conf.json`, senza configurazioni CORS aggiuntive.
 
 ---
@@ -106,8 +108,11 @@ Configurabili nel `docker-compose.yml` o in un file `.env` nella cartella `backe
 | `DATABASE_NAME` | Nome del database | `backend_development` |
 | `STORAGE_ROOT` | Cartella dei file Active Storage, relativa a `backend/` | `storage` |
 | `ENABLE_TEST_HELPERS` | Abilita `GET /test/reset` (reset distruttivo del database) | `false` |
+| `DEVISE_JWT_SECRET_KEY` | Chiave con cui vengono firmati i token JWT | valore di sviluppo in `docker-compose.yml` |
 
-Le ultime tre sono sovrascritte da `.env.e2e` durante i test end-to-end, per isolare database e file dall'ambiente di sviluppo.
+`DATABASE_NAME`, `STORAGE_ROOT` e `ENABLE_TEST_HELPERS` sono sovrascritte da `.env.e2e` durante i test end-to-end, per isolare database e file dall'ambiente di sviluppo.
+
+Il default di `DEVISE_JWT_SECRET_KEY` vale **solo per lo stack di sviluppo**, che gira in locale su dati finti. In un deployment reale la variabile va fornita dall'esterno (`export DEVISE_JWT_SECRET_KEY=$(openssl rand -hex 64)`), e infatti `docker-compose.release.yml` la richiede senza default. Se la esporti, il tuo valore vince sul default anche in sviluppo.
 
 ---
 
