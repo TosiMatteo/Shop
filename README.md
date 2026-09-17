@@ -867,45 +867,114 @@ Gli artefatti di coverage (frontend e backend) sono conservati 7 giorni.
 
 ### Usare le immagini pubblicate
 
-Il job `build-and-push` pubblica due immagini su Docker Hub a ogni push su `main` che superi tutti i job precedenti:
+Il job `build-and-push` pubblica due immagini su Docker Hub a ogni push su `main` che
+superi tutti i job precedenti:
 
-| Immagine | Contenuto | Dockerfile |
+| Immagine | Contenuto | Tag |
 |---|---|---|
-| `teo0401/shop-backend` | Rails 8 API-only, gemme e codice applicativo | `backend/Dockerfile.dev` |
-| `teo0401/shop-frontend` | Angular 20 con le dipendenze già installate | `frontend/Dockerfile` |
+| `teo0401/shop-backend` | Rails 8 API-only, gemme e codice applicativo | `latest`, `sha-<short-sha>` |
+| `teo0401/shop-frontend` | Angular 20 con le dipendenze installate | `latest`, `sha-<short-sha>` |
 
-Il prefisso del nome deriva dal segreto `DOCKERHUB_USERNAME` (`IMAGE_PREFIX: ${{ secrets.DOCKERHUB_USERNAME }}/shop`): chi forka il repository pubblica sul proprio account senza toccare il workflow.
+Con queste due immagini si avvia l'applicazione completa **senza clonare il repository
+e senza compilare niente**: servono solo Docker con Compose e una connessione a Internet.
 
-Ogni build produce due tag: `latest`, applicato solo sul branch di default e quindi sempre allineato all'ultima revisione di `main`, e `sha-<short-sha>`, che permette di risalire alla revisione esatta da cui l'immagine è nata.
+> **Non serve ricevere nessun segreto dal manutentore.** Le immagini non contengono
+> `config/master.key` — è escluso dal `.dockerignore` — ma non c'è bisogno di chiederla:
+> l'unico segreto che l'applicazione usa a runtime è la chiave con cui firma i token JWT,
+> e chi avvia le immagini se la genera da sé. Il perché è spiegato
+> [più sotto](#perché-non-serve-la-master-key).
 
-Per avviare l'applicazione **senza clonare il repository** basta `docker-compose.release.yml`: usa `image:` al posto di `build:` e non monta codice dall'host, quindi riproduce esattamente la condizione di chi scarica le immagini.
+#### 1. Crea il file `docker-compose.release.yml`
+
+In una cartella vuota, dove preferisci:
+
+```yaml
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: rails
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: backend_development
+    networks: [shop_network]
+    volumes:
+      - release_pgdata:/var/lib/postgresql/data
+
+  backend:
+    image: teo0401/shop-backend:latest
+    command: bundle exec rails s -b 0.0.0.0
+    environment:
+      DATABASE_HOST: db
+      DATABASE_USER: rails
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: backend_development
+      # Segreto di firma dei token JWT. config/initializers/devise.rb ricade sulle
+      # credenziali cifrate solo se questa variabile manca: passandola, l'immagine
+      # non ha bisogno della master key di chi l'ha pubblicata.
+      DEVISE_JWT_SECRET_KEY: "${DEVISE_JWT_SECRET_KEY:?definisci DEVISE_JWT_SECRET_KEY con openssl rand -hex 64}"
+    ports: ["3000:3000"]
+    depends_on: [db]
+    networks: [shop_network]
+    # Active Storage in configurazione locale scrive i file dentro /rails/storage:
+    # senza volume le immagini caricate dal seed vivono solo nel container che le
+    # ha scritte, e il server ne trova i blob nel database ma non i file.
+    volumes:
+      - release_storage:/rails/storage
+
+  frontend:
+    image: teo0401/shop-frontend:latest
+    ports: ["4200:4200"]
+    depends_on: [backend]
+    networks: [shop_network]
+
+networks:
+  shop_network:
+    driver: bridge
+
+volumes:
+  release_pgdata:
+  release_storage:
+```
+
+Nessun `build:` e nessun codice montato dall'host: tutto quello che gira viene dalle
+immagini scaricate da Docker Hub.
+
+#### 2. Avvia
 
 ```bash
-export RAILS_MASTER_KEY=<master key del progetto>
+# un segreto qualsiasi, purché casuale: firma i token di login
+export DEVISE_JWT_SECRET_KEY=$(openssl rand -hex 64)
 
+# crea il database, applica le migrazioni e carica i dati di esempio
 docker compose -p shop-release -f docker-compose.release.yml \
   run --rm backend bin/rails db:prepare
 
+# avvia i tre servizi
 docker compose -p shop-release -f docker-compose.release.yml up
 ```
 
-L'applicazione risponde su `http://localhost:4200`, l'API su `http://localhost:3000`.
+Compose scarica da solo le immagini al primo avvio: `docker pull` non serve.
 
-| Dettaglio | Perché |
+#### 3. Apri l'applicazione
+
+| Indirizzo | Cosa |
 |---|---|
-| `-p shop-release` | Tiene lo stack separato da quello di sviluppo: senza, Compose riuserebbe il progetto `shop` e ricreerebbe i container già in esecuzione |
-| `db:prepare` da solo | Su un database nuovo crea, migra **e** esegue il seed: aggiungere `db:seed` lo eseguirebbe due volte, riscaricando le immagini dei prodotti per nulla |
-| `RAILS_MASTER_KEY` | La master key è esclusa dall'immagine (`backend/.dockerignore` ignora `/config/master.key`): va passata a runtime |
-| Volume `release_storage` | Active Storage scrive gli allegati in `/rails/storage`, dentro il container. Senza volume i file caricati dal seed muoiono con il container `run --rm` che li ha scritti, e il server trova i blob censiti nel database ma nessun file dietro |
-| Connessione a Internet | Il seed scarica le immagini dei prodotti da `picsum.photos` |
+| `http://localhost:4200` | Interfaccia Angular |
+| `http://localhost:3000/api/products` | API REST |
 
-Per fermare tutto ed eliminare anche i volumi di prova:
+Le credenziali di prova vengono stampate dal seed. Per fermare tutto ed eliminare anche
+i dati di prova (dalla stessa shell in cui hai esportato `DEVISE_JWT_SECRET_KEY`, che
+Compose richiede anche solo per leggere il file):
 
 ```bash
 docker compose -p shop-release -f docker-compose.release.yml down -v
 ```
 
-**Limiti noti delle immagini pubblicate**
+#### Limiti noti
 
-- Sono immagini di **sviluppo**: il backend esegue `rails server` in `RAILS_ENV=development` e il frontend `ng serve`. Per la produzione servirebbero immagini multi-stage, con Thruster davanti a Puma e il bundle Angular servito da nginx. Il `Dockerfile` di produzione del backend è già presente nel repository e non è ancora usato dalla pipeline, che builda da `Dockerfile.dev`.
-- Active Storage scrive i file sul filesystem del container: il volume `release_storage` li rende persistenti fra un riavvio e l'altro, ma un deployment reale userebbe un object storage esterno (S3 o compatibile).
+- Sono immagini di **sviluppo**: il backend esegue `rails server` in `RAILS_ENV=development`
+  e il frontend `ng serve`. Per la produzione servirebbero immagini multi-stage, con
+  Thruster davanti a Puma e il bundle Angular servito da nginx. Il `Dockerfile` di
+  produzione del backend è già nel repository e non è ancora usato dalla pipeline.
+- Active Storage scrive sul filesystem del container. Il volume lo rende persistente su
+  una singola macchina, ma un deployment reale userebbe un object storage esterno.

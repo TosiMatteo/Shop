@@ -17,7 +17,10 @@ services:
       DATABASE_USER: rails
       DATABASE_PASSWORD: password
       DATABASE_NAME: backend_development
-      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      # Segreto di firma dei token JWT. config/initializers/devise.rb ricade sulle
+      # credenziali cifrate solo se questa variabile manca: passandola, l'immagine
+      # non ha bisogno della master key di chi l'ha pubblicata.
+      DEVISE_JWT_SECRET_KEY: "${DEVISE_JWT_SECRET_KEY:?definisci DEVISE_JWT_SECRET_KEY con openssl rand -hex 64}"
     ports: ["3000:3000"]
     depends_on: [db]
     networks: [shop_network]
