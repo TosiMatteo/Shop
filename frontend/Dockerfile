@@ -4,19 +4,20 @@ FROM node:22
 # Imposta la cartella di lavoro dentro il container
 WORKDIR /app
 
-# Installa Chromium e le dipendenze necessarie
+# Installa Chromium, usato da Karma per i test
 RUN apt-get update && apt-get install -y chromium && rm -rf /var/lib/apt/lists/*
 
 # Imposta il percorso del browser per Karma
 ENV CHROME_BIN=chromium
 
-RUN npm install -g @angular/cli
+# Stessa major del progetto (Angular 20)
+RUN npm install -g @angular/cli@20
 
 # Copia prima i file delle dipendenze (per sfruttare la cache di Docker)
 COPY package.json package-lock.json ./
 
-# Installa le dipendenze del progetto
-RUN npm install
+# Installa le dipendenze esattamente come da package-lock.json
+RUN npm ci
 
 # Copia tutto il resto del codice sorgente nel container
 COPY . .
