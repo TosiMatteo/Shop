@@ -56,6 +56,8 @@ export class AdminLogin {
       finalize(() => this.loading = false)
     ).subscribe({
       next: () => this.router.navigate(['/admin/admin-page']),
+      // The error interceptor rethrows sign-in 401s so the form can show them.
+      error: () => (this.errorMessage = 'Email o password non corretti'),
     });
   }
 }
