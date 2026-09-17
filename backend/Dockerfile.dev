@@ -19,6 +19,12 @@ COPY Gemfile Gemfile.lock ./
 # Installazione delle dipendenze Ruby
 RUN bundle install
 
+# Copia del codice sorgente: rende l'immagine autosufficiente (eseguibile anche
+# senza il repository, es. scaricandola da Docker Hub). In sviluppo il bind mount
+# di docker-compose monta ./backend su /rails e copre questa copia, quindi il
+# live reload continua a funzionare come prima.
+COPY . .
+
 # Porta esposta dal server Rails in sviluppo
 EXPOSE 3000
 

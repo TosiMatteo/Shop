@@ -12,3 +12,9 @@ coverage
 .vscode
 .git
 .gitignore
+
+# File che servono solo al repository, non dentro l'immagine.
+Dockerfile
+.dockerignore
+qodana.yaml
+README.md

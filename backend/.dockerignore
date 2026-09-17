@@ -28,6 +28,9 @@
 !/storage/.keep
 !/tmp/storage/.keep
 
+# Ignore test coverage reports.
+/coverage
+
 # Ignore CI service files.
 /.github
 

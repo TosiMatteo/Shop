@@ -6,12 +6,6 @@ require "test_helper"
 # qui la stessa post-condizione viene verificata su input generati
 # automaticamente da Rantly.
 #
-# NOTA: non si carica "rantly/minitest_extensions" perché quel file fa
-# `require "minitest/unit"`, rimosso a partire da Minitest 6, e romperebbe
-# l'intera suite. L'estensione si limita a definire un metodo `property_of`
-# che istanzia Rantly::Property, quindi si carica direttamente la classe e si
-# definisce il metodo qui sotto: nessuna patch alla gemma, nessun vincolo di
-# versione su Minitest.
 ENV["RANTLY_VERBOSE"] ||= "0" # sopprime i puntini di avanzamento nell'output
 require "rantly"
 require "rantly/property"
