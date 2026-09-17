@@ -865,4 +865,47 @@ I primi tre job girano in parallelo: è inutile eseguire gli E2E se unit test o 
 
 Gli artefatti di coverage (frontend e backend) sono conservati 7 giorni.
 
-> **Limitazione nota:** `build-and-push` pubblica immagini di sviluppo (`ng serve` e `rails s`). Per la produzione andrebbero sostituite con build multi-stage — Angular servito da nginx e Rails in modalità production, usando `backend/Dockerfile` già presente nel repository.
+### Usare le immagini pubblicate
+
+Il job `build-and-push` pubblica due immagini su Docker Hub a ogni push su `main` che superi tutti i job precedenti:
+
+| Immagine | Contenuto | Dockerfile |
+|---|---|---|
+| `teo0401/shop-backend` | Rails 8 API-only, gemme e codice applicativo | `backend/Dockerfile.dev` |
+| `teo0401/shop-frontend` | Angular 20 con le dipendenze già installate | `frontend/Dockerfile` |
+
+Il prefisso del nome deriva dal segreto `DOCKERHUB_USERNAME` (`IMAGE_PREFIX: ${{ secrets.DOCKERHUB_USERNAME }}/shop`): chi forka il repository pubblica sul proprio account senza toccare il workflow.
+
+Ogni build produce due tag: `latest`, applicato solo sul branch di default e quindi sempre allineato all'ultima revisione di `main`, e `sha-<short-sha>`, che permette di risalire alla revisione esatta da cui l'immagine è nata.
+
+Per avviare l'applicazione **senza clonare il repository** basta `docker-compose.release.yml`: usa `image:` al posto di `build:` e non monta codice dall'host, quindi riproduce esattamente la condizione di chi scarica le immagini.
+
+```bash
+export RAILS_MASTER_KEY=<master key del progetto>
+
+docker compose -p shop-release -f docker-compose.release.yml \
+  run --rm backend bin/rails db:prepare
+
+docker compose -p shop-release -f docker-compose.release.yml up
+```
+
+L'applicazione risponde su `http://localhost:4200`, l'API su `http://localhost:3000`.
+
+| Dettaglio | Perché |
+|---|---|
+| `-p shop-release` | Tiene lo stack separato da quello di sviluppo: senza, Compose riuserebbe il progetto `shop` e ricreerebbe i container già in esecuzione |
+| `db:prepare` da solo | Su un database nuovo crea, migra **e** esegue il seed: aggiungere `db:seed` lo eseguirebbe due volte, riscaricando le immagini dei prodotti per nulla |
+| `RAILS_MASTER_KEY` | La master key è esclusa dall'immagine (`backend/.dockerignore` ignora `/config/master.key`): va passata a runtime |
+| Volume `release_storage` | Active Storage scrive gli allegati in `/rails/storage`, dentro il container. Senza volume i file caricati dal seed muoiono con il container `run --rm` che li ha scritti, e il server trova i blob censiti nel database ma nessun file dietro |
+| Connessione a Internet | Il seed scarica le immagini dei prodotti da `picsum.photos` |
+
+Per fermare tutto ed eliminare anche i volumi di prova:
+
+```bash
+docker compose -p shop-release -f docker-compose.release.yml down -v
+```
+
+**Limiti noti delle immagini pubblicate**
+
+- Sono immagini di **sviluppo**: il backend esegue `rails server` in `RAILS_ENV=development` e il frontend `ng serve`. Per la produzione servirebbero immagini multi-stage, con Thruster davanti a Puma e il bundle Angular servito da nginx. Il `Dockerfile` di produzione del backend è già presente nel repository e non è ancora usato dalla pipeline, che builda da `Dockerfile.dev`.
+- Active Storage scrive i file sul filesystem del container: il volume `release_storage` li rende persistenti fra un riavvio e l'altro, ma un deployment reale userebbe un object storage esterno (S3 o compatibile).
