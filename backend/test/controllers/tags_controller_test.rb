@@ -1,4 +1,3 @@
-# test/controllers/tags_controller_test.rb
 require "test_helper"
 
 class TagsControllerTest < ActionDispatch::IntegrationTest
@@ -6,27 +5,30 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
 
   setup do
     @admin = admins(:one)
+    @customer = customers(:Customer_Auth)
     @tag = tags(:Informatica)
     @valid_params = { tag: { name: "Nuovo Tag" } }
     @invalid_params = { tag: { name: "" } }
   end
 
-  # ─── index ─────────────────────────────────────────────────────────
+  # ─── Index ─────────────────────────────────────────────────────────────────
   test "should get index" do
-    get tags_url
-    assert_response :success
-    assert_equal Tag.count, JSON.parse(response.body).size
+    get tags_url, as: :json
+
+    assert_response :ok
+    assert_equal Tag.count, response.parsed_body.size
   end
 
-  # ─── create (admin only) ───────────────────────────────────────────
+  # ─── Create (solo admin) ───────────────────────────────────────────────────
   test "should create tag as admin" do
     sign_in @admin
 
     assert_difference("Tag.count", 1) do
       post tags_url, params: @valid_params, as: :json
     end
+
     assert_response :created
-    assert_equal "Nuovo Tag", JSON.parse(response.body)["name"]
+    assert_equal "Nuovo Tag", response.parsed_body["name"]
   end
 
   test "should not create tag with invalid params" do
@@ -35,58 +37,90 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference("Tag.count") do
       post tags_url, params: @invalid_params, as: :json
     end
-    assert_response :unprocessable_entity
-    assert_includes JSON.parse(response.body)["error"]["details"].first, "Name"
+
+    assert_response :unprocessable_content
+    assert_includes response.parsed_body["error"]["details"].first, "Name"
   end
 
-  test "should not allow non-admin to create tag" do
-    # Utente non autenticato
-    post tags_url, params: @valid_params, as: :json
-    assert_response :unauthorized
-
-    customer = customers(:Customer_Auth) rescue nil
-    if customer
-      sign_in customer
+  test "should not allow an unauthenticated user to create tag" do
+    assert_no_difference("Tag.count") do
       post tags_url, params: @valid_params, as: :json
-      assert_response :unauthorized
     end
+
+    assert_response :unauthorized
   end
 
-  # ─── update (admin only) ───────────────────────────────────────────
+  test "should not allow a customer to create tag" do
+    sign_in @customer
+
+    assert_no_difference("Tag.count") do
+      post tags_url, params: @valid_params, as: :json
+    end
+
+    assert_response :unauthorized
+  end
+
+  # ─── Update (solo admin) ───────────────────────────────────────────────────
   test "should update tag as admin" do
     sign_in @admin
 
     patch tag_url(@tag), params: { tag: { name: "Modificato" } }, as: :json
+
     assert_response :ok
-    @tag.reload
-    assert_equal "Modificato", @tag.name
+    assert_equal "Modificato", @tag.reload.name
   end
 
   test "should not update tag with invalid params" do
     sign_in @admin
 
-    patch tag_url(@tag), params: { tag: { name: "" } }, as: :json
-    assert_response :unprocessable_entity
-    assert_includes JSON.parse(response.body)["error"]["details"].first, "Name"
+    patch tag_url(@tag), params: @invalid_params, as: :json
+
+    assert_response :unprocessable_content
+    assert_includes response.parsed_body["error"]["details"].first, "Name"
   end
 
-  test "should not allow non-admin to update tag" do
+  test "should not allow an unauthenticated user to update tag" do
     patch tag_url(@tag), params: { tag: { name: "Hack" } }, as: :json
+
     assert_response :unauthorized
+    assert_equal "Informatica", @tag.reload.name
   end
 
-  # ─── destroy (admin only) ──────────────────────────────────────────
+  test "should not allow a customer to update tag" do
+    sign_in @customer
+
+    patch tag_url(@tag), params: { tag: { name: "Hack" } }, as: :json
+
+    assert_response :unauthorized
+    assert_equal "Informatica", @tag.reload.name
+  end
+
+  # ─── Destroy (solo admin) ──────────────────────────────────────────────────
   test "should destroy tag as admin" do
     sign_in @admin
 
     assert_difference("Tag.count", -1) do
       delete tag_url(@tag), as: :json
     end
+
     assert_response :no_content
   end
 
-  test "should not allow non-admin to destroy tag" do
-    delete tag_url(@tag), as: :json
+  test "should not allow an unauthenticated user to destroy tag" do
+    assert_no_difference("Tag.count") do
+      delete tag_url(@tag), as: :json
+    end
+
+    assert_response :unauthorized
+  end
+
+  test "should not allow a customer to destroy tag" do
+    sign_in @customer
+
+    assert_no_difference("Tag.count") do
+      delete tag_url(@tag), as: :json
+    end
+
     assert_response :unauthorized
   end
 end
