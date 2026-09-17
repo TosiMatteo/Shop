@@ -18,25 +18,25 @@ import { AuthService } from '../services/auth/auth-service';
 describe('errorInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
-  let errorService: jasmine.SpyObj<ErrorService>;
-  let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
+  let errorServiceMock: jasmine.SpyObj<ErrorService>;
+  let authServiceMock: jasmine.SpyObj<AuthService>;
+  let routerMock: jasmine.SpyObj<Router>;
 
   const URL = '/api/products';
 
   beforeEach(() => {
-    errorService = jasmine.createSpyObj<ErrorService>('ErrorService', ['setError', 'clearError']);
-    authService = jasmine.createSpyObj<AuthService>('AuthService', ['isAdmin', 'clearSession']);
-    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
-    authService.isAdmin.and.returnValue(false);
+    errorServiceMock = jasmine.createSpyObj<ErrorService>('ErrorService', ['setError', 'clearError']);
+    authServiceMock = jasmine.createSpyObj<AuthService>('AuthService', ['isAdmin', 'clearSession']);
+    routerMock = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    authServiceMock.isAdmin.and.returnValue(false);
 
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
-        { provide: ErrorService, useValue: errorService },
-        { provide: AuthService, useValue: authService },
-        { provide: Router, useValue: router },
+        { provide: ErrorService, useValue: errorServiceMock },
+        { provide: AuthService, useValue: authServiceMock },
+        { provide: Router, useValue: routerMock },
       ],
     });
 
@@ -64,8 +64,8 @@ describe('errorInterceptor', () => {
     return outcome;
   }
 
-  // ─── Status 0: rete o server non raggiungibile ──────────────────────────────
-  it('riprova una GET fino a 3 volte con attesa crescente prima di arrendersi', fakeAsync(() => {
+  // ─── Status 0: rete o server non raggiungibile ─────────────────────────────
+  it('should retry a GET up to 3 times with increasing delay before giving up', fakeAsync(() => {
     let completed = false;
     http.get(URL).subscribe({ complete: () => (completed = true) });
 
@@ -78,33 +78,33 @@ describe('errorInterceptor', () => {
       httpMock.expectOne(URL).error(new ProgressEvent('error'), { status: 0 });
     });
 
-    expect(errorService.setError).toHaveBeenCalledWith({
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({
       statusCode: 0,
       message: 'server non disponible',
     });
     expect(completed).toBeTrue();
   }));
 
-  it('non riprova una richiesta che non sia una GET', fakeAsync(() => {
+  it('should not retry a request that is not a GET', fakeAsync(() => {
     http.post(URL, {}).subscribe();
 
     httpMock.expectOne(URL).error(new ProgressEvent('error'), { status: 0 });
     tick(10_000);
 
     // Nessun secondo tentativo: httpMock.verify() dell'afterEach fallirebbe.
-    expect(errorService.setError).toHaveBeenCalledWith({
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({
       statusCode: 0,
       message: 'server non disponible',
     });
   }));
 
-  // ─── 400 ────────────────────────────────────────────────────────────────────
-  it('espone messaggio e dettagli di un 400', () => {
+  // ─── 400 ───────────────────────────────────────────────────────────────────
+  it('should expose message and details of a 400', () => {
     const outcome = getFailingWith(400, {
       error: { message: 'Parametro mancante', details: ['title'] },
     });
 
-    expect(errorService.setError).toHaveBeenCalledWith({
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({
       statusCode: 400,
       message: 'Parametro mancante',
       details: ['title'],
@@ -113,8 +113,8 @@ describe('errorInterceptor', () => {
     expect(outcome.completed).toBeTrue();
   });
 
-  // ─── 401 ────────────────────────────────────────────────────────────────────
-  it('rilancia al chiamante il 401 di una richiesta di login', () => {
+  // ─── 401 ───────────────────────────────────────────────────────────────────
+  it('should rethrow to the caller the 401 of a login request', () => {
     const outcome = { errored: false };
     http.post('/api/customers/sign_in', {}).subscribe({
       error: () => (outcome.errored = true),
@@ -124,110 +124,110 @@ describe('errorInterceptor', () => {
       .flush({ error: { message: 'Credenziali non valide' } }, { status: 401, statusText: 'Unauthorized' });
 
     expect(outcome.errored).toBeTrue();
-    expect(errorService.setError).toHaveBeenCalledWith({
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({
       statusCode: 401,
       message: 'Credenziali non valide',
       details: [],
     });
-    expect(authService.clearSession).not.toHaveBeenCalled();
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(authServiceMock.clearSession).not.toHaveBeenCalled();
+    expect(routerMock.navigate).not.toHaveBeenCalled();
   });
 
-  it('su sessione scaduta pulisce la sessione e porta al login del cliente', () => {
+  it('should clear the session and go to the customer login when the session expires', () => {
     getFailingWith(401, { error: { message: 'Sessione scaduta' } });
 
-    expect(authService.clearSession).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+    expect(authServiceMock.clearSession).toHaveBeenCalled();
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/login']);
   });
 
-  it('su sessione scaduta di un admin porta al login admin', () => {
-    authService.isAdmin.and.returnValue(true);
+  it('should go to the admin login when an admin session expires', () => {
+    authServiceMock.isAdmin.and.returnValue(true);
 
     getFailingWith(401, { error: { message: 'Sessione scaduta' } });
 
-    expect(router.navigate).toHaveBeenCalledWith(['/admin/login']);
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/admin/login']);
   });
 
-  it('usa il messaggio di default quando il 401 non ne porta uno', () => {
+  it('should use the default message when the 401 has none', () => {
     getFailingWith(401, {});
 
-    expect(errorService.setError).toHaveBeenCalledWith({
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({
       statusCode: 401,
       message: 'Credenziali errate',
       details: [],
     });
   });
 
-  it('accetta anche un 401 il cui payload espone l errore come stringa', () => {
+  it('should accept a 401 whose payload exposes the error as a string', () => {
     getFailingWith(401, { error: 'Token non valido' });
 
-    expect(errorService.setError).toHaveBeenCalledWith({
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({
       statusCode: 401,
       message: 'Token non valido',
       details: [],
     });
   });
 
-  // ─── 403 ────────────────────────────────────────────────────────────────────
-  it('porta alla pagina forbidden un cliente senza permessi', () => {
+  // ─── 403 ───────────────────────────────────────────────────────────────────
+  it('should send a customer without permissions to the forbidden page', () => {
     getFailingWith(403, { error: { message: 'Accesso negato' } });
 
-    expect(errorService.setError).toHaveBeenCalledWith({ statusCode: 403, message: 'Accesso negato' });
-    expect(router.navigate).toHaveBeenCalledWith(['/forbidden']);
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({ statusCode: 403, message: 'Accesso negato' });
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/forbidden']);
   });
 
-  it('lascia l admin sulla pagina corrente in caso di 403', () => {
-    authService.isAdmin.and.returnValue(true);
+  it('should keep an admin on the current page on a 403', () => {
+    authServiceMock.isAdmin.and.returnValue(true);
 
     getFailingWith(403, { error: { message: 'Accesso negato' } });
 
-    expect(errorService.setError).toHaveBeenCalledWith({ statusCode: 403, message: 'Accesso negato' });
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({ statusCode: 403, message: 'Accesso negato' });
+    expect(routerMock.navigate).not.toHaveBeenCalled();
   });
 
-  // ─── 404, 422, 500 ──────────────────────────────────────────────────────────
-  it('segnala una risorsa non trovata', () => {
+  // ─── 404, 422, 500 ─────────────────────────────────────────────────────────
+  it('should report a resource not found', () => {
     getFailingWith(404, { error: { message: 'Risorsa non trovata' } });
 
-    expect(errorService.setError).toHaveBeenCalledWith({ statusCode: 404, message: 'Risorsa non trovata' });
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({ statusCode: 404, message: 'Risorsa non trovata' });
+    expect(routerMock.navigate).not.toHaveBeenCalled();
   });
 
-  it('espone i campi non validi di un 422', () => {
+  it('should expose the invalid fields of a 422', () => {
     getFailingWith(422, {
       error: { message: 'Validazione fallita', details: ['Title non può essere vuoto'] },
     });
 
-    expect(errorService.setError).toHaveBeenCalledWith({
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({
       statusCode: 422,
       message: 'Validazione fallita',
       details: ['Title non può essere vuoto'],
     });
   });
 
-  it('segnala un errore interno del server', () => {
+  it('should report an internal server error', () => {
     getFailingWith(500, { error: { message: 'Si è verificato un errore imprevisto' } });
 
-    expect(errorService.setError).toHaveBeenCalledWith({
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({
       statusCode: 500,
       message: 'Si è verificato un errore imprevisto',
     });
   });
 
-  // ─── Casi non previsti dalla tabella ────────────────────────────────────────
-  it('inoltra uno status non gestito conservandone il codice', () => {
+  // ─── Casi non previsti dalla tabella ───────────────────────────────────────
+  it('should forward an unhandled status keeping its code', () => {
     getFailingWith(503, { error: { message: 'Servizio non disponibile' } });
 
-    expect(errorService.setError).toHaveBeenCalledWith({
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({
       statusCode: 503,
       message: 'Servizio non disponibile',
     });
   });
 
-  it('ricade su un messaggio generico se il payload non ha la forma attesa', () => {
+  it('should fall back to a generic message when the payload has an unexpected shape', () => {
     getFailingWith(500, 'testo non json');
 
-    expect(errorService.setError).toHaveBeenCalledWith({
+    expect(errorServiceMock.setError).toHaveBeenCalledWith({
       statusCode: 500,
       message: 'Si è verificato un errore imprevisto',
     });
