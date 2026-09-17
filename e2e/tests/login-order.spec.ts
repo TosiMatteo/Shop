@@ -16,7 +16,7 @@ async function login(page: any) {
     await loginTab.getByRole('textbox', { name: 'Password' }).fill(USER.password);
     await loginTab.getByRole('button', { name: 'Accedi' }).click();
 
-    // Non esiste una route /dashboard: il router Angular redirige il wildcard ** a /products.
+    // Dopo il login l'applicazione porta al catalogo prodotti.
     await expect(page).toHaveURL(/products/, { timeout: 15_000 });
 }
 
