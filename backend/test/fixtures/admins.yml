@@ -1,2 +1,5 @@
+# Password in chiaro: "password".
 one:
-       email: "admin1@shop.com"
+  email: "admin1@shop.com"
+  encrypted_password: "$2a$12$3vq9Uvx3GX2BFCxhVGpzOewX4NwU13fJKnBQJ3AC3qzaHfLyH2Bvq"
+  jti: "admin-jti-unique-001"

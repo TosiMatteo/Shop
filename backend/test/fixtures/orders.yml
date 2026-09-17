@@ -1,20 +1,18 @@
 one:
   customer: Customer_Auth
-  total: 1299.99
-  status: 0  # processing
-  shipping_name: "Mario"
+  total: 999.99
+  status: processing
+  shipping_name: "Mario Rossi"
   shipping_street: "Via Roma 123"
   shipping_city: "Bologna"
   shipping_zip: "40121"
-  created_at: <%= Time.now %>
-  updated_at: <%= Time.now %>
 
 
 two:
   customer: Customer_NoAuth
-  total: 899.99
-  status: 1  # completed
-  shipping_name: "Paolo"
+  total: 24
+  status: completed
+  shipping_name: "Giulia Bianchi"
   shipping_street: "Via Milano 456"
   shipping_city: "Milano"
   shipping_zip: "20121"

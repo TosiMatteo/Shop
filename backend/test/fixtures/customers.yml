@@ -1,3 +1,5 @@
+# Password in chiaro per entrambi: "password".
+# Customer_Auth ha confermato l'email, Customer_NoAuth no.
 Customer_Auth:
   first_name: "Mario"
   last_name: "Rossi"
