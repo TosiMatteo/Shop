@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 import { AdminPage } from './admin-page';
 import { ProductApi } from '../../../core/services/product/product-service';
@@ -14,7 +13,7 @@ describe('AdminPage', () => {
   let productApiMock: jasmine.SpyObj<ProductApi>;
   let tagServiceMock: jasmine.SpyObj<TagService>;
 
-  const sampleProduct: Product = {
+  const mockProduct: Product = {
     id: '1',
     title: 'Prodotto test',
     description: 'Descrizione',
@@ -25,25 +24,30 @@ describe('AdminPage', () => {
     created_at: '2025-01-01',
   };
 
-  const sampleTags: Tag[] = [
+  const mockTags: Tag[] = [
     { id: 1, name: 'Elettronica' },
-    { id: 2, name: 'Casa' }
+    { id: 2, name: 'Casa' },
   ];
 
   beforeEach(async () => {
-    productApiMock = jasmine.createSpyObj<ProductApi>('ProductApi', ['list', 'show', 'create', 'update', 'delete']);
+    productApiMock = jasmine.createSpyObj<ProductApi>('ProductApi', [
+      'list',
+      'show',
+      'create',
+      'update',
+      'delete',
+    ]);
     tagServiceMock = jasmine.createSpyObj<TagService>('TagService', ['list', 'create', 'update', 'delete']);
 
-    // Valori predefiniti per i mock
+    // Valori restituiti di default dai mock.
     productApiMock.list.and.returnValue(of({ pagy: {} as any, products: [] }));
-    productApiMock.show.and.returnValue(of(sampleProduct));
-    tagServiceMock.list.and.returnValue(of(sampleTags));
+    productApiMock.show.and.returnValue(of(mockProduct));
+    tagServiceMock.list.and.returnValue(of(mockTags));
 
     await TestBed.configureTestingModule({
       imports: [AdminPage],
       providers: [
         provideRouter([]),
-        provideHttpClient(),
         { provide: ProductApi, useValue: productApiMock },
         { provide: TagService, useValue: tagServiceMock },
       ],
@@ -58,8 +62,7 @@ describe('AdminPage', () => {
     expect(component).toBeTruthy();
   });
 
-  // ─── Form init ──────────────────────────────────────────────────────────
-
+  // ─── Form init ─────────────────────────────────────────────────────────────
   it('should initialize productForm with default values', () => {
     expect(component.productForm.get('title')?.value).toBe('');
     expect(component.productForm.get('original_price')?.value).toBeNull();
@@ -77,21 +80,19 @@ describe('AdminPage', () => {
     expect(component.productForm.valid).toBeTrue();
   });
 
-  // ─── loadProducts ──────────────────────────────────────────────────────
-
+  // ─── loadProducts ──────────────────────────────────────────────────────────
   it('should load products on init and search', () => {
-    const products = [sampleProduct];
+    const products = [mockProduct];
     productApiMock.list.and.returnValue(of({ pagy: {} as any, products }));
     component.loadProducts('');
     expect(component.products).toEqual(products);
   });
 
-  // ─── onEdit ────────────────────────────────────────────────────────────
-
+  // ─── onEdit ────────────────────────────────────────────────────────────────
   it('should populate form and open panel on edit', () => {
     spyOn(component.productPanel, 'open');
-    component.tags = sampleTags;
-    const fullProduct = { ...sampleProduct, tags: ['Elettronica'], };
+    component.tags = mockTags;
+    const fullProduct = { ...mockProduct, tags: ['Elettronica'] };
     productApiMock.show.and.returnValue(of(fullProduct));
 
     component.onEdit(fullProduct);
@@ -103,10 +104,9 @@ describe('AdminPage', () => {
     expect(component.productPanel.open).toHaveBeenCalled();
   });
 
-  // ─── onSubmit (create) ──────────────────────────────────────────────────
-
+  // ─── onSubmit (create) ─────────────────────────────────────────────────────
   it('should call create API on valid submit in create mode', () => {
-    productApiMock.create.and.returnValue(of({ ...sampleProduct, title: 'Nuovo' }));
+    productApiMock.create.and.returnValue(of({ ...mockProduct, title: 'Nuovo' }));
     component.formMode = 'create';
     component.productForm.setValue({
       title: 'Nuovo',
@@ -130,13 +130,12 @@ describe('AdminPage', () => {
     expect(productApiMock.create).not.toHaveBeenCalled();
   });
 
-  // ─── onSubmit (edit) ────────────────────────────────────────────────────
-
+  // ─── onSubmit (edit) ───────────────────────────────────────────────────────
   it('should call update API in edit mode', () => {
-    const updatedProduct = { ...sampleProduct, title: 'Modificato' };
+    const updatedProduct = { ...mockProduct, title: 'Modificato' };
     productApiMock.update.and.returnValue(of(updatedProduct));
     component.formMode = 'edit';
-    component.editingProduct = sampleProduct;
+    component.editingProduct = mockProduct;
     component.productForm.setValue({
       title: 'Modificato',
       description: '',
@@ -147,24 +146,22 @@ describe('AdminPage', () => {
 
     component.onSubmit();
 
-    expect(productApiMock.update).toHaveBeenCalledWith(sampleProduct.id, jasmine.any(FormData));
+    expect(productApiMock.update).toHaveBeenCalledWith(mockProduct.id, jasmine.any(FormData));
     expect(component.loading).toBeFalse();
   });
 
-  // ─── onDelete ──────────────────────────────────────────────────────────
-
+  // ─── onDelete ──────────────────────────────────────────────────────────────
   it('should delete product after confirmation', () => {
     spyOn(window, 'confirm').and.returnValue(true);
     productApiMock.delete.and.returnValue(of(null));
-    component.products = [sampleProduct];
-    component.onDelete(sampleProduct);
+    component.products = [mockProduct];
+    component.onDelete(mockProduct);
 
-    expect(productApiMock.delete).toHaveBeenCalledWith(sampleProduct.id);
+    expect(productApiMock.delete).toHaveBeenCalledWith(mockProduct.id);
     expect(component.products.length).toBe(0);
   });
 
-  // ─── Tags ──────────────────────────────────────────────────────────────
-
+  // ─── Tags ──────────────────────────────────────────────────────────────────
   it('should toggle tag in form', () => {
     component.toggleTag(1);
     expect(component.productForm.get('tag_ids')?.value).toEqual([1]);
@@ -197,10 +194,10 @@ describe('AdminPage', () => {
   it('should delete tag after confirmation', () => {
     spyOn(window, 'confirm').and.returnValue(true);
     tagServiceMock.delete.and.returnValue(of(undefined));
-    component.tags = sampleTags;
-    component.onDeleteTag(sampleTags[0]);
+    component.tags = mockTags;
+    component.onDeleteTag(mockTags[0]);
 
-    expect(tagServiceMock.delete).toHaveBeenCalledWith(sampleTags[0].id);
+    expect(tagServiceMock.delete).toHaveBeenCalledWith(mockTags[0].id);
     expect(component.tags.length).toBe(1);
   });
 });
