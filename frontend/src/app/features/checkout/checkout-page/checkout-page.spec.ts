@@ -2,18 +2,26 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
 import { of, Subject } from 'rxjs';
-
 import { CheckoutPage } from './checkout-page';
 import { CartCardComponent } from '../cart-card/cart-card';
 import { CartService } from '../../../core/services/cart/cart-service';
+import { CheckoutResponse } from '../../../core/models/checkout';
 
 describe('CheckoutPage', () => {
   let component: CheckoutPage;
   let fixture: ComponentFixture<CheckoutPage>;
-  let cartServiceMock: { checkout: jasmine.Spy };
+  let cartServiceMock: jasmine.SpyObj<CartService>;
   let navigateSpy: jasmine.Spy;
 
-  const VALID_FORM_VALUE = {
+  const mockCheckoutResponse: CheckoutResponse = {
+    id: 1,
+    total: '20.00',
+    status: 'processing',
+    shipping_name: 'Mario Rossi',
+    order_items: 1,
+  };
+
+  const mockFormValue = {
     firstName: 'Mario',
     lastName: 'Rossi',
     street: 'Via Roma 1',
@@ -23,9 +31,8 @@ describe('CheckoutPage', () => {
   };
 
   beforeEach(async () => {
-    cartServiceMock = {
-      checkout: jasmine.createSpy('checkout').and.returnValue(of({})),
-    };
+    cartServiceMock = jasmine.createSpyObj<CartService>('CartService', ['checkout']);
+    cartServiceMock.checkout.and.returnValue(of(mockCheckoutResponse));
 
     await TestBed.configureTestingModule({
       imports: [CheckoutPage],
@@ -50,24 +57,25 @@ describe('CheckoutPage', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('hasError', () => {
-    it('non segnala errori su un campo non ancora "touched", anche se invalido', () => {
+  // ─── hasError() ────────────────────────────────────────────────────────────
+  describe('hasError()', () => {
+    it('should not report errors on an invalid field that has not been touched', () => {
       expect(component.hasError('firstName', 'required')).toBeFalse();
     });
 
-    it('segnala l\'errore "required" una volta che il campo è stato toccato', () => {
+    it('should report the required error once the field has been touched', () => {
       component.form.get('firstName')!.markAsTouched();
       expect(component.hasError('firstName', 'required')).toBeTrue();
     });
 
-    it('non segnala errori su un campo toccato e valido', () => {
+    it('should not report errors on a touched valid field', () => {
       const control = component.form.get('firstName')!;
       control.setValue('Mario');
       control.markAsTouched();
       expect(component.hasError('firstName', 'required')).toBeFalse();
     });
 
-    it('valida il pattern del CAP (5 cifre)', () => {
+    it('should validate the zip code pattern (5 digits)', () => {
       const zip = component.form.get('zip')!;
       zip.setValue('123');
       zip.markAsTouched();
@@ -78,8 +86,9 @@ describe('CheckoutPage', () => {
     });
   });
 
-  describe('onSubmit - form non valido', () => {
-    it('non chiama checkout e marca tutti i campi come touched', () => {
+  // ─── onSubmit() ────────────────────────────────────────────────────────────
+  describe('onSubmit() with an invalid form', () => {
+    it('should not call checkout and should mark every field as touched', () => {
       component.onSubmit();
 
       expect(cartServiceMock.checkout).not.toHaveBeenCalled();
@@ -89,9 +98,9 @@ describe('CheckoutPage', () => {
     });
   });
 
-  describe('onSubmit - form valido', () => {
-    it('chiama cartService.checkout con i dati di spedizione mappati correttamente', fakeAsync(() => {
-      component.form.setValue(VALID_FORM_VALUE);
+  describe('onSubmit() with a valid form', () => {
+    it('should call cartService.checkout with the mapped shipping data', fakeAsync(() => {
+      component.form.setValue(mockFormValue);
 
       component.onSubmit();
 
@@ -105,15 +114,15 @@ describe('CheckoutPage', () => {
       tick(2000);
     }));
 
-    it('imposta loading a true durante la richiesta e a false al suo termine', fakeAsync(() => {
-      const checkout$ = new Subject<unknown>();
+    it('should set loading while the request is in flight and reset it at the end', fakeAsync(() => {
+      const checkout$ = new Subject<CheckoutResponse>();
       cartServiceMock.checkout.and.returnValue(checkout$);
-      component.form.setValue(VALID_FORM_VALUE);
+      component.form.setValue(mockFormValue);
 
       component.onSubmit();
       expect(component.loading).toBeTrue();
 
-      checkout$.next({});
+      checkout$.next(mockCheckoutResponse);
       checkout$.complete();
 
       expect(component.loading).toBeFalse();
@@ -121,8 +130,8 @@ describe('CheckoutPage', () => {
       tick(2000);
     }));
 
-    it('al successo mostra la conferma, resetta il form e naviga a /orders dopo 2s', fakeAsync(() => {
-      component.form.setValue(VALID_FORM_VALUE);
+    it('should show the confirmation, reset the form and navigate to /orders after 2s on success', fakeAsync(() => {
+      component.form.setValue(mockFormValue);
 
       component.onSubmit();
 
