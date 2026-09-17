@@ -2,70 +2,65 @@ require "test_helper"
 
 # Vincoli di integrità sull'entità Cliente e sulla proprietà di carrelli e ordini.
 class CustomerTest < ActiveSupport::TestCase
-  def build_customer(**overrides)
-    Customer.new({
-      first_name: "Anna",
-      last_name: "Verdi",
-      email: "anna.verdi@example.com",
-      password: "password123"
-    }.merge(overrides))
+  def setup
+    @customer = customers(:Customer_Auth)
+    @other_customer = customers(:Customer_NoAuth)
   end
 
   test "the fixture customer is valid" do
-    assert customers(:Customer_Auth).valid?
-  end
-
-  test "a new customer with complete data is valid" do
-    assert build_customer.valid?
+    assert @customer.valid?
   end
 
   test "is invalid without a first name" do
-    assert_not build_customer(first_name: nil).valid?
+    @customer.first_name = nil
+    assert_not @customer.valid?
   end
 
   test "is invalid without a last name" do
-    assert_not build_customer(last_name: nil).valid?
+    @customer.last_name = nil
+    assert_not @customer.valid?
   end
 
   test "is invalid without an email" do
-    assert_not build_customer(email: nil).valid?
+    @customer.email = nil
+    assert_not @customer.valid?
   end
 
   test "is invalid with a malformed email" do
-    assert_not build_customer(email: "non-una-email").valid?
+    @customer.email = "non-una-email"
+    assert_not @customer.valid?
   end
 
   test "rejects an email already taken, regardless of case" do
-    duplicate = build_customer(email: "MARIO.ROSSI@EXAMPLE.COM")
+    @customer.email = @other_customer.email.upcase
 
-    assert_not duplicate.valid?
-    assert_includes duplicate.errors.attribute_names, :email
+    assert_not @customer.valid?
+    assert_includes @customer.errors.attribute_names, :email
   end
 
   test "downcases the email before validation" do
-    customer = build_customer(email: "Anna.Verdi@Example.COM")
-    customer.valid?
+    @customer.email = "Mario.Rossi@Example.COM"
+    @customer.valid?
 
-    assert_equal "anna.verdi@example.com", customer.email
+    assert_equal "mario.rossi@example.com", @customer.email
   end
 
   test "rejects a password shorter than six characters" do
-    assert_not build_customer(password: "12345").valid?
+    @customer.password = "12345"
+    assert_not @customer.valid?
   end
 
   test "assigns a jti automatically" do
-    customer = build_customer
-    customer.valid?
+    @customer.jti = nil
+    @customer.valid?
 
-    assert_not_nil customer.jti
+    assert_not_nil @customer.jti
   end
 
   # ─── Cascata: un cliente cancellato non lascia carrelli o ordini orfani ────
   test "destroying a customer destroys its cart and its orders" do
-    customer = customers(:Customer_Auth)
-
-    assert_difference("Cart.count" => -1, "Order.count" => -customer.orders.count) do
-      customer.destroy
+    assert_difference("Cart.count" => -1, "Order.count" => -@customer.orders.count) do
+      @customer.destroy
     end
   end
 end

@@ -1,0 +1,14 @@
+# Le dipendenze vengono installate nell'immagine con npm ci:
+# quelle dell'host non devono sovrascriverle.
+node_modules
+
+# Output di build, test e cache locali.
+dist
+coverage
+.angular
+
+# File dell'IDE e di git.
+.idea
+.vscode
+.git
+.gitignore

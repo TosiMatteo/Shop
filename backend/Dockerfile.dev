@@ -6,7 +6,9 @@ FROM ruby:3.4.6
 # - libpq-dev:       header e librerie per il driver PostgreSQL (gem 'pg')
 # - git:             necessario per gem installate da sorgente Git
 # - libvips:         libreria per l'elaborazione di immagini (Active Storage)
-RUN apt-get update -qq && apt-get install -y build-essential libpq-dev git libvips
+RUN apt-get update -qq && \
+    apt-get install -y build-essential libpq-dev git libvips && \
+    rm -rf /var/lib/apt/lists/*
 
 # Cartella di lavoro dell'applicazione Rails
 WORKDIR /rails

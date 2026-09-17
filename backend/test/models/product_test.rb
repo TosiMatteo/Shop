@@ -59,58 +59,25 @@ class ProductTest < ActiveSupport::TestCase
   end
 
   test "should apply discount_percentage before save" do
-    product = Product.new(
-      title: "Gaming Mouse",
-      description: "Lightweight gaming mouse",
-      original_price: 100.0,
-      price: 100.0,
-      sale: false
-    )
-
-    product.discount_percentage = 25
-    assert product.save
-
-    assert_equal 75.0, product.price
-    assert product.sale
+    @product.discount_percentage = 25
+    assert @product.save
+    assert_equal BigDecimal("749.99"), @product.price
+    assert @product.sale
   end
 
   test "is invalid when on sale with a price above the original price" do
-    product = Product.new(
-      title: "Sconto finto",
-      description: "prezzo scontato superiore al listino",
-      original_price: 10.0,
-      price: 99.0,
-      sale: true
-    )
-
-    assert_not product.valid?
-    assert_includes product.errors.attribute_names, :price
+    @sale_product.price = 99.0
+    assert_not @sale_product.valid?
+    assert_includes @sale_product.errors.attribute_names, :price
   end
 
   test "accepts a price above the original price when not on sale" do
-    product = Product.new(
-      title: "Rincaro",
-      description: "prezzo aumentato rispetto al listino, senza saldo",
-      original_price: 10.0,
-      price: 99.0,
-      sale: false
-    )
-
-    assert product.valid?
+    @product.price = 1500.0
+    assert @product.valid?
   end
 
   test "accepts a price equal to the original price when on sale" do
-    assert build_product(original_price: 10.0, price: 10.0, sale: true).valid?
-  end
-
-  # Crea un prodotto valido, sovrascrivibile attributo per attributo.
-  def build_product(**overrides)
-    Product.new({
-      title: "Prodotto",
-      description: "descrizione del prodotto",
-      original_price: 10.0,
-      price: 10.0,
-      sale: false
-    }.merge(overrides))
+    @sale_product.price = @sale_product.original_price
+    assert @sale_product.valid?
   end
 end

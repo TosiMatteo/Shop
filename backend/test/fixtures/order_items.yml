@@ -1,15 +1,12 @@
+# unit_price è lo snapshot di products.price al momento dell'ordine.
 one:
   order: one
   product: pc
   quantity: 1
-  unit_price: 1299.99
-  created_at: <%= Time.now %>
-  updated_at: <%= Time.now %>
+  unit_price: 999.99
 
 two:
   order: two
-  product: pc
-  quantity: 1
-  unit_price: 899.99
-  created_at: <%= Time.now %>
-  updated_at: <%= Time.now %>
+  product: book
+  quantity: 2
+  unit_price: 12

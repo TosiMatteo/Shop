@@ -10,81 +10,85 @@ describe('TagService', () => {
 
   const mockTags: Tag[] = [
     { id: 1, name: 'Elettronica' },
-    { id: 2, name: 'Casa' }
+    { id: 2, name: 'Casa' },
   ];
 
   const mockTag: Tag = { id: 3, name: 'Sport' };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        TagService,
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), TagService],
     });
-
     service = TestBed.inject(TagService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => {
-    httpMock.verify();
-  });
+  afterEach(() => httpMock.verify());
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
+  // ─── list() ────────────────────────────────────────────────────────────────
   describe('list()', () => {
     it('should GET all tags', () => {
-      service.list().subscribe(tags => {
-        expect(tags.length).toBe(2);
-        expect(tags).toEqual(mockTags);
-      });
+      let tags: Tag[] | undefined;
+
+      service.list().subscribe(result => (tags = result));
 
       const req = httpMock.expectOne('/api/tags');
       expect(req.request.method).toBe('GET');
       req.flush(mockTags);
+
+      expect(tags).toEqual(mockTags);
     });
   });
 
+  // ─── create() ──────────────────────────────────────────────────────────────
   describe('create()', () => {
     it('should POST a new tag', () => {
-      service.create('Nuovo').subscribe(tag => {
-        expect(tag).toEqual(mockTag);
-      });
+      let tag: Tag | undefined;
+
+      service.create('Nuovo').subscribe(result => (tag = result));
 
       const req = httpMock.expectOne('/api/tags');
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ tag: { name: 'Nuovo' } });
       req.flush(mockTag);
+
+      expect(tag).toEqual(mockTag);
     });
   });
 
+  // ─── update() ──────────────────────────────────────────────────────────────
   describe('update()', () => {
     it('should PATCH an existing tag', () => {
-      const updated: Tag = { id: 1, name: 'Elettrodomestici' };
-      service.update(1, 'Elettrodomestici').subscribe(tag => {
-        expect(tag).toEqual(updated);
-      });
+      const mockUpdatedTag: Tag = { id: 1, name: 'Elettrodomestici' };
+      let tag: Tag | undefined;
+
+      service.update(1, 'Elettrodomestici').subscribe(result => (tag = result));
 
       const req = httpMock.expectOne('/api/tags/1');
       expect(req.request.method).toBe('PATCH');
       expect(req.request.body).toEqual({ tag: { name: 'Elettrodomestici' } });
-      req.flush(updated);
+      req.flush(mockUpdatedTag);
+
+      expect(tag).toEqual(mockUpdatedTag);
     });
   });
 
+  // ─── delete() ──────────────────────────────────────────────────────────────
   describe('delete()', () => {
     it('should DELETE a tag by id', () => {
-      service.delete(1).subscribe(response => {
-        expect(response).toBeNull();
-      });
+      let completed = false;
+
+      service.delete(1).subscribe({ complete: () => (completed = true) });
 
       const req = httpMock.expectOne('/api/tags/1');
       expect(req.request.method).toBe('DELETE');
       req.flush(null);
+
+      expect(completed).toBeTrue();
     });
   });
 });

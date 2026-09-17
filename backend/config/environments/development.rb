@@ -9,6 +9,11 @@ Rails.application.configure do
   # Do not eager load code on boot.
   config.eager_load = false
 
+  # Load routes on boot instead of on the first request. Rails 8.1 draws them
+  # lazily without a lock, so concurrent first requests (the frontend sends
+  # several at startup) can see an empty route set and get a 404.
+  config.after_initialize { Rails.application.routes_reloader.execute_unless_loaded }
+
   # Show full error reports.
   config.consider_all_requests_local = true
 

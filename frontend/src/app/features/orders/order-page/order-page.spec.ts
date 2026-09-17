@@ -2,10 +2,10 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { PageEvent } from '@angular/material/paginator';
-
 import { OrderPage } from './order-page';
 import { OrderService } from '../../../core/services/order/order-service';
 import { AuthService } from '../../../core/services/auth/auth-service';
+import { OrderResponse } from '../../../core/models/order';
 
 describe('OrderPage', () => {
   let component: OrderPage;
@@ -13,14 +13,14 @@ describe('OrderPage', () => {
   let orderServiceMock: jasmine.SpyObj<OrderService>;
   let authServiceMock: jasmine.SpyObj<AuthService>;
 
-  const mockResponse = {
+  const mockResponse: OrderResponse = {
     pagy: { page: 1, count: 0, limit: 10, last: 1, from: 1, to: 0, prev: null, next: null },
     orders: [],
   };
 
   beforeEach(async () => {
     orderServiceMock = jasmine.createSpyObj<OrderService>('OrderService', ['list']);
-    authServiceMock  = jasmine.createSpyObj<AuthService>('AuthService', ['getMemberSince']);
+    authServiceMock = jasmine.createSpyObj<AuthService>('AuthService', ['getMemberSince']);
 
     orderServiceMock.list.and.returnValue(of(mockResponse));
     authServiceMock.getMemberSince.and.returnValue(null);
@@ -39,15 +39,25 @@ describe('OrderPage', () => {
     fixture.detectChanges();
   });
 
-  // Helper to read the protected BehaviorSubject value.
+  // Legge il valore del BehaviorSubject protetto.
   const filters = () => (component as any).filters$.value;
+
+  /**
+   * Crea un'istanza separata del componente. Serve ai test che cambiano i mock
+   * prima della creazione o che, dentro fakeAsync, devono registrare i timer del
+   * debounce nella zona fittizia.
+   */
+  function createLocalComponent(): { localFixture: ComponentFixture<OrderPage>; local: any } {
+    const localFixture = TestBed.createComponent(OrderPage);
+    localFixture.detectChanges();
+    return { localFixture, local: localFixture.componentInstance };
+  }
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  // ─── filters$ initial state ───────────────────────────────────────────────
-
+  // ─── filters$ initial state ────────────────────────────────────────────────
   describe('filters$ initial state', () => {
     it('should initialise with correct default values', () => {
       expect(filters().totalFilter).toEqual({ min: null, max: null });
@@ -59,8 +69,7 @@ describe('OrderPage', () => {
     });
   });
 
-  // ─── availableYears ───────────────────────────────────────────────────────
-
+  // ─── availableYears ────────────────────────────────────────────────────────
   describe('availableYears', () => {
     it('should start from the current year', () => {
       const currentYear = new Date().getFullYear();
@@ -68,7 +77,7 @@ describe('OrderPage', () => {
     });
 
     it('should fall back to 5 years when getMemberSince() returns null', () => {
-      // getMemberSince returns null → fallback is current - 4 → list length = 5
+      // Senza getMemberSince si parte da quattro anni fa: cinque anni in tutto.
       expect((component as any).availableYears.length).toBe(5);
     });
 
@@ -76,19 +85,16 @@ describe('OrderPage', () => {
       const currentYear = new Date().getFullYear();
       authServiceMock.getMemberSince.and.returnValue(currentYear - 2);
 
-      const localFixture = TestBed.createComponent(OrderPage);
-      const localComponent = localFixture.componentInstance;
-      localFixture.detectChanges();
+      const { localFixture, local } = createLocalComponent();
 
-      expect((localComponent as any).availableYears.length).toBe(3);
-      expect((localComponent as any).availableYears.at(-1)).toBe(currentYear - 2);
+      expect(local.availableYears.length).toBe(3);
+      expect(local.availableYears.at(-1)).toBe(currentYear - 2);
 
       localFixture.destroy();
     });
   });
 
-  // ─── updateSort() ─────────────────────────────────────────────────────────
-
+  // ─── updateSort() ──────────────────────────────────────────────────────────
   describe('updateSort()', () => {
     it('should update sort and reset page to 1', () => {
       (component as any).filters$.next({ ...filters(), page: 3 });
@@ -100,8 +106,7 @@ describe('OrderPage', () => {
     });
   });
 
-  // ─── updateStatus() ───────────────────────────────────────────────────────
-
+  // ─── updateStatus() ────────────────────────────────────────────────────────
   describe('updateStatus()', () => {
     it('should update status and reset page to 1', () => {
       (component as any).filters$.next({ ...filters(), page: 2 });
@@ -119,8 +124,7 @@ describe('OrderPage', () => {
     });
   });
 
-  // ─── updateYear() ─────────────────────────────────────────────────────────
-
+  // ─── updateYear() ──────────────────────────────────────────────────────────
   describe('updateYear()', () => {
     it('should update year and reset page to 1', () => {
       (component as any).filters$.next({ ...filters(), page: 2 });
@@ -138,8 +142,7 @@ describe('OrderPage', () => {
     });
   });
 
-  // ─── onPage() ─────────────────────────────────────────────────────────────
-
+  // ─── onPage() ──────────────────────────────────────────────────────────────
   describe('onPage()', () => {
     it('should convert 0-based pageIndex to 1-based backend page', () => {
       const event: PageEvent = { pageIndex: 2, pageSize: 10, length: 50 };
@@ -154,35 +157,29 @@ describe('OrderPage', () => {
     });
   });
 
-  // ─── updateMinTotal() / updateMaxTotal() ─────────────────────────────────
-
+  // ─── updateMinTotal() / updateMaxTotal() ───────────────────────────────────
   describe('updateMinTotal()', () => {
     it('should update totalFilter.min after debounce and reset page to 1', fakeAsync(() => {
-      // Component created inside fakeAsync so the debounce timer is in the fake zone.
-      const localFixture  = TestBed.createComponent(OrderPage);
-      const localComponent = localFixture.componentInstance;
-      localFixture.detectChanges();
+      const { localFixture, local } = createLocalComponent();
 
-      (localComponent as any).filters$.next({ ...(localComponent as any).filters$.value, page: 3 });
+      local.filters$.next({ ...local.filters$.value, page: 3 });
 
-      (localComponent as any).updateMinTotal('20');
+      local.updateMinTotal('20');
       tick(400);
 
-      expect((localComponent as any).filters$.value.totalFilter.min).toBe(20);
-      expect((localComponent as any).filters$.value.page).toBe(1);
+      expect(local.filters$.value.totalFilter.min).toBe(20);
+      expect(local.filters$.value.page).toBe(1);
 
       localFixture.destroy();
     }));
 
     it('should set min to null when input is empty after debounce', fakeAsync(() => {
-      const localFixture  = TestBed.createComponent(OrderPage);
-      const localComponent = localFixture.componentInstance;
-      localFixture.detectChanges();
+      const { localFixture, local } = createLocalComponent();
 
-      (localComponent as any).updateMinTotal('');
+      local.updateMinTotal('');
       tick(400);
 
-      expect((localComponent as any).filters$.value.totalFilter.min).toBeNull();
+      expect(local.filters$.value.totalFilter.min).toBeNull();
 
       localFixture.destroy();
     }));
@@ -190,32 +187,28 @@ describe('OrderPage', () => {
 
   describe('updateMaxTotal()', () => {
     it('should update totalFilter.max after debounce and reset page to 1', fakeAsync(() => {
-      const localFixture  = TestBed.createComponent(OrderPage);
-      const localComponent = localFixture.componentInstance;
-      localFixture.detectChanges();
+      const { localFixture, local } = createLocalComponent();
 
-      (localComponent as any).filters$.next({ ...(localComponent as any).filters$.value, page: 2 });
+      local.filters$.next({ ...local.filters$.value, page: 2 });
 
-      (localComponent as any).updateMaxTotal('100');
+      local.updateMaxTotal('100');
       tick(400);
 
-      expect((localComponent as any).filters$.value.totalFilter.max).toBe(100);
-      expect((localComponent as any).filters$.value.page).toBe(1);
+      expect(local.filters$.value.totalFilter.max).toBe(100);
+      expect(local.filters$.value.page).toBe(1);
 
       localFixture.destroy();
     }));
 
     it('should not overwrite min when max changes', fakeAsync(() => {
-      const localFixture  = TestBed.createComponent(OrderPage);
-      const localComponent = localFixture.componentInstance;
-      localFixture.detectChanges();
+      const { localFixture, local } = createLocalComponent();
 
-      (localComponent as any).updateMinTotal('10');
-      (localComponent as any).updateMaxTotal('50');
+      local.updateMinTotal('10');
+      local.updateMaxTotal('50');
       tick(400);
 
-      expect((localComponent as any).filters$.value.totalFilter.min).toBe(10);
-      expect((localComponent as any).filters$.value.totalFilter.max).toBe(50);
+      expect(local.filters$.value.totalFilter.min).toBe(10);
+      expect(local.filters$.value.totalFilter.max).toBe(50);
 
       localFixture.destroy();
     }));

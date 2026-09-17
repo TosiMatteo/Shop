@@ -6,22 +6,30 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
   setup do
     @customer = customers(:Customer_Auth)
     sign_in @customer
-    @order = orders(:one)
-    @order.update!(customer: @customer)
+    @order = orders(:one) # del cliente autenticato, processing
+    @order_params = {
+      order: {
+        shipping_name: @order.shipping_name,
+        shipping_street: @order.shipping_street,
+        shipping_city: @order.shipping_city,
+        shipping_zip: @order.shipping_zip
+      }
+    }
   end
 
+  # ─── CRUD ──────────────────────────────────────────────────────────────────
   test "should get index with pagy metadata" do
     get orders_url, as: :json
-    assert_response :success
 
-    body = response.parsed_body
-    assert body.key?("pagy")
-    assert body.key?("orders")
+    assert_response :ok
+    json = response.parsed_body
+    assert json.key?("pagy")
+    assert json.key?("orders")
   end
 
   test "should create order" do
     assert_difference("Order.count") do
-      post orders_url, params: { order: { shipping_city: @order.shipping_city, shipping_name: @order.shipping_name, shipping_street: @order.shipping_street, shipping_zip: @order.shipping_zip } }, as: :json
+      post orders_url, params: @order_params, as: :json
     end
 
     assert_response :created
@@ -31,15 +39,10 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
   # intestarlo a un altro: customer_id non è fra i parametri accettati.
   test "should ignore the customer_id sent in the request" do
     other = customers(:Customer_NoAuth)
+    params = { order: @order_params[:order].merge(customer_id: other.id) }
 
     assert_no_difference("other.orders.count") do
-      post orders_url, params: { order: {
-        customer_id: other.id,
-        shipping_city: "Bologna",
-        shipping_name: "Mario Rossi",
-        shipping_street: "Via Roma 1",
-        shipping_zip: "40121"
-      } }, as: :json
+      post orders_url, params: params, as: :json
     end
 
     assert_response :created
@@ -49,27 +52,18 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
 
   test "should show order" do
     get order_url(@order), as: :json
-    assert_response :success
+
+    assert_response :ok
+    assert_equal @order.id, response.parsed_body["id"]
   end
 
   test "should update order" do
-    patch order_url(@order), params: { order: { shipping_city: @order.shipping_city, shipping_name: @order.shipping_name, shipping_street: @order.shipping_street, shipping_zip: @order.shipping_zip, status: @order.status } }, as: :json
-    assert_response :success
-  end
+    params = { order: @order_params[:order].merge(shipping_city: "Modena") }
 
-  test "should update status" do
-    patch order_url(@order), params: { order: { status: "completed" } }, as: :json
-    assert_response :success
-    assert_equal "completed", response.parsed_body["status"]
-  end
+    patch order_url(@order), params: params, as: :json
 
-  test "should reject a status transition leaving a final status" do
-    @order.update!(status: :cancelled)
-
-    patch order_url(@order), params: { order: { status: "completed" } }, as: :json
-
-    assert_response :unprocessable_entity
-    assert_equal "cancelled", @order.reload.status
+    assert_response :ok
+    assert_equal "Modena", @order.reload.shipping_city
   end
 
   test "should destroy order" do
@@ -80,23 +74,33 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_response :no_content
   end
 
+  # ─── Stato ─────────────────────────────────────────────────────────────────
+  test "should update status" do
+    patch order_url(@order), params: { order: { status: "completed" } }, as: :json
+
+    assert_response :ok
+    assert_equal "completed", response.parsed_body["status"]
+  end
+
+  test "should reject a status transition leaving a final status" do
+    @order.update!(status: :cancelled)
+
+    patch order_url(@order), params: { order: { status: "completed" } }, as: :json
+
+    assert_response :unprocessable_content
+    assert_equal "cancelled", @order.reload.status
+  end
+
+  # ─── Filtri ────────────────────────────────────────────────────────────────
   test "should filter orders by year" do
     @order.update!(created_at: Time.zone.parse("2025-05-20 10:00:00"))
-    other_order = Order.create!(
-      customer: @customer,
-      total: 250.50,
-      status: "completed",
-      shipping_name: "Luigi",
-      shipping_street: "Via Napoli 10",
-      shipping_city: "Napoli",
-      shipping_zip: "80121",
-      created_at: Time.zone.parse("2026-02-10 12:00:00"),
-      updated_at: Time.zone.parse("2026-02-10 12:00:00")
+    other_order = @customer.orders.create!(
+      @order_params[:order].merge(created_at: Time.zone.parse("2026-02-10 12:00:00"))
     )
 
-    get "/api/orders", params: { year: 2025, sort: "dateAsc" }, headers: { "ACCEPT" => "application/json" }
-    assert_response :success
+    get orders_url, params: { year: 2025, sort: "dateAsc" }
 
+    assert_response :ok
     ids = response.parsed_body.fetch("orders", []).map { |o| o["id"] }
     assert_includes ids, @order.id
     assert_not_includes ids, other_order.id

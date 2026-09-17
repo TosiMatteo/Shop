@@ -9,16 +9,7 @@ describe('OrderService', () => {
   let httpMock: HttpTestingController;
 
   const mockOrderResponse: OrderResponse = {
-    pagy: {
-      page: 1,
-      count: 2,
-      limit: 10,
-      last: 1,
-      from: 1,
-      to: 2,
-      prev: null,
-      next: null,
-    },
+    pagy: { page: 1, count: 2, limit: 10, last: 1, from: 1, to: 2, prev: null, next: null },
     orders: [
       {
         id: 1,
@@ -31,7 +22,7 @@ describe('OrderService', () => {
         total: 150.0,
         created_at: '2025-05-01T10:00:00Z',
         updated_at: '2025-05-01T10:00:00Z',
-        order_items: []
+        order_items: [],
       },
       {
         id: 2,
@@ -44,69 +35,55 @@ describe('OrderService', () => {
         total: 89.99,
         created_at: '2025-05-10T12:00:00Z',
         updated_at: '2025-05-10T12:00:00Z',
-        order_items: []
-      }
-    ]
+        order_items: [],
+      },
+    ],
   };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        OrderService,
-      ]
+      providers: [provideHttpClient(), provideHttpClientTesting(), OrderService],
     });
     service = TestBed.inject(OrderService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => {
-    httpMock.verify(); // assicura che non ci siano richieste HTTP pendenti
-  });
+  afterEach(() => httpMock.verify());
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
+  // ─── list() ────────────────────────────────────────────────────────────────
   describe('list()', () => {
     it('should GET orders without any filter', () => {
-      service.list({}).subscribe(response => {
-        expect(response.pagy.count).toBe(2);
-        expect(response.orders.length).toBe(2);
-      });
+      let response: OrderResponse | undefined;
+
+      service.list({}).subscribe(result => (response = result));
 
       const req = httpMock.expectOne('/api/orders');
       expect(req.request.method).toBe('GET');
-      expect(req.request.params.keys().length).toBe(0); // nessun parametro
+      expect(req.request.params.keys().length).toBe(0);
       req.flush(mockOrderResponse);
+
+      expect(response?.pagy.count).toBe(2);
+      expect(response?.orders.length).toBe(2);
     });
 
     it('should pass active filters as query params', () => {
-      service.list({
-        min: 10,
-        max: 100,
-        status: 'completed',
-        year: 2025,
-        sort: 'total',
-        page: 2,
-        limit: 5
-      }).subscribe();
+      service
+        .list({ min: 10, max: 100, status: 'completed', year: 2025, sort: 'total', page: 2, limit: 5 })
+        .subscribe();
 
       const req = httpMock.expectOne(
-        '/api/orders?min=10&max=100&status=completed&year=2025&sort=total&page=2&limit=5'
+        '/api/orders?min=10&max=100&status=completed&year=2025&sort=total&page=2&limit=5',
       );
       expect(req.request.method).toBe('GET');
       req.flush(mockOrderResponse);
     });
 
     it('should omit null and undefined filters', () => {
-      service.list({
-        min: null,
-        status: undefined,
-        year: 2025,
-        page: 1
-      }).subscribe();
+      service.list({ min: null, status: undefined, year: 2025, page: 1 }).subscribe();
 
       const req = httpMock.expectOne('/api/orders?year=2025&page=1');
       expect(req.request.method).toBe('GET');
