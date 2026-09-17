@@ -26,7 +26,7 @@ class AdminsControllerTest < ActionDispatch::IntegrationTest
     post admin_session_url, params: @invalid_login_params, as: :json
 
     assert_response :unauthorized
-    assert response.parsed_body["error"].present?
+    assert_match(/password non validi/, response.parsed_body["error"])
   end
 
   test "should handle logout without authentication gracefully" do

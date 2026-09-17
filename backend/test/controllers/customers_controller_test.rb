@@ -76,7 +76,7 @@ class CustomersControllerTest < ActionDispatch::IntegrationTest
     post customer_session_url, params: { customer: { email: @customer.email, password: "sbagliata" } }, as: :json
 
     assert_response :unauthorized
-    assert response.parsed_body["error"].present?
+    assert_match(/password non validi/, response.parsed_body["error"])
   end
 
   test "should not login with unconfirmed account" do

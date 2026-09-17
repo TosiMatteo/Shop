@@ -1,0 +1,67 @@
+# Traduzione italiana dei messaggi di Devise (stesse chiavi di devise.en.yml).
+# L'app usa :it come locale predefinito: senza questo file Devise restituisce
+# "Translation missing" nei messaggi di errore di autenticazione.
+
+it:
+  devise:
+    confirmations:
+      confirmed: "Il tuo indirizzo email è stato confermato."
+      send_instructions: "Riceverai a breve un'email con le istruzioni per confermare il tuo indirizzo."
+      send_paranoid_instructions: "Se il tuo indirizzo email è registrato, riceverai a breve un'email con le istruzioni per confermarlo."
+    failure:
+      already_authenticated: "Hai già effettuato l'accesso."
+      inactive: "Il tuo account non è ancora attivo."
+      invalid: "%{authentication_keys} o password non validi."
+      locked: "Il tuo account è bloccato."
+      last_attempt: "Hai ancora un tentativo prima che il tuo account venga bloccato."
+      not_found_in_database: "%{authentication_keys} o password non validi."
+      timeout: "La sessione è scaduta. Accedi di nuovo per continuare."
+      unauthenticated: "Devi accedere o registrarti per continuare."
+      unconfirmed: "Devi confermare il tuo indirizzo email per continuare."
+    mailer:
+      confirmation_instructions:
+        subject: "Istruzioni per la conferma dell'account"
+      reset_password_instructions:
+        subject: "Istruzioni per reimpostare la password"
+      unlock_instructions:
+        subject: "Istruzioni per sbloccare l'account"
+      email_changed:
+        subject: "Email modificata"
+      password_change:
+        subject: "Password modificata"
+    omniauth_callbacks:
+      failure: "Impossibile autenticarti tramite %{kind}: \"%{reason}\"."
+      success: "Accesso effettuato tramite l'account %{kind}."
+    passwords:
+      no_token: "Puoi accedere a questa pagina solo dal link dell'email di recupero password. Se vieni da quell'email, assicurati di aver usato l'indirizzo completo."
+      send_instructions: "Riceverai a breve un'email con le istruzioni per reimpostare la password."
+      send_paranoid_instructions: "Se il tuo indirizzo email è registrato, riceverai a breve un link per recuperare la password."
+      updated: "La password è stata modificata. Ora sei connesso."
+      updated_not_active: "La password è stata modificata."
+    registrations:
+      destroyed: "Il tuo account è stato cancellato. Speriamo di rivederti presto."
+      signed_up: "Benvenuto! La registrazione è andata a buon fine."
+      signed_up_but_inactive: "Registrazione completata, ma non puoi ancora accedere perché il tuo account non è attivo."
+      signed_up_but_locked: "Registrazione completata, ma non puoi accedere perché il tuo account è bloccato."
+      signed_up_but_unconfirmed: "Ti abbiamo inviato un'email con un link di conferma. Aprilo per attivare il tuo account."
+      update_needs_confirmation: "Account aggiornato, ma dobbiamo verificare il nuovo indirizzo email. Controlla la posta e apri il link di conferma."
+      updated: "Il tuo account è stato aggiornato."
+      updated_but_not_signed_in: "Il tuo account è stato aggiornato. Poiché hai cambiato la password, devi accedere di nuovo."
+    sessions:
+      signed_in: "Accesso effettuato."
+      signed_out: "Disconnessione effettuata."
+      already_signed_out: "Disconnessione effettuata."
+    unlocks:
+      send_instructions: "Riceverai a breve un'email con le istruzioni per sbloccare il tuo account."
+      send_paranoid_instructions: "Se il tuo account esiste, riceverai a breve un'email con le istruzioni per sbloccarlo."
+      unlocked: "Il tuo account è stato sbloccato. Accedi per continuare."
+  errors:
+    messages:
+      already_confirmed: "è già stato confermato, prova ad accedere"
+      confirmation_period_expired: "deve essere confermato entro %{period}, richiedine uno nuovo"
+      expired: "è scaduto, richiedine uno nuovo"
+      not_found: "non trovato"
+      not_locked: "non era bloccato"
+      not_saved:
+        one: "Un errore ha impedito il salvataggio di %{resource}:"
+        other: "%{count} errori hanno impedito il salvataggio di %{resource}:"
