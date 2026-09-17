@@ -88,9 +88,9 @@ export class LoginPage {
   onLogin(): void {
     if (this.loginForm.invalid) return;
 
-    // Login success creates a session; redirect to the authenticated landing page.
+    // Login success creates a session; redirect to the product catalog.
     this.authService.login(this.loginForm.value).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => this.router.navigate(['/products']),
     });
   }
 
