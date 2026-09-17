@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { PageEvent } from '@angular/material/paginator';
-
 import { ProductPage } from './product-page';
 import { ProductApi } from '../../../core/services/product/product-service';
 import { TagService } from '../../../core/services/product/tag-service';
@@ -14,7 +13,7 @@ describe('ProductPage', () => {
   let productApiMock: jasmine.SpyObj<ProductApi>;
   let tagServiceMock: jasmine.SpyObj<TagService>;
 
-  // Minimal empty response to satisfy the response$ observable.
+  // Risposta vuota minima per alimentare response$.
   const mockResponse: ProductsResponse = {
     pagy: { page: 1, count: 0, limit: 12, last: 1, from: 1, to: 0, prev: null, next: null },
     products: [],
@@ -41,15 +40,14 @@ describe('ProductPage', () => {
     fixture.detectChanges();
   });
 
-  // Helper to read the protected BehaviorSubject value without TypeScript errors.
+  // Legge il valore del BehaviorSubject protetto.
   const filters = () => (component as any).filters$.value;
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  // ─── filters$ initial state ───────────────────────────────────────────────
-
+  // ─── filters$ initial state ────────────────────────────────────────────────
   describe('filters$ initial state', () => {
     it('should initialise with correct default values', () => {
       expect(filters().title).toBe('');
@@ -62,8 +60,7 @@ describe('ProductPage', () => {
     });
   });
 
-  // ─── updateTitle() ────────────────────────────────────────────────────────
-
+  // ─── updateTitle() ─────────────────────────────────────────────────────────
   describe('updateTitle()', () => {
     it('should update title and reset page to 1', () => {
       (component as any).filters$.next({ ...filters(), page: 3 });
@@ -75,12 +72,11 @@ describe('ProductPage', () => {
     });
 
     it('should call ProductApi.list() with updated title after debounce', fakeAsync(() => {
-
       const localFixture = TestBed.createComponent(ProductPage);
       const localComponent = localFixture.componentInstance;
       localFixture.detectChanges();
 
-      // Fire the initial debounce so combineLatest emits at least once.
+      // Fa scattare il debounce iniziale, così combineLatest emette almeno una volta.
       tick(300);
       productApiMock.list.calls.reset();
 
@@ -88,15 +84,14 @@ describe('ProductPage', () => {
       tick(300);
 
       expect(productApiMock.list).toHaveBeenCalledWith(
-        jasmine.objectContaining({ title: 'giacca' })
+        jasmine.objectContaining({ title: 'giacca' }),
       );
 
       localFixture.destroy();
     }));
   });
 
-  // ─── updateSort() ─────────────────────────────────────────────────────────
-
+  // ─── updateSort() ──────────────────────────────────────────────────────────
   describe('updateSort()', () => {
     it('should update sort and reset page to 1', () => {
       (component as any).filters$.next({ ...filters(), page: 2 });
@@ -108,8 +103,7 @@ describe('ProductPage', () => {
     });
   });
 
-  // ─── updatePriceMin() / updatePriceMax() ─────────────────────────────────
-
+  // ─── updatePriceMin() / updatePriceMax() ───────────────────────────────────
   describe('updatePriceMin()', () => {
     it('should set min price from a valid number', () => {
       component.updatePriceMin(10);
@@ -129,6 +123,7 @@ describe('ProductPage', () => {
     it('should reset page to 1 when min price changes', () => {
       (component as any).filters$.next({ ...filters(), page: 3 });
       component.updatePriceMin(5);
+
       expect(filters().page).toBe(1);
     });
   });
@@ -152,8 +147,7 @@ describe('ProductPage', () => {
     });
   });
 
-  // ─── updateSale() ─────────────────────────────────────────────────────────
-
+  // ─── updateSale() ──────────────────────────────────────────────────────────
   describe('updateSale()', () => {
     it('should set saleFilter to true and reset page to 1', () => {
       (component as any).filters$.next({ ...filters(), page: 2 });
@@ -171,8 +165,7 @@ describe('ProductPage', () => {
     });
   });
 
-  // ─── updateTags() ─────────────────────────────────────────────────────────
-
+  // ─── updateTags() ──────────────────────────────────────────────────────────
   describe('updateTags()', () => {
     it('should set tag and reset page to 1', () => {
       (component as any).filters$.next({ ...filters(), page: 2 });
@@ -190,8 +183,7 @@ describe('ProductPage', () => {
     });
   });
 
-  // ─── onPage() ─────────────────────────────────────────────────────────────
-
+  // ─── onPage() ──────────────────────────────────────────────────────────────
   describe('onPage()', () => {
     it('should convert 0-based pageIndex to 1-based backend page', () => {
       const event: PageEvent = { pageIndex: 2, pageSize: 12, length: 100 };
