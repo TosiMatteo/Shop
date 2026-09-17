@@ -5,10 +5,11 @@ require "test_helper"
 class OrderTest < ActiveSupport::TestCase
   def setup
     @customer = customers(:Customer_Auth)
-    @order = orders(:one)
+    @order = orders(:one)            # Customer_Auth, processing
+    @completed_order = orders(:two)  # Customer_NoAuth, completed
   end
 
-  # Crea un ordine valido, sovrascrivibile attributo per attributo.
+  # Crea un ordine nuovo, per i test che ne richiedono più di quelli in fixture.
   def build_order(**overrides)
     Order.new({
       customer: @customer,
@@ -26,20 +27,25 @@ class OrderTest < ActiveSupport::TestCase
   end
 
   test "is invalid without a customer" do
-    assert_not build_order(customer: nil).valid?
+    @order.customer = nil
+    assert_not @order.valid?
   end
 
   test "is invalid with a negative total" do
-    assert_not build_order(total: -1).valid?
+    @order.total = -1
+    assert_not @order.valid?
   end
 
   test "accepts a zero total" do
-    assert build_order(total: 0).valid?
+    @order.total = 0
+    assert @order.valid?
   end
 
   test "is invalid without each shipping field" do
     %i[shipping_name shipping_street shipping_city shipping_zip].each do |field|
-      assert_not build_order(field => nil).valid?, "#{field} dovrebbe essere obbligatorio"
+      @order.reload
+      @order[field] = nil
+      assert_not @order.valid?, "#{field} dovrebbe essere obbligatorio"
     end
   end
 
@@ -48,7 +54,7 @@ class OrderTest < ActiveSupport::TestCase
   end
 
   test "rejects a status outside the enum" do
-    assert_raises(ArgumentError) { build_order(status: "shipped") }
+    assert_raises(ArgumentError) { @order.status = "shipped" }
   end
 
   # ─── Filtri, verificati in entrambe le direzioni ───────────────────────────
@@ -80,12 +86,10 @@ class OrderTest < ActiveSupport::TestCase
   end
 
   test "search_by_status keeps only the orders in the given status" do
-    completed = build_order(status: :completed).tap(&:save!)
+    result = Order.search_by_status("completed")
 
-    result = @customer.orders.search_by_status("completed")
-
-    assert_includes result, completed
-    assert_not_includes result, @order # fixture: processing
+    assert_includes result, @completed_order
+    assert_not_includes result, @order
   end
 
   test "search_by_status without a status is the identity" do
@@ -132,8 +136,8 @@ class OrderTest < ActiveSupport::TestCase
   # completed e cancelled sono stati finali: nessuna transizione uscente.
   test "allows the transitions leaving processing" do
     %i[completed cancelled].each do |target|
-      order = build_order.tap(&:save!)
-      assert order.update(status: target), "processing -> #{target} dovrebbe essere ammessa"
+      @order.update_column(:status, :processing)
+      assert @order.update(status: target), "processing -> #{target} dovrebbe essere ammessa"
     end
   end
 
@@ -143,19 +147,17 @@ class OrderTest < ActiveSupport::TestCase
       cancelled: %i[processing completed]
     }.each do |from, targets|
       targets.each do |to|
-        order = build_order(status: from).tap(&:save!)
+        @order.update_column(:status, from)
 
-        assert_not order.update(status: to), "#{from} -> #{to} non dovrebbe essere ammessa"
-        assert_includes order.errors.attribute_names, :status
-        assert_equal from.to_s, order.reload.status
+        assert_not @order.update(status: to), "#{from} -> #{to} non dovrebbe essere ammessa"
+        assert_includes @order.errors.attribute_names, :status
+        assert_equal from.to_s, @order.reload.status
       end
     end
   end
 
   test "saving a final order without touching the status is allowed" do
-    order = build_order(status: :cancelled).tap(&:save!)
-
-    assert order.update(shipping_city: "Modena")
+    assert @completed_order.update(shipping_city: "Modena")
   end
 
   # ─── Totale dell'ordine (regressione) ──────────────────────────────────────

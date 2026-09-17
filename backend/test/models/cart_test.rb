@@ -6,11 +6,14 @@ class CartTest < ActiveSupport::TestCase
   def setup
     # carts(:one) appartiene a Customer_Auth e contiene una riga: products(:pc) x 1.
     @cart = carts(:one)
+    # carts(:two) appartiene a Customer_NoAuth e contiene una riga: products(:book) x 1.
+    @other_cart = carts(:two)
   end
 
   # ─── Associazioni obbligatorie ─────────────────────────────────────────────
   test "is invalid without a customer" do
-    assert_not Cart.new.valid?
+    @cart.customer = nil
+    assert_not @cart.valid?
   end
 
   # ─── total_price = Σ qty(i) × price(prod(i)) ───────────────────────────────
@@ -22,9 +25,9 @@ class CartTest < ActiveSupport::TestCase
   end
 
   test "total_price of an empty cart is zero, not nil" do
-    empty = Cart.create!(customer: customers(:Customer_NoAuth))
+    @other_cart.cart_items.destroy_all
 
-    assert_equal 0, empty.total_price
+    assert_equal 0, @other_cart.total_price
   end
 
   test "total_price does not modify the cart" do
@@ -89,14 +92,13 @@ class CartTest < ActiveSupport::TestCase
 
   # ─── Checkout, carrello vuoto ──────────────────────────────────────────────
   test "checkout of an empty cart fails and leaves the state untouched" do
-    empty = carts(:two)
-    empty.cart_items.destroy_all
+    @other_cart.cart_items.destroy_all
 
     assert_no_difference [ "Order.count", "OrderItem.count", "Cart.count" ] do
-      assert_raises(ActiveRecord::RecordInvalid) { empty.checkout(SHIPPING) }
+      assert_raises(ActiveRecord::RecordInvalid) { @other_cart.checkout(SHIPPING) }
     end
 
-    assert Cart.exists?(empty.id), "il carrello non deve essere distrutto se il checkout fallisce"
+    assert Cart.exists?(@other_cart.id), "il carrello non deve essere distrutto se il checkout fallisce"
   end
 
   # ─── Checkout, spedizione incompleta, atomicità della transazione ──────────

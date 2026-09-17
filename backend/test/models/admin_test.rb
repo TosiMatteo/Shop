@@ -4,41 +4,45 @@ require "test_helper"
 # Nota: gli admin non si registrano dalle API pubbliche (routes.rb, skip: [:registrations]),
 # quindi qui si verifica solo il modello.
 class AdminTest < ActiveSupport::TestCase
-  def build_admin(**overrides)
-    Admin.new({ email: "nuovo.admin@shop.com", password: "password123" }.merge(overrides))
+  def setup
+    @admin = admins(:one)
   end
 
-  test "a new admin with complete credentials is valid" do
-    assert build_admin.valid?
+  test "the fixture admin is valid" do
+    assert @admin.valid?
   end
 
   test "is invalid without an email" do
-    assert_not build_admin(email: nil).valid?
+    @admin.email = nil
+    assert_not @admin.valid?
   end
 
   test "is invalid with a malformed email" do
-    assert_not build_admin(email: "non-una-email").valid?
+    @admin.email = "non-una-email"
+    assert_not @admin.valid?
   end
 
+  # Serve un secondo admin: la fixture è l'unica esistente.
   test "rejects an email already taken, regardless of case" do
-    duplicate = build_admin(email: "ADMIN1@SHOP.COM")
+    duplicate = Admin.new(email: "ADMIN1@SHOP.COM", password: "password123")
 
     assert_not duplicate.valid?
     assert_includes duplicate.errors.attribute_names, :email
   end
 
   test "downcases the email before validation" do
-    admin = build_admin(email: "Nuovo.Admin@Shop.COM")
-    admin.valid?
+    @admin.email = "Admin1@Shop.COM"
+    @admin.valid?
 
-    assert_equal "nuovo.admin@shop.com", admin.email
+    assert_equal "admin1@shop.com", @admin.email
   end
 
   test "rejects a password shorter than six characters" do
-    assert_not build_admin(password: "12345").valid?
+    @admin.password = "12345"
+    assert_not @admin.valid?
   end
 
   test "carries the admin role in the jwt payload" do
-    assert_equal "Admin", build_admin.jwt_payload["user_type"]
+    assert_equal "Admin", @admin.jwt_payload["user_type"]
   end
 end
